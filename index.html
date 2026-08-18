@@ -95,30 +95,21 @@ body.off #offbar{display:block}
   padding:6px 0;font-family:inherit;font-size:16px;color:var(--tx1);outline:none}
 .anat-in:focus{border-bottom-color:var(--conv)}
 .anat-in::placeholder{color:var(--tx3);font-size:12px}
-/* v15 · ▦ 강의 자료실 — 칸마다 «강의 한 편이 되나»를 같이 말한다 */
+/* v16 · 선반 = 제목줄 + 그 아래 «서재 카드 그대로» (뷰를 둘로 쪼개지 않는다) */
 .shsec{font-size:10.5px;font-weight:800;color:var(--tx3);letter-spacing:.04em;margin:18px 2px 8px}
-.shelf{border:1px solid var(--line);border-left:3px solid var(--c);border-radius:var(--r-md);
-  background:var(--glass);padding:11px 0 11px 12px;margin-bottom:10px}
-.shhd{display:flex;align-items:center;gap:8px;padding-right:12px;margin-bottom:9px}
-.shhd b{font-size:12.5px;font-weight:800;color:var(--c)}
+.shelf2{margin-bottom:16px}
+.shhd{display:flex;align-items:center;gap:8px;margin:0 2px 8px;padding-left:9px;border-left:3px solid var(--c)}
+.shhd b{font-size:13px;font-weight:800;color:var(--c)}
 .shhd s{text-decoration:none;font-size:10.5px;color:var(--tx3)}
 .lec-ok{margin-left:auto;font-size:9.5px;font-weight:800;color:#06140F;background:var(--conv);border-radius:99px;padding:3px 9px}
 .lec-wait{margin-left:auto;font-size:9.5px;font-weight:700;color:var(--tx3);border:1px solid var(--line2);border-radius:99px;padding:3px 9px}
-.shrow{display:flex;gap:9px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
-.shrow::-webkit-scrollbar{display:none}
-.shc{flex:none;width:132px}
-.shth{width:100%;aspect-ratio:4/5;border-radius:11px;cursor:pointer;background:var(--glass-hi)}
-.shtt{font-size:11px;font-weight:700;color:var(--tx1);margin-top:6px;line-height:1.4;cursor:pointer;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.shst{font-size:10px;color:var(--conv);margin-top:4px;line-height:1.45;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.shst.dim{color:var(--tx3)}
-.shbt{display:flex;gap:5px;margin-top:7px}
-.shbt button{flex:1;font-family:inherit;font-size:9.5px;font-weight:700;cursor:pointer;border-radius:8px;padding:5px 2px;
-  background:var(--glass);color:var(--tx2);border:1px solid var(--line)}
-.shbt button.on{background:var(--prod);color:#0B1000;border-color:var(--prod)}
-.shbt button:active{transform:scale(.94)}
-.shempty{font-size:11px;color:var(--tx3);padding:10px 12px 10px 0}
+/* 카드 안 «훔칠 것» 한 줄 + 처방·강의 버튼 */
+.vc2 .vst{display:block;color:var(--conv);margin-top:2px}
+.vc2 .vbt{display:flex;gap:4px;padding:0 8px 8px}
+.vc2 .vbt i{flex:1;font-style:normal;text-align:center;font-size:11px;cursor:pointer;border-radius:7px;padding:4px 0;
+  background:var(--glass);border:1px solid var(--line)}
+.vc2 .vbt i.on{background:var(--prod);border-color:var(--prod)}
+.vc2 .vbt i:active{transform:scale(.92)}
 /* v12 · 해부 = 세로 공정(B안) + 원고 칠하기(C안) */
 .pstep{border-left:2px solid var(--sc);padding:0 0 20px 14px;position:relative;margin-left:6px}
 .pstep::before{content:'';position:absolute;left:-6px;top:3px;width:10px;height:10px;border-radius:50%;background:var(--sc)}
@@ -359,7 +350,8 @@ body.in-sub #tb-set{display:none}
 .vc .mt b{color:var(--tx2)}
 
 /* ── 세로 영상 카드 (정찰 스크린샷 문법: ▶조회수=라임) ── */
-.vgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+/* v16 · 폰 3열 · 태블릿 4열 · PC 5열 (사장님 지시) */
+.vgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .vc2{border:1px solid var(--line);border-radius:14px;background:var(--bg1);overflow:hidden;text-align:left;transition:transform .18s var(--spring)}
 .vc2:active{transform:scale(.96)}
 .vc2 .th{position:relative;aspect-ratio:9/13}
@@ -478,13 +470,13 @@ body.in-sub #tb-set{display:none}
 .pgrid{display:grid;grid-template-columns:1fr;gap:10px}
 .pgrid .pc{margin-bottom:0}
 @media (min-width:700px){
-  .vgrid{grid-template-columns:repeat(3,1fr)}
+  .vgrid{grid-template-columns:repeat(4,1fr);gap:10px}
   .pgrid{grid-template-columns:repeat(3,1fr)}
 }
 @media (min-width:700px){
   .sgrid{grid-template-columns:repeat(3,1fr)}
 }
-@media (min-width:1000px){
+@media (min-width:880px){
   .wrap{max-width:1120px}
   .vgrid{grid-template-columns:repeat(5,1fr)}
   .pgrid{grid-template-columns:repeat(5,1fr)}
@@ -741,22 +733,15 @@ body.in-sub #tb-set{display:none}
 
   <!-- ═══ 타일2: 영상 서재 ═══ -->
   <section class="scr" id="scr-s2">
-    <div class="hero"><h1>영상 서재</h1><div class="sub">카드 한 장 = 영상 실물 + 원고 + 훔칠 것 한 줄</div></div>
+    <div class="hero"><h1>강의 자료실</h1><div class="sub">모을수록 선반이 자란다 — 재료가 차면 «강의 준비됨»이 뜹니다</div></div>
     <!-- v9 · 실데이터 — 담기 한 줄 + 필터 2줄 + 카드 -->
     <div class="msd-paste">
       <input id="vid-in" placeholder="🔗 영상 링크 붙여넣기 (유튜브는 제목·그림 자동)" autocomplete="off">
       <button type="button" data-vidadd="1">담기</button>
     </div>
-    <!-- v15 · 보기 전환 — 카드로 훑거나, 강의 만들 재료로 보거나 -->
-    <div class="dseg" id="vseg">
-      <b class="on" data-vview="card">🎬 카드</b><b data-vview="shelf">▦ 강의 자료실</b>
-    </div>
-    <div id="vpane-card">
-      <div class="chips" id="vf-topic"></div>
-      <div class="chips" id="vf-axis"></div>
-      <div class="vgrid" id="vid-list"></div>
-    </div>
-    <div id="vpane-shelf" style="display:none"></div>
+    <div class="chips" id="vf-topic"></div>
+    <div class="chips" id="vf-axis"></div>
+    <div id="vid-list"></div>
   </section>
 
   <!-- ═══ 타일3: 프롬프트 서랍장 ═══ -->
@@ -948,7 +933,7 @@ body.in-sub #tb-set{display:none}
 <!-- ══ 하단 유리 도크 — 강사실 ══ -->
 <nav class="dock" id="dock">
   <button data-scr="s1" class="on">🏠<span>홈</span></button>
-  <button data-scr="s2">🎬<span>영상</span></button>
+  <button data-scr="s2">📚<span>자료실</span></button>
   <button data-scr="s3">✦<span>프롬프트</span></button>
   <button data-scr="s4">🗄<span>서랍</span></button>
   <button data-scr="s5">📊<span>성적표</span></button>
@@ -982,7 +967,7 @@ body.in-sub #tb-set{display:none}
 const APP_CFG = {
   name: '컨텐츠의 모든것',
   key: 'cme',
-  ver: 'v15',
+  ver: 'v16',
   tagline: '오늘 본 것이 휘발되지 않는다',
   demo: false,   // v7 · 실서버 배선 완료(2026-08-18)
   demoCode: 'EEEEEE', demoPin: '2222',
@@ -1555,7 +1540,12 @@ function vidCard(v){
     '<div class="th" style="'+th+'">'+(v.views?'<span class="vw">'+esc(v.views)+'</span>':'')+
       (v.grp?'<span class="dur">'+esc(v.grp)+'</span>':'')+'</div>'+
     '<div class="tt">'+esc(v.title)+'</div>'+
-    '<small>'+(segN?'해부 '+segN+'/6':'아직 해부 전')+(ax?' · ':'')+ax+'</small></button>';
+    "<small>"+(segN?'해부 '+segN+'/6':'아직 해부 전')+(ax?' · ':'')+ax+"</small>"+
+    (v.text?'<small class="vst">✂ '+esc(v.text)+'</small>':'')+
+    '<span class="vbt">'+
+      '<i data-shrx="'+v.id+'">💊</i>'+
+      '<i class="'+((v.tags||[]).indexOf('강의')>=0?'on':'')+'" data-shlec="'+v.id+'">🎓</i>'+
+    '</span></button>';
 }
 function vidRender(){
   const tw=$('#vf-topic'), aw=$('#vf-axis'), lw=$('#vid-list');
@@ -1566,46 +1556,45 @@ function vidRender(){
     (tops.length?'':'<b style="opacity:.45" data-vft="all">주제는 카드에서 정하면 여기 생겨요</b>');
   if(aw) aw.innerHTML = '<em>잘함</em><b class="'+(_vfAxis==='all'?'on2':'')+'" data-vfa="all">전체</b>'+
     VID_AXES.map(a=>'<b class="'+(_vfAxis===a[0]?'on2':'')+'" data-vfa="'+a[0]+'" style="color:var(--'+a[1]+')">'+a[0]+'</b>').join('');
+
   const l = vidList();
-  lw.innerHTML = l.length ? l.map(vidCard).join('')
-    : '<div class="msd-ghost" style="grid-column:1/-1"><div class="gt">🎬 "32살에 미용실 3개" — 첫 컷이 통장</div><div class="gs">후킹 · 해부 6/6</div></div>'+
-      '<p class="msd-hint" style="grid-column:1/-1;text-align:center">이렇게 쌓입니다 — 위에 영상 링크를 붙여넣어 보세요</p>';
-}
-/* ══════════════════════════════════════════════════════════════
-   v11 · 원고 → 구간 나누기 (AI 없음)
-     ⚠️ v10에서 GPT 분해봇을 넣었다가 걷어냈다 — 사장님이 말한 «분해»는 그게 아니었고,
-        비용 드는 AI를 묻지도 않고 넣은 것 자체가 규칙 위반이었다(AI는 opt-in만).
-   ══════════════════════════════════════════════════════════════ */
-/* 붙여넣은 원고를 구간으로 나눈다 — 라벨 줄(«도입부», «도입부>», «[도입부]»)을 찾아 그 아래를 담는다.
-   ⚠️ AI를 쓰지 않는다. 라벨이 없으면 통째로 도입부에 넣고 사장님이 옮기면 된다. */
-function cmeParseSegs(text){
-  const out={segs:{}, topic:'', axis:'', steal:''};
-  const lines = String(text||'').split(/\r?\n/);
-  let cur='';
-  lines.forEach(raw=>{
-    const line = raw.trim(); if(!line) return;
-    const m = line.match(/^[\[\(]?\s*([가-힣A-Za-z]{2,4})\s*[0-9]*\s*[\]\)]?\s*[:>·\-]?\s*(.*)$/);
-    const key = m ? m[1] : '';
-    const role = key ? (VID_ROLES.filter(r=>key===r)[0] || (key==='CTA'?'CTA':'')) : '';
-    if(role){ cur=role; const rest=(m[2]||'').trim(); if(rest) out.segs[role]=(out.segs[role]?out.segs[role]+' ':'')+rest; return; }
-    if(key==='주제'){ out.topic=(m[2]||'').trim(); return; }
-    if(key==='훔칠것'||key==='훔칠'){ out.steal=(m[2]||'').trim(); return; }
-    if(!cur) cur='도입부';                       /* 라벨이 하나도 없는 통짜 원고 */
-    out.segs[cur] = (out.segs[cur] ? out.segs[cur]+' ' : '') + line;
+  if(!l.length){
+    lw.innerHTML = '<div class="vgrid"><div class="msd-ghost" style="grid-column:1/-1">'+
+      '<div class="gt">🎬 "32살에 미용실 3개" — 첫 컷이 통장</div><div class="gs">후킹 · ✂ 실패를 먼저 보여준다</div></div></div>'+
+      '<p class="msd-hint" style="text-align:center">위에 영상 링크를 붙여넣어 보세요</p>';
+    return;
+  }
+  /* 필터를 걸었으면 그냥 한 판, 「전체」면 선반으로 나눠 보여준다 */
+  if(_vfTopic!=='all' || _vfAxis!=='all'){
+    lw.innerHTML = '<div class="vgrid">'+l.map(vidCard).join('')+'</div>';
+    return;
+  }
+  const used=new Set();
+  let html='';
+  const lec=l.filter(v=>(v.tags||[]).indexOf('강의')>=0);
+  if(lec.length){ html+=shelfBlock('🎓 강의에 넣어둔 것','var(--prod)',lec); lec.forEach(v=>used.add(v.id)); }
+  VID_AXES.forEach(a=>{
+    const arr=l.filter(v=>(v.tags||[]).indexOf(a[0])>=0);
+    if(arr.length){ html+=shelfBlock(a[0],'var(--'+a[1]+')',arr); arr.forEach(v=>used.add(v.id)); }
   });
-  return out;
+  const byTopic={};
+  l.forEach(v=>{ if(used.has(v.id)) return; const g=v.grp||''; if(g)(byTopic[g]=byTopic[g]||[]).push(v); });
+  Object.keys(byTopic).sort((a,b)=>byTopic[b].length-byTopic[a].length).forEach((g,i)=>{
+    html+=shelfBlock(g,'var(--'+['hook','story','conv','prod'][i%4]+')',byTopic[g]);
+    byTopic[g].forEach(v=>used.add(v.id));
+  });
+  const rest=l.filter(v=>!used.has(v.id));
+  if(rest.length) html+=shelfBlock('아직 분류 안 함','var(--tx3)',rest);
+  lw.innerHTML=html;
 }
-async function cmeApplyParse(text){
-  const v=_items.filter(x=>x.id===_anatId)[0]; if(!v){ toast('먼저 영상을 고르세요'); return; }
-  const r=cmeParseSegs(text);
-  const n=Object.keys(r.segs).length;
-  if(!n && !r.steal){ toast('분해 결과를 못 읽었어요 — «도입부> …» 형식인지 확인해주세요'); return; }
-  const m=vmeta(v); m.segs=Object.assign(m.segs||{}, r.segs); vmetaSet(v,m);
-  if(r.topic && !v.grp) v.grp=r.topic.slice(0,20);
-  if(r.steal) v.text=r.steal.slice(0,120);
-  if(r.axis && VID_AXES.some(a=>a[0]===r.axis) && !(v.tags||[]).length) v.tags=[r.axis];
-  await itemsSave(v); anatRender(); vidRender(); homeRender();
-  toast('🔪 '+n+'구간이 채워졌어요' + (r.steal?' · 훔칠 것까지':''));
+/* 선반 하나 = 제목줄(강의 준비도) + 카드 그리드 — 카드는 서재의 그 카드 그대로 */
+function shelfBlock(title,color,list){
+  const r=lecReady(list);
+  const badge = r.ok ? '<span class="lec-ok">강의 준비됨</span>'
+    : '<span class="lec-wait">'+(r.v<LEC_MIN_V ? (LEC_MIN_V-r.v)+'편 더' : (LEC_MIN_S-r.s)+'줄 더')+'</span>';
+  return '<div class="shelf2" style="--c:'+color+'">'+
+    '<div class="shhd"><b>'+esc(title)+'</b><s>'+r.v+'편 · 훔칠 것 '+r.s+'</s>'+badge+'</div>'+
+    '<div class="vgrid">'+list.map(vidCard).join('')+'</div></div>';
 }
 
 /* ── 한 편의 해부 — 카드를 누르면 그 영상이 열린다 ── */
@@ -2086,65 +2075,13 @@ function scoreRender(){
      개수만 세는 게 아니라 «이걸로 강의 한 편이 되나»를 같이 말해준다.
      영상만 쌓여선 강의가 안 된다 — 훔칠 것(교훈)이 몇 줄 붙었는지가 진짜 재료.
    ══════════════════════════════════════════════════════════════ */
-let _vView='card';
+/* v16 · 보기 전환은 폐기 — 한 화면에서 선반으로 본다 */
 const LEC_MIN_V=4, LEC_MIN_S=3;   /* 강의 한 편의 최소 재료: 영상 4편 + 훔칠 것 3줄 */
 
 function lecReady(list){
   const steal=list.filter(v=>String(v.text||'').trim()).length;
   return { v:list.length, s:steal, ok:(list.length>=LEC_MIN_V && steal>=LEC_MIN_S) };
 }
-function shelfRow(title, color, list, key){
-  const r=lecReady(list);
-  const badge = r.ok
-    ? '<span class="lec-ok">강의 준비됨</span>'
-    : '<span class="lec-wait">'+(r.v<LEC_MIN_V ? (LEC_MIN_V-r.v)+'편 더' : (LEC_MIN_S-r.s)+'줄 더')+'</span>';
-  const cards = list.length ? list.slice(0,12).map(v=>{
-    const th = v.img_path ? 'background-image:url('+esc(v.img_path)+');background-size:cover;background-position:center'
-                          : 'background:linear-gradient(160deg,#2a2450,#141126)';
-    return '<div class="shc"><div class="shth" style="'+th+'" data-vid="'+v.id+'"></div>'+
-      '<div class="shtt" data-vid="'+v.id+'">'+esc(v.title)+'</div>'+
-      (v.text ? '<div class="shst">✂ '+esc(v.text)+'</div>' : '<div class="shst dim">훔칠 것을 아직 안 적었어요</div>')+
-      '<div class="shbt">'+
-        '<button type="button" data-shrx="'+v.id+'">💊 처방</button>'+
-        '<button type="button" class="'+((v.tags||[]).indexOf('강의')>=0?'on':'')+'" data-shlec="'+v.id+'">🎓 강의</button>'+
-      '</div></div>';
-  }).join('') : '<div class="shempty">아직 없어요 — 이 칸에 영상을 담고 «잘하는 일»을 달면 쌓입니다</div>';
-  return '<div class="shelf" style="--c:'+color+'">'+
-    '<div class="shhd"><b>'+esc(title)+'</b><s>영상 '+r.v+' · 훔칠 것 '+r.s+'</s>'+badge+'</div>'+
-    '<div class="shrow">'+cards+'</div></div>';
-}
-function shelfRender(){
-  const w=$('#vpane-shelf'); if(!w) return;
-  const vids=vidAll();
-  const lec=vids.filter(v=>(v.tags||[]).indexOf('강의')>=0);
-  let html='';
-  /* 0) 강의로 찍어둔 것 — 맨 위 */
-  if(lec.length) html+=shelfRow('🎓 강의에 넣어둔 것','var(--prod)',lec,'lec');
-  /* 1) 잘하는 일 4축 — 강의 한 편의 단위 */
-  html+='<div class="shsec">잘하는 일로 — 강의 한 편의 뼈대</div>';
-  VID_AXES.forEach(a=>{
-    html+=shelfRow(a[0], 'var(--'+a[1]+')', vids.filter(v=>(v.tags||[]).indexOf(a[0])>=0), a[0]);
-  });
-  /* 2) 주제별 — 업종·분야 강의용 */
-  const byTopic={}; vids.forEach(v=>{ const g=v.grp||''; if(g) (byTopic[g]=byTopic[g]||[]).push(v); });
-  const tops=Object.keys(byTopic).sort((a,b)=>byTopic[b].length-byTopic[a].length);
-  if(tops.length){
-    html+='<div class="shsec">주제로 — 업종·분야 강의용</div>';
-    tops.forEach((g,i)=>{ html+=shelfRow(g, 'var(--'+['hook','story','conv','prod'][i%4]+')', byTopic[g], g); });
-  }
-  /* 3) 아직 정리 안 된 것 */
-  const raw=vids.filter(v=>!(v.tags||[]).length && !v.grp);
-  if(raw.length) html+=shelfRow('아직 분류 안 함','var(--tx3)',raw,'raw');
-  w.innerHTML=html;
-}
-function vViewPaint(){
-  const c=$('#vpane-card'), sh=$('#vpane-shelf');
-  if(c) c.style.display = _vView==='card' ? '' : 'none';
-  if(sh) sh.style.display = _vView==='shelf' ? '' : 'none';
-  $$('#vseg b').forEach(b=>b.classList.toggle('on', b.dataset.vview===_vView));
-  if(_vView==='shelf') shelfRender();
-}
-
 /* 데이터가 바뀌면 화면 전부를 다시 그린다 — 한 곳에서 부르게 모아둔다 */
 function paintAll(){
   try{ musRender(); }catch(e){}
@@ -2159,7 +2096,6 @@ function paintAll(){
   try{ hwRender(); }catch(e){}
   try{ stuRender(); }catch(e){}
   try{ scoreRender(); }catch(e){}
-  try{ if(_vView==='shelf') shelfRender(); }catch(e){}
 }
 
 /* 음악 서랍 클릭 — 서랍 화면 전체에 한 번만 건다 */
@@ -2169,8 +2105,6 @@ document.addEventListener('click', async e=>{
 
   if(hit('data-musadd')){ const i=$('#mus-in'); if(i){ const v=i.value; i.value=''; await musAdd(v); } return; }
   /* ── v15 · 강의 자료실 보기 ── */
-  const vv = hit('data-vview');
-  if(vv){ _vView=vv; vViewPaint(); return; }
   const shrx = hit('data-shrx');
   if(shrx){
     const v=_items.filter(x=>x.id===shrx)[0]; if(!v) return;
@@ -2185,7 +2119,7 @@ document.addEventListener('click', async e=>{
     v.tags=v.tags||[];
     const at=v.tags.indexOf('강의');
     if(at>=0) v.tags.splice(at,1); else v.tags.push('강의');
-    await itemsSave(v); shelfRender(); vidRender();
+    await itemsSave(v); vidRender();
     toast(at>=0?'강의에서 뺐어요':'🎓 강의에 넣었어요'); return;
   }
   /* ── v9 · 영상 서재 ── */
