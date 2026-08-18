@@ -1,6 +1,6 @@
 /* 컨텐츠의 모든것 — 배포 때마다 숫자 ++
    🚨 «배포했는데 안 바뀜» 1순위 = 이 파일 바이트 동일 → 배포 직전 한 번 더 ++ */
-const CACHE_NAME = 'cme-v9';
+const CACHE_NAME = 'cme-v10';
 const ASSETS = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
