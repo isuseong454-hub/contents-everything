@@ -95,6 +95,10 @@ body.off #offbar{display:block}
   padding:6px 0;font-family:inherit;font-size:16px;color:var(--tx1);outline:none}
 .anat-in:focus{border-bottom-color:var(--conv)}
 .anat-in::placeholder{color:var(--tx3);font-size:12px}
+.pklb{font-size:10.5px;font-weight:800;color:var(--tx2);margin:12px 0 6px}
+.pklb s{text-decoration:none;font-weight:600;color:var(--tx3);margin-left:6px}
+.msd-pick .p.add{border-style:dashed;color:var(--conv);border-color:rgba(111,224,200,.45)}
+.msd-pick .p.on{border-color:var(--pc,rgba(111,224,200,.5));color:var(--pc,var(--conv))}
 /* v16 · 선반 = 제목줄 + 그 아래 «서재 카드 그대로» (뷰를 둘로 쪼개지 않는다) */
 .shsec{font-size:10.5px;font-weight:800;color:var(--tx3);letter-spacing:.04em;margin:18px 2px 8px}
 .shelf2{margin-bottom:16px}
@@ -967,7 +971,7 @@ body.in-sub #tb-set{display:none}
 const APP_CFG = {
   name: '컨텐츠의 모든것',
   key: 'cme',
-  ver: 'v16',
+  ver: 'v17',
   tagline: '오늘 본 것이 휘발되지 않는다',
   demo: false,   // v7 · 실서버 배선 완료(2026-08-18)
   demoCode: 'EEEEEE', demoPin: '2222',
@@ -1555,7 +1559,8 @@ function vidRender(){
     tops.map(t=>'<b class="'+(_vfTopic===t?'on':'')+'" data-vft="'+esc(t)+'">'+esc(t)+'</b>').join('') +
     (tops.length?'':'<b style="opacity:.45" data-vft="all">주제는 카드에서 정하면 여기 생겨요</b>');
   if(aw) aw.innerHTML = '<em>잘함</em><b class="'+(_vfAxis==='all'?'on2':'')+'" data-vfa="all">전체</b>'+
-    VID_AXES.map(a=>'<b class="'+(_vfAxis===a[0]?'on2':'')+'" data-vfa="'+a[0]+'" style="color:var(--'+a[1]+')">'+a[0]+'</b>').join('');
+    vidAxes().map(a=>'<b class="'+(_vfAxis===a[0]?'on2':'')+'" data-vfa="'+esc(a[0])+'" style="color:var(--'+a[1]+')">'+esc(a[0])+'</b>').join('')+
+    vidKinds().map(k=>'<b class="'+(_vfAxis===k?'on2':'')+'" data-vfa="'+esc(k)+'">'+esc(k)+'</b>').join('');
 
   const l = vidList();
   if(!l.length){
@@ -1569,22 +1574,28 @@ function vidRender(){
     lw.innerHTML = '<div class="vgrid">'+l.map(vidCard).join('')+'</div>';
     return;
   }
-  const used=new Set();
+  /* ⚠️ 한 영상이 여러 선반에 겹쳐 나오는 게 «정상» — 주제·종류·잘하는 일은 서로 다른 질문이다 */
   let html='';
   const lec=l.filter(v=>(v.tags||[]).indexOf('강의')>=0);
-  if(lec.length){ html+=shelfBlock('🎓 강의에 넣어둔 것','var(--prod)',lec); lec.forEach(v=>used.add(v.id)); }
-  VID_AXES.forEach(a=>{
-    const arr=l.filter(v=>(v.tags||[]).indexOf(a[0])>=0);
-    if(arr.length){ html+=shelfBlock(a[0],'var(--'+a[1]+')',arr); arr.forEach(v=>used.add(v.id)); }
-  });
+  if(lec.length) html+=shelfBlock('🎓 강의에 넣어둔 것','var(--prod)',lec);
+
+  const axes=vidAxes(), kinds=vidKinds();
+  const axBlocks=axes.map(a=>[a[0],'var(--'+a[1]+')',l.filter(v=>(v.tags||[]).indexOf(a[0])>=0)]).filter(x=>x[2].length);
+  if(axBlocks.length){ html+='<div class="shsec">잘하는 일로 — 강의 한 편의 뼈대</div>';
+    axBlocks.forEach(b=>{ html+=shelfBlock(b[0],b[1],b[2]); }); }
+
+  const kdBlocks=kinds.map((k,i)=>[k,'var(--'+['story','conv','prod','hook'][i%4]+')',l.filter(v=>(v.tags||[]).indexOf(k)>=0)]).filter(x=>x[2].length);
+  if(kdBlocks.length){ html+='<div class="shsec">종류로 — 어떤 갈래의 컨텐츠인가</div>';
+    kdBlocks.forEach(b=>{ html+=shelfBlock(b[0],b[1],b[2]); }); }
+
   const byTopic={};
-  l.forEach(v=>{ if(used.has(v.id)) return; const g=v.grp||''; if(g)(byTopic[g]=byTopic[g]||[]).push(v); });
-  Object.keys(byTopic).sort((a,b)=>byTopic[b].length-byTopic[a].length).forEach((g,i)=>{
-    html+=shelfBlock(g,'var(--'+['hook','story','conv','prod'][i%4]+')',byTopic[g]);
-    byTopic[g].forEach(v=>used.add(v.id));
-  });
-  const rest=l.filter(v=>!used.has(v.id));
-  if(rest.length) html+=shelfBlock('아직 분류 안 함','var(--tx3)',rest);
+  l.forEach(v=>{ const g=v.grp||''; if(g)(byTopic[g]=byTopic[g]||[]).push(v); });
+  const tops2=Object.keys(byTopic).sort((a,b)=>byTopic[b].length-byTopic[a].length);
+  if(tops2.length){ html+='<div class="shsec">주제로 — 업종·분야 강의용</div>';
+    tops2.forEach((g,i)=>{ html+=shelfBlock(g,'var(--'+['hook','story','conv','prod'][i%4]+')',byTopic[g]); }); }
+
+  const rest=l.filter(v=>!v.grp && !(v.tags||[]).length);
+  if(rest.length){ html+='<div class="shsec">아직 분류 안 함</div>'+shelfBlock('분류를 기다리는 것','var(--tx3)',rest); }
   lw.innerHTML=html;
 }
 /* 선반 하나 = 제목줄(강의 준비도) + 카드 그리드 — 카드는 서재의 그 카드 그대로 */
@@ -1595,6 +1606,50 @@ function shelfBlock(title,color,list){
   return '<div class="shelf2" style="--c:'+color+'">'+
     '<div class="shhd"><b>'+esc(title)+'</b><s>'+r.v+'편 · 훔칠 것 '+r.s+'</s>'+badge+'</div>'+
     '<div class="vgrid">'+list.map(vidCard).join('')+'</div></div>';
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   v17 · 내가 만드는 분류 — 주제·종류를 «골라서» 단다
+     · 주제(grp)  : 전에 쓴 것이 칩으로 뜨고, ＋로 새로 만든다
+     · 종류(kind) : 문제해결·꿀팁 같은 «컨텐츠 갈래». 목록 자체를 내가 만든다
+     · 잘하는 일   : 기본 4축은 이 앱의 철학이라 두고, ＋로 더 만들 수 있게 열어둔다
+   목록은 cme_items에 type='vidtopic' / 'vidkind' / 'vidaxis' 로 저장 = 기기 바뀌어도 그대로
+   ══════════════════════════════════════════════════════════════ */
+const KIND0 = ['문제해결','꿀팁','스토리','욕구충족'];
+function listOf(t, fallback){
+  const saved=_items.filter(x=>x.type===t).map(x=>x.title).filter(Boolean);
+  return saved.length ? saved : (fallback||[]);
+}
+function vidKinds(){ return listOf('vidkind', KIND0); }
+function vidAxes(){   /* [이름, 색키] — 기본 4축 + 내가 만든 것 */
+  const extra=_items.filter(x=>x.type==='vidaxis').map(x=>x.title).filter(Boolean);
+  const base=VID_AXES.slice();
+  extra.forEach((n,i)=>{ if(!base.some(a=>a[0]===n)) base.push([n, ['hook','story','conv','prod'][i%4]]); });
+  return base;
+}
+function topicList(){   /* 전에 쓴 주제 + 내가 만들어둔 주제 */
+  const made=_items.filter(x=>x.type==='vidtopic').map(x=>x.title).filter(Boolean);
+  const used=vidTopics();
+  const all=[]; [...made,...used].forEach(t=>{ if(t && all.indexOf(t)<0) all.push(t); });
+  return all;
+}
+async function addListItem(t, label){
+  label=String(label||'').trim(); if(!label) return;
+  if(_items.some(x=>x.type===t && x.title===label)){ toast('이미 있어요'); return; }
+  /* 기본 목록에서 처음 손대는 순간 = 내 목록으로 굳힌다 */
+  if(t==='vidkind' && !_items.some(x=>x.type==='vidkind')){
+    for(const k of KIND0) await itemsSave({id:newId(),user_code:(sessNow()||{}).code||'',ws:'all',type:'vidkind',title:k,tags:[],created_at:new Date().toISOString()});
+  }
+  await itemsSave({id:newId(),user_code:(sessNow()||{}).code||'',ws:'all',type:t,title:label.slice(0,16),tags:[],created_at:new Date().toISOString()});
+  paintAll();
+}
+async function delListItem(t, label){
+  const row=_items.filter(x=>x.type===t && x.title===label)[0];
+  if(t==='vidkind' && !_items.some(x=>x.type==='vidkind')){
+    for(const k of KIND0) if(k!==label) await itemsSave({id:newId(),user_code:(sessNow()||{}).code||'',ws:'all',type:'vidkind',title:k,tags:[],created_at:new Date().toISOString()});
+  } else if(row) await itemsDel(row.id);
+  paintAll();
 }
 
 /* ── 한 편의 해부 — 카드를 누르면 그 영상이 열린다 ── */
@@ -1643,14 +1698,24 @@ function anatRender(){
     /* ① 담기 */
     '<div class="pstep" style="--sc:var(--conv)"><b>1 · 담기 '+dot(done.one)+'</b><div class="d">무엇에 대한 영상이고, 뭘 잘했나</div>'+
       '<input class="msd-nm" data-anatf="title" value="'+esc(v.title)+'" placeholder="제목">'+
-      '<div style="display:flex;gap:8px;margin-top:8px">'+
-        '<input class="msd-nm" style="margin-top:0" data-anatf="grp" value="'+esc(v.grp||'')+'" placeholder="주제 (예: 남자머리)">'+
-        '<input class="msd-nm" style="margin-top:0;max-width:120px" data-anatf="views" value="'+esc(v.views||'')+'" placeholder="조회수">'+
-      '</div>'+
-      '<div class="msd-pick">'+VID_AXES.map(a=>{
+      '<input class="msd-nm" data-anatf="views" value="'+esc(v.views||'')+'" placeholder="조회수 (선택)">'+
+      /* 주제 — 전에 쓴 것에서 고르거나 ＋로 새로 */
+      '<div class="pklb">주제 <s>이 영상이 무엇에 대한 것인가</s></div>'+
+      '<div class="msd-pick">'+topicList().map(t=>
+        '<button type="button" class="p'+(v.grp===t?' on':'')+'" data-anattopic="'+esc(t)+'">'+(v.grp===t?'✓ ':'')+esc(t)+'</button>').join('')+
+        '<button type="button" class="p add" data-anatnew="vidtopic">＋ 주제</button></div>'+
+      /* 종류 — 목록 자체를 내가 만든다 */
+      '<div class="pklb">종류 <s>어떤 갈래의 컨텐츠인가</s></div>'+
+      '<div class="msd-pick">'+vidKinds().map(k=>{
+        const on=(v.tags||[]).indexOf(k)>=0;
+        return '<button type="button" class="p'+(on?' on':'')+'" data-anatkind="'+esc(k)+'">'+(on?'✓ ':'')+esc(k)+'</button>';
+      }).join('')+'<button type="button" class="p add" data-anatnew="vidkind">＋ 종류</button></div>'+
+      /* 잘하는 일 — 기본 4축 + 내가 만든 축 */
+      '<div class="pklb">잘하는 일 <s>이 영상이 가장 잘한 것</s></div>'+
+      '<div class="msd-pick">'+vidAxes().map(a=>{
         const on=(v.tags||[]).indexOf(a[0])>=0;
-        return '<button type="button" class="p'+(on?' on':'')+'" data-anatax="'+a[0]+'">'+(on?'✓ ':'')+a[0]+'</button>';
-      }).join('')+'</div></div>'+
+        return '<button type="button" class="p'+(on?' on':'')+'" style="'+(on?'--pc:var(--'+a[1]+')':'')+'" data-anatax="'+esc(a[0])+'">'+(on?'✓ ':'')+esc(a[0])+'</button>';
+      }).join('')+'<button type="button" class="p add" data-anatnew="vidaxis">＋ 축</button></div></div>'+
     /* ② 원고 */
     '<div class="pstep" style="--sc:var(--story)"><b>2 · 원고 '+dot(done.two)+'</b><div class="d">자막·캡션을 그대로 붙여넣으세요 — 없으면 건너뛰어도 됩니다</div>'+
       '<textarea class="msd-nm" data-anatscript="1" rows="4" placeholder="여기에 원고를 붙여넣으면 아래에서 칠할 수 있어요" style="height:auto;resize:vertical">'+esc(m.script||'')+'</textarea></div>'+
@@ -2238,6 +2303,37 @@ document.addEventListener('click', async e=>{
       ...VID_ROLES.filter(r=>String((m.segs||{})[r]||'').trim()).map(r=>'  '+r+') '+m.segs[r]),
       '훔칠 것: '+(v.text||'-'), '건드린 마음: '+(m.mind||'-'), v.url].join('\n');
     try{ await navigator.clipboard.writeText(txt); toast('한 장을 복사했어요'); }catch(e){ toast('복사 실패'); }
+    return;
+  }
+  /* ── v17 · 분류를 «골라서» 단다 ── */
+  const atopic = hit('data-anattopic');
+  if(atopic){
+    const v=_items.filter(x=>x.id===_anatId)[0]; if(!v) return;
+    v.grp = (v.grp===atopic) ? '' : atopic;
+    await itemsSave(v); anatRender(); vidRender(); homeRender(); return;
+  }
+  const akind = hit('data-anatkind');
+  if(akind){
+    const v=_items.filter(x=>x.id===_anatId)[0]; if(!v) return;
+    v.tags=v.tags||[];
+    const at=v.tags.indexOf(akind);
+    if(at>=0) v.tags.splice(at,1); else v.tags.push(akind);
+    await itemsSave(v); anatRender(); vidRender(); return;
+  }
+  const anew = hit('data-anatnew');
+  if(anew){
+    const lbl = { vidtopic:'새 주제 (예: 남자머리)', vidkind:'새 종류 (예: 비교·리뷰)', vidaxis:'새 «잘하는 일» (예: 편집)' }[anew];
+    const nm = window.prompt(lbl);
+    if(nm && nm.trim()){
+      await addListItem(anew, nm.trim());
+      const v=_items.filter(x=>x.id===_anatId)[0];
+      if(v){   /* 만들자마자 이 영상에 달아준다 */
+        if(anew==='vidtopic') v.grp=nm.trim().slice(0,16);
+        else { v.tags=v.tags||[]; if(v.tags.indexOf(nm.trim())<0) v.tags.push(nm.trim().slice(0,16)); }
+        await itemsSave(v);
+      }
+      anatRender(); vidRender(); homeRender();
+    }
     return;
   }
   const anatax = hit('data-anatax');
