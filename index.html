@@ -95,16 +95,42 @@ body.off #offbar{display:block}
   padding:6px 0;font-family:inherit;font-size:16px;color:var(--tx1);outline:none}
 .anat-in:focus{border-bottom-color:var(--conv)}
 .anat-in::placeholder{color:var(--tx3);font-size:12px}
-/* v10 · 🔪 분해 블록 — 손으로 채우지 말고 «받아오는» 자리라는 걸 보이게 */
-.anat-cut{border:1px solid rgba(111,224,200,.28);border-radius:var(--r-md);background:var(--conv-g);padding:12px;margin-bottom:12px}
-.anat-cut .cut-hd{font-size:12.5px;font-weight:800;color:var(--conv)}
-.anat-cut .cut-hd s{text-decoration:none;font-size:11px;font-weight:600;color:var(--tx3);margin-left:7px}
-.anat-cut .cut-row{display:flex;gap:7px;margin-top:9px}
-.cut-b{flex:1;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer;border-radius:10px;padding:9px 10px;
-  background:var(--glass);color:var(--tx2);border:1px solid var(--line2)}
-.cut-b.go{color:var(--conv);border-color:rgba(111,224,200,.45)}
-.cut-b:active{transform:scale(.96)}
-.anat-cut textarea{margin-top:8px}
+/* v12 · 해부 = 세로 공정(B안) + 원고 칠하기(C안) */
+.pstep{border-left:2px solid var(--sc);padding:0 0 20px 14px;position:relative;margin-left:6px}
+.pstep::before{content:'';position:absolute;left:-6px;top:3px;width:10px;height:10px;border-radius:50%;background:var(--sc)}
+.pstep.last{border-left-color:transparent}
+.pstep>b{font-size:13px;font-weight:800;color:var(--sc)}
+.pstep .d{font-size:11px;color:var(--tx3);margin:4px 0 9px}
+.pens{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:9px}
+.pen{font-family:inherit;font-size:10.5px;font-weight:800;cursor:pointer;border-radius:9px;padding:6px 11px;
+  background:var(--glass);color:var(--c,var(--tx2));border:1.5px solid var(--c,var(--line2));opacity:.55}
+.pen.on{opacity:1;background:color-mix(in srgb, var(--c) 18%, transparent)}
+.pen.era{--c:var(--tx3)}
+.pen:active{transform:scale(.94)}
+.script{border:1px solid var(--line);border-radius:var(--r-md);background:var(--glass);padding:12px;
+  font-size:13px;line-height:2.1;color:var(--tx2);max-height:280px;overflow-y:auto}
+.sen{cursor:pointer;border-radius:5px;padding:2px 3px;transition:.12s}
+.sen:hover{background:rgba(255,255,255,.05)}
+.sen.on{background:color-mix(in srgb, var(--c) 22%, transparent);color:var(--tx1);
+  box-shadow:inset 0 -2px 0 var(--c)}
+.segs{margin-top:10px}
+.seg2b{display:flex;gap:9px;align-items:flex-start;border-left:2px solid var(--c);background:var(--glass);
+  border-radius:0 10px 10px 0;padding:8px 11px;margin-bottom:6px}
+.seg2b i{font-style:normal;font-size:9.5px;font-weight:900;color:var(--c);min-width:38px;padding-top:1px}
+.seg2b span{font-size:11.5px;color:var(--tx2);line-height:1.6}
+.one{border:1px solid rgba(111,224,200,.3);border-radius:var(--r-md);background:var(--conv-g);padding:14px}
+.one .oh{font-size:9px;font-weight:900;letter-spacing:.14em;color:var(--conv);margin-bottom:9px}
+.orow{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
+.orow:last-of-type{border:none}
+.orow .k{font-size:10.5px;color:var(--tx3);min-width:70px;font-weight:700}
+.orow .v{font-size:11.5px;color:var(--tx1);flex:1;line-height:1.6}
+.orow .v.dim{color:var(--tx3)}
+.use{display:flex;gap:7px;margin-top:11px}
+.ub{flex:1;font-family:inherit;font-size:10.5px;font-weight:800;cursor:pointer;border-radius:9px;padding:9px 6px;
+  background:var(--glass);border:1px solid var(--line);color:var(--tx2)}
+.ub.go{color:var(--conv);border-color:rgba(111,224,200,.4)}
+.ub.on{background:var(--conv);color:#06140F;border-color:var(--conv)}
+.ub:active{transform:scale(.96)}
 .chips b{cursor:pointer}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth}
@@ -1043,7 +1069,7 @@ body.in-sub #tb-set{display:none}
 const APP_CFG = {
   name: '컨텐츠의 모든것',
   key: 'cme',
-  ver: 'v11',
+  ver: 'v12',
   tagline: '오늘 본 것이 휘발되지 않는다',
   demo: false,   // v7 · 실서버 배선 완료(2026-08-18)
   demoCode: 'EEEEEE', demoPin: '2222',
@@ -1539,7 +1565,7 @@ function musRender(){
 const VID_AXES = [['후킹','hook'],['구성','story'],['전환','conv'],['프로덕션','prod']];
 const VID_ROLES = ['도입부','공감','근거','방법','변화','CTA'];
 const ROLE_AX = {도입부:'hook',공감:'story',근거:'story',방법:'conv',변화:'conv',CTA:'prod'};
-let _vfTopic='all', _vfAxis='all', _anatId='';
+let _vfTopic='all', _vfAxis='all', _anatId='', _anatPen='도입부';
 
 function vmeta(it){ try{ return JSON.parse(it.memo||'{}'); }catch(e){ return {}; } }
 function vmetaSet(it,o){ it.memo = JSON.stringify(o||{}); }
@@ -1640,36 +1666,99 @@ function anatRender(){
   const v = _items.filter(x=>x.id===_anatId)[0];
   const host = $('#scr-anat'); if(!host) return;
   const hero = host.querySelector('.hero'), rail = host.querySelector('.rail'), why = host.querySelector('.why');
-  if(!v){ if(hero) hero.querySelector('.sub').textContent='서재에서 영상을 고르면 여기서 해부합니다'; if(rail) rail.innerHTML=''; return; }
+  if(why) why.style.display='none';
+  if(!v){
+    if(hero) hero.querySelector('.sub').textContent='서재에서 영상을 고르면 여기서 뜯습니다';
+    if(rail) rail.innerHTML=''; return;
+  }
   const m = vmeta(v);
-  if(hero) hero.querySelector('.sub').innerHTML = esc(v.title) + (v.views?' · '+esc(v.views):'') +
+  if(hero) hero.querySelector('.sub').innerHTML = esc(v.title) +
     ' · <a href="'+esc(v.url)+'" target="_blank" rel="noopener" style="color:var(--conv)">↗ 원본 보기</a>';
+
+  const done = { one:!!(v.grp&&(v.tags||[]).length), two:!!String(m.script||'').trim(),
+                 three:VID_ROLES.some(r=>String((m.segs||{})[r]||'').trim()), four:!!String(v.text||'').trim() };
+  const dot = ok => ok ? '✓' : '';
+
+  /* ── ③ 구조 — 원고가 있으면 «칠하기», 없으면 직접 적기 ── */
+  let structBody;
+  const sents = anatSents(m.script);
+  if(sents.length){
+    const pens = VID_ROLES.map(r=>'<button type="button" class="pen'+(_anatPen===r?' on':'')+'" style="--c:var(--'+ROLE_AX[r]+')" data-anatpen="'+r+'">'+r+'</button>').join('');
+    const body = sents.map((t,si)=>{
+      const role = (m.paint||{})[si] || '';
+      return '<span class="sen'+(role?' on':'')+'"'+(role?' style="--c:var(--'+ROLE_AX[role]+')"':'')+' data-anatsen="'+si+'">'+esc(t)+'</span> ';
+    }).join('');
+    structBody =
+      '<div class="pens">'+pens+'<button type="button" class="pen era'+(_anatPen==='' ?' on':'')+'" data-anatpen="">지우개</button></div>'+
+      '<div class="script">'+body+'</div>'+
+      '<div class="segs">'+VID_ROLES.map(r=>{
+        const val=(m.segs||{})[r]||''; if(!val) return '';
+        return '<div class="seg2b" style="--c:var(--'+ROLE_AX[r]+')"><i>'+r+'</i><span>'+esc(val)+'</span></div>';
+      }).join('')+'</div>';
+  } else {
+    structBody = '<p class="msd-hint">원고가 없으면 여기에 직접 한 줄씩 적어도 됩니다</p>'+
+      VID_ROLES.map((r,ri)=>'<div class="seg2" style="--c:var(--'+ROLE_AX[r]+')"><span class="tc">'+(ri+1)+'</span>'+
+        '<span class="rl">'+r+'</span><input class="anat-in" data-anatseg="'+r+'" value="'+esc((m.segs||{})[r]||'')+'" placeholder="비어 있어도 괜찮아요"></div>').join('');
+  }
+
+  const usedRoles = VID_ROLES.filter(r=>String((m.segs||{})[r]||'').trim());
+
   if(rail) rail.innerHTML =
-    '<div class="anat-meta">'+
+    /* ① 담기 */
+    '<div class="pstep" style="--sc:var(--conv)"><b>1 · 담기 '+dot(done.one)+'</b><div class="d">무엇에 대한 영상이고, 뭘 잘했나</div>'+
       '<input class="msd-nm" data-anatf="title" value="'+esc(v.title)+'" placeholder="제목">'+
       '<div style="display:flex;gap:8px;margin-top:8px">'+
-        '<input class="msd-nm" style="margin-top:0" data-anatf="grp" value="'+esc(v.grp||'')+'" placeholder="주제 (예: 미용실 마케팅)">'+
-        '<input class="msd-nm" style="margin-top:0;max-width:130px" data-anatf="views" value="'+esc(v.views||'')+'" placeholder="조회수">'+
+        '<input class="msd-nm" style="margin-top:0" data-anatf="grp" value="'+esc(v.grp||'')+'" placeholder="주제 (예: 남자머리)">'+
+        '<input class="msd-nm" style="margin-top:0;max-width:120px" data-anatf="views" value="'+esc(v.views||'')+'" placeholder="조회수">'+
       '</div>'+
-      '<div class="msd-pick" style="margin-top:8px">'+VID_AXES.map(a=>{
+      '<div class="msd-pick">'+VID_AXES.map(a=>{
         const on=(v.tags||[]).indexOf(a[0])>=0;
         return '<button type="button" class="p'+(on?' on':'')+'" data-anatax="'+a[0]+'">'+(on?'✓ ':'')+a[0]+'</button>';
-      }).join('')+'</div>'+
-      '<input class="msd-nm" data-anatf="text" value="'+esc(v.text||'')+'" placeholder="✂ 훔칠 것 한 줄 — 이 영상에서 가져갈 하나">'+
-    '</div>'+
-    /* v11 · 원고를 붙여넣으면 구간이 «라벨 줄»대로 자동으로 나뉜다 — AI 안 씀 */
-    '<div class="anat-cut">'+
-      '<div class="cut-hd">✎ 원고 붙여넣기 <s>«도입부» 같은 줄이 있으면 알아서 나뉩니다</s></div>'+
-      '<textarea class="msd-nm" id="cut-in" rows="4" placeholder="자막·캡션을 그대로 붙여넣으세요" style="height:auto;resize:vertical"></textarea>'+
-      '<button type="button" class="cut-b go" data-cutapply="1" style="width:100%;margin-top:8px">구간으로 나누기</button>'+
-    '</div>'+
-    VID_ROLES.map((r,ri)=>{
-      const val = (m.segs||{})[r] || '';
-      return '<div class="seg2" style="--c:var(--'+ROLE_AX[r]+')"><span class="tc">'+(ri+1)+'</span>'+
-        '<span class="rl">'+r+'</span>'+
-        '<input class="anat-in" data-anatseg="'+r+'" value="'+esc(val)+'" placeholder="비어 있어도 괜찮아요 — 분해로 채우거나 직접 적으세요"></div>';
-    }).join('');
-  if(why) why.innerHTML = '<b>✂ 훔칠 것</b>'+(v.text ? esc(v.text) : '위 칸에 적어두면 나중에 강의·기획에서 이 줄만 꺼내 씁니다');
+      }).join('')+'</div></div>'+
+    /* ② 원고 */
+    '<div class="pstep" style="--sc:var(--story)"><b>2 · 원고 '+dot(done.two)+'</b><div class="d">자막·캡션을 그대로 붙여넣으세요 — 없으면 건너뛰어도 됩니다</div>'+
+      '<textarea class="msd-nm" data-anatscript="1" rows="4" placeholder="여기에 원고를 붙여넣으면 아래에서 칠할 수 있어요" style="height:auto;resize:vertical">'+esc(m.script||'')+'</textarea></div>'+
+    /* ③ 구조 */
+    '<div class="pstep" style="--sc:var(--hook)"><b>3 · 구조 '+dot(done.three)+'</b><div class="d">'+
+      (sents.length?'펜을 고르고 문장을 톡 — 칠한 대로 아래에 쌓입니다':'원고를 넣으면 문장을 칠할 수 있습니다')+'</div>'+
+      structBody+'</div>'+
+    /* ④ 왜 통했나 */
+    '<div class="pstep" style="--sc:var(--prod)"><b>4 · 왜 통했나 '+dot(done.four)+'</b><div class="d">여기가 강의·처방 재료가 됩니다</div>'+
+      '<input class="msd-nm" data-anatf="text" value="'+esc(v.text||'')+'" placeholder="✂ 훔칠 것 — 다음 컨텐츠에 가져다 쓸 한 줄">'+
+      '<input class="msd-nm" data-anatmind="1" value="'+esc(m.mind||'')+'" placeholder="🫀 건드린 마음 — 어떤 심리를 건드렸나"></div>'+
+    /* ⑤ 한 장 */
+    '<div class="pstep last" style="--sc:var(--conv)"><b>5 · 한 장</b><div class="d">위 네 걸음이 자동으로 조립됩니다 — 입력 0칸</div>'+
+      '<div class="one"><div class="oh">C O N T E N T &nbsp;S H E E T</div>'+
+        orow('영상', esc(v.title))+
+        orow('주제·잘함', [v.grp, (v.tags||[]).join('·')].filter(Boolean).join(' · '), '①에서 채워집니다')+
+        orow('구조', usedRoles.join(' › '), '③에서 칠하면 채워집니다')+
+        orow('훔칠 것', esc(v.text||''), '④에서 적으면 채워집니다')+
+        orow('건드린 마음', esc(m.mind||''), '④에서 적으면 채워집니다')+
+        '<div class="use">'+
+          '<button type="button" class="ub go" data-anatrx="1">💊 처방에 담기</button>'+
+          '<button type="button" class="ub go'+((v.tags||[]).indexOf('강의')>=0?' on':'')+'" data-anatlec="1">🎓 '+((v.tags||[]).indexOf('강의')>=0?'강의 자료 ✓':'강의 자료로')+'</button>'+
+          '<button type="button" class="ub" data-anatcopy="1">⧉ 복사</button>'+
+        '</div></div></div>';
+}
+function orow(k, v, ph){
+  const has = String(v||'').trim();
+  return '<div class="orow"><span class="k">'+k+'</span><span class="v'+(has?'':' dim')+'">'+(has||ph||'—')+'</span></div>';
+}
+/* 원고를 «문장»으로 쪼갠다 — 칠하기 단위 */
+function anatSents(script){
+  const t = String(script||'').trim(); if(!t) return [];
+  return t.split(/(?<=[.!?…]|다\.|요\.|죠\.|음\.|\n)\s+/).map(x=>x.trim()).filter(Boolean).slice(0,120);
+}
+/* 칠한 문장들을 역할별로 모아 구간(segs)을 다시 만든다 */
+function anatRebuild(v){
+  const m=vmeta(v), sents=anatSents(m.script), paint=m.paint||{};
+  const segs={};
+  Object.keys(paint).forEach(k=>{
+    const role=paint[k], t=sents[+k]; if(!role||!t) return;
+    segs[role] = segs[role] ? (segs[role]+' '+t) : t;
+  });
+  VID_ROLES.forEach(r=>{ if(!segs[r] && (m.segs||{})[r] && !Object.values(paint).includes(r)) segs[r]=m.segs[r]; });
+  m.segs=segs; vmetaSet(v,m);
 }
 async function anatSave(patch){
   const v = _items.filter(x=>x.id===_anatId)[0]; if(!v) return;
@@ -2074,10 +2163,40 @@ document.addEventListener('click', async e=>{
   if(prd){ await itemsDel(prd); if(_prOpen===prd) _prOpen=''; prRender(); toast('지웠어요'); return; }
   const pro = hit('data-propen');
   if(pro){ if(t.closest('.msd-open')) return; _prOpen = (_prOpen===pro) ? '' : pro; prRender(); return; }
-  /* ── v11 · 원고 붙여넣기 → 구간 나누기 (AI 없음) ── */
-  if(hit('data-cutapply')){
-    const ta=$('#cut-in'); if(!ta) return;
-    await cmeApplyParse(ta.value); ta.value='';
+  /* ── v12 · 해부 공정(B안+C안) ── */
+  const pen = hit('data-anatpen');
+  if(pen!==null && pen!==undefined){ _anatPen=pen; anatRender(); return; }
+  const sen = hit('data-anatsen');
+  if(sen!==null && sen!==undefined){
+    const v=_items.filter(x=>x.id===_anatId)[0]; if(!v) return;
+    const m=vmeta(v); m.paint=m.paint||{};
+    if(_anatPen==='') delete m.paint[sen]; else m.paint[sen]=_anatPen;
+    vmetaSet(v,m); anatRebuild(v);
+    await itemsSave(v); anatRender(); vidRender(); homeRender(); return;
+  }
+  if(hit('data-anatrx')){
+    const v=_items.filter(x=>x.id===_anatId)[0]; if(!v) return;
+    await itemsSave({ id:newId(), user_code:(sessNow()||{}).code||'', ws:'all', type:'rx', grp:v.id,
+      title:String(v.title).slice(0,60), text:String(v.text||'').slice(0,200), tags:[], memo:'{}',
+      created_at:new Date().toISOString() });
+    rxRender(); toast('💊 처방전에 담았어요 — 수강생실 › 처방전에서 이어서'); return;
+  }
+  if(hit('data-anatlec')){
+    const v=_items.filter(x=>x.id===_anatId)[0]; if(!v) return;
+    v.tags=v.tags||[];
+    const at=v.tags.indexOf('강의');
+    if(at>=0) v.tags.splice(at,1); else v.tags.push('강의');
+    await itemsSave(v); anatRender(); vidRender();
+    toast(at>=0?'강의 자료에서 뺐어요':'🎓 강의 자료로 표시했어요'); return;
+  }
+  if(hit('data-anatcopy')){
+    const v=_items.filter(x=>x.id===_anatId)[0]; if(!v) return;
+    const m=vmeta(v);
+    const txt=['['+v.title+']', '주제: '+(v.grp||'-')+' · 잘함: '+((v.tags||[]).join('·')||'-'),
+      '구조: '+VID_ROLES.filter(r=>String((m.segs||{})[r]||'').trim()).join(' > '),
+      ...VID_ROLES.filter(r=>String((m.segs||{})[r]||'').trim()).map(r=>'  '+r+') '+m.segs[r]),
+      '훔칠 것: '+(v.text||'-'), '건드린 마음: '+(m.mind||'-'), v.url].join('\n');
+    try{ await navigator.clipboard.writeText(txt); toast('한 장을 복사했어요'); }catch(e){ toast('복사 실패'); }
     return;
   }
   const anatax = hit('data-anatax');
@@ -2154,6 +2273,19 @@ document.addEventListener('change', async e=>{
   /* v9 · 해부 화면의 칸들 — 적고 나가면 그 자리에서 서버로 */
   const af = t.closest('[data-anatf]');
   if(af){ const p={}; p[af.dataset.anatf]=String(t.value||'').slice(0,120); await anatSave(p); vidRender(); return; }
+  /* v12 · 원고 칸 — 붙여넣고 나가면 저장되고 문장이 칠할 수 있게 쪼개진다 */
+  const sc = t.closest('[data-anatscript]');
+  if(sc){
+    const v=_items.filter(x=>x.id===_anatId)[0]; if(!v) return;
+    const m=vmeta(v); m.script=String(t.value||'').slice(0,8000); vmetaSet(v,m);
+    await itemsSave(v); anatRender(); return;
+  }
+  const mn = t.closest('[data-anatmind]');
+  if(mn){
+    const v=_items.filter(x=>x.id===_anatId)[0]; if(!v) return;
+    const m=vmeta(v); m.mind=String(t.value||'').slice(0,120); vmetaSet(v,m);
+    await itemsSave(v); anatRender(); return;
+  }
   const sg = t.closest('[data-anatseg]');
   if(sg){
     const v=_items.filter(x=>x.id===_anatId)[0]; if(!v) return;
