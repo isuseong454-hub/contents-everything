@@ -30,6 +30,59 @@
   --ease:cubic-bezier(.22,.61,.36,1);
   --dock-h:76px;
 }
+/* ═══ v8 · 🎵 음악 서랍(msd-) — 컨모의 첫 «진짜 데이터» 방 · 색은 전환 청록(--conv) ═══ */
+.msd-paste{display:flex;gap:8px;margin-bottom:10px}
+.msd-paste input{flex:1;min-width:0;background:var(--glass);border:1px solid var(--line2);border-radius:var(--r-sm);
+  padding:12px 13px;font-family:inherit;font-size:16px;color:var(--tx1);outline:none;height:46px}
+.msd-paste input::placeholder{color:var(--tx3);font-size:12.5px}
+.msd-paste input:focus{border-color:rgba(111,224,200,.5);background:var(--conv-g)}
+.msd-paste button{flex:none;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;
+  background:var(--conv);color:#06140F;border:none;border-radius:var(--r-sm);padding:12px 17px}
+.msd-paste button:active{transform:scale(.95)}
+.msd-hint{font-size:11.5px;color:var(--tx3);line-height:1.6;margin-bottom:12px}
+.msd-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.msd-tg{font-family:inherit;font-size:11px;font-weight:700;border-radius:999px;padding:7px 13px;cursor:pointer;
+  background:var(--glass);color:var(--tx2);border:1px solid var(--line);transition:.15s}
+.msd-tg:active{transform:scale(.93)}
+.msd-tg.on{background:var(--conv);color:#06140F;border-color:var(--conv)}
+.msd-tg.add{border-style:dashed;color:var(--conv);border-color:rgba(111,224,200,.45);background:var(--conv-g)}
+.msd-tg.edit{margin-left:auto;color:var(--tx3)}
+.msd-tg .del{color:var(--danger);font-weight:900;margin-left:6px}
+.msd-card{border:1px solid var(--line);border-radius:var(--r-md);background:var(--glass);margin-bottom:8px;overflow:hidden}
+.msd-card.sel{border-color:rgba(111,224,200,.5);background:var(--conv-g)}
+.msd-row{display:flex;align-items:center;gap:11px;padding:11px 13px;cursor:pointer}
+.msd-row .art{width:42px;height:42px;border-radius:11px;flex:none;display:flex;align-items:center;justify-content:center;
+  font-size:17px;background:var(--glass-hi);background-size:cover;background-position:center}
+.msd-row .bd{flex:1;min-width:0}
+.msd-row .t1{font-size:12.5px;font-weight:700;color:var(--tx1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.msd-row .t2{font-size:10.5px;color:var(--tx3);margin-top:4px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.msd-src{font-size:9px;font-weight:800;border-radius:6px;padding:2px 6px;flex:none}
+.msd-src.ig{background:rgba(240,158,184,.16);color:#F09EB8}
+.msd-src.yt{background:rgba(224,123,123,.16);color:#E07B7B}
+.msd-src.etc{background:var(--glass-hi);color:var(--tx2)}
+.msd-mtg{font-size:9px;font-weight:700;color:var(--conv);background:var(--conv-g);border-radius:6px;padding:2px 6px}
+.msd-play{flex:none;font-family:inherit;font-size:11px;font-weight:800;cursor:pointer;color:var(--conv);
+  background:transparent;border:1.5px solid rgba(111,224,200,.4);border-radius:999px;padding:7px 12px}
+.msd-play:active{transform:scale(.93)}
+.msd-play.on{background:var(--conv);color:#06140F;border-color:var(--conv)}
+.msd-open{padding:0 13px 13px;border-top:1px solid var(--line)}
+.msd-emb{margin-top:11px;border-radius:var(--r-sm);overflow:hidden;background:#000;aspect-ratio:16/9}
+.msd-emb iframe{width:100%;height:100%;border:0;display:block}
+.msd-nm{width:100%;height:44px;margin-top:11px;background:var(--glass);border:1px solid var(--line2);
+  border-radius:var(--r-sm);padding:10px 12px;font-family:inherit;font-size:16px;color:var(--tx1);outline:none}
+.msd-pick{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.msd-pick .p{font-family:inherit;font-size:10.5px;font-weight:700;border-radius:9px;padding:6px 11px;cursor:pointer;
+  background:var(--glass);color:var(--tx2);border:1px dashed var(--line2)}
+.msd-pick .p.on{background:var(--conv-g);color:var(--conv);border:1px solid rgba(111,224,200,.5)}
+.msd-acts{display:flex;gap:7px;margin-top:10px}
+.msd-acts button{font-family:inherit;font-size:10.5px;font-weight:700;cursor:pointer;border-radius:9px;padding:7px 12px;
+  background:var(--glass);color:var(--tx2);border:1px solid var(--line)}
+.msd-acts button.go{color:var(--conv);border-color:rgba(111,224,200,.4)}
+.msd-acts button.dl{color:var(--danger);border-color:rgba(224,123,123,.3);margin-left:auto}
+.msd-ghost{border:1px dashed var(--line2);border-radius:var(--r-md);padding:12px;margin-bottom:8px;opacity:.42}
+.msd-ghost .gt{font-size:12px;font-weight:700;color:var(--tx2)}
+.msd-ghost .gs{font-size:10.5px;color:var(--tx3);margin-top:4px}
+.msd-sync{font-size:10.5px;color:var(--tx3);margin-top:10px;text-align:center}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth}
 body{
@@ -710,13 +763,15 @@ body.in-sub #tb-set{display:none}
       <div class="dr" style="--c:var(--story)"><span class="bar"></span><p>상식을 먼저 깨면 반박 심리가 완주를 만든다.<small>"사과가 보약이라는 거짓말" · 구성</small></p></div>
       <div class="dr" style="--c:var(--prod)"><span class="bar"></span><p>컷 전환은 비트에 맞춘다 — 리듬이 곧 지속률.<small>"비트 바뀌는 순간" · 프로덕션</small></p></div>
     </div>
+    <!-- v8 · 🎵 음악 서랍 — 컨모의 첫 «진짜 데이터» 방 (서버 cme_items에 쌓인다) -->
     <div class="dpane" id="dp3">
-      <div class="card" style="padding:8px 16px">
-        <div class="snd" style="--c:var(--story)"><button class="pb2">▶</button><div style="flex:1;min-width:0"><b>잔잔한 피아노 — 공감 구간용</b><small>"사과가 보약…" 0:07~0:15에서 잘라둠</small></div><span class="mood">잔잔한</span></div>
-        <div class="snd" style="--c:var(--conv)"><button class="pb2">▶</button><div style="flex:1;min-width:0"><b>비트 드랍 — 전환 직전용</b><small>"비트 바뀌는 순간" 0:31에서</small></div><span class="mood">긴장감</span></div>
-        <div class="snd" style="--c:var(--prod)"><button class="pb2">▶</button><div style="flex:1;min-width:0"><b>경쾌한 셔플 — 오프닝용</b><small>"32살에 미용실 3개" 도입부</small></div><span class="mood">신나는</span></div>
+      <div class="msd-paste">
+        <input id="mus-in" placeholder="🔗 인스타·유튜브 음악 링크 붙여넣기" autocomplete="off">
+        <button type="button" data-musadd="1">담기</button>
       </div>
-      <p style="margin-top:4px;font-size:11.5px;color:var(--tx3)">영상에서 «이 소리 좋다» 하는 순간 — 구간만 잘라 여기 쌓입니다</p>
+      <p class="msd-hint">인스타는 릴스에서 음악 이름 톡 → 링크 복사 · 유튜브는 주소 그대로 — 어디 링크인지는 앱이 알아서 나눕니다</p>
+      <div class="msd-tags" id="mus-tags"></div>
+      <div id="mus-list"></div>
     </div>
   </section>
 
@@ -1102,7 +1157,7 @@ body.in-sub #tb-set{display:none}
 const APP_CFG = {
   name: '컨텐츠의 모든것',
   key: 'cme',
-  ver: 'v7',
+  ver: 'v8',
   tagline: '오늘 본 것이 휘발되지 않는다',
   demo: false,   // v7 · 실서버 배선 완료(2026-08-18)
   demoCode: 'EEEEEE', demoPin: '2222',
@@ -1266,10 +1321,14 @@ function enterApp(sess){
   $('#set-code').textContent=sess.code;
   isAdmin = (sess.plan==='admin');
   $('#set-admin').style.display = isAdmin ? 'flex' : 'none';
+  /* v8 · 들어오는 순간 서버 창고에서 내 것을 꺼내온다 (실패해도 로컬 사본으로 화면은 산다)
+     ⚠️ setTimeout 0 = 스크립트가 «끝까지 읽힌 뒤» 부른다. 바로 부르면 아래쪽 변수가 아직 없어(TDZ) 앱이 통째로 죽는다. */
+  setTimeout(()=>{ try{ itemsLoad(true).then(()=>{ try{ musRender(); }catch(e){} }).catch(()=>{}); }catch(e){} }, 0);
 }
 function doLogout(){
   sessionStorage.removeItem(K('sess'));
   localStorage.removeItem(K('sess'));   /* 자동 로그인도 해제 */
+  try{ localStorage.removeItem(K('cache')); _items=[]; _itemsLoaded=false; }catch(e){}   /* v8 · 남의 계정에 내 사본이 남지 않게 */
   sheetClose(); isAdmin=false;
   $('#pw-ov').style.display='none';
   $('#lg-ov').style.display='flex';
@@ -1405,10 +1464,240 @@ $('#chseg').addEventListener('click',e=>{
   $('#ch-ig').classList.toggle('on',b.dataset.ch==='ig');
 });
 
-/* ── 사운드 ▶ (데모) ── */
-document.addEventListener('click',e=>{
-  const p=e.target.closest('.pb2'); if(!p)return;
-  toast('재생 (데모 — 엔진 연결 후 실제 소리)');
+/* ══════════════════════════════════════════════════════════════
+   v8 · 저장 배선 — 앱 ↔ 서버 창고(cme_items)를 잇는 길
+     이 앱의 첫 «진짜 데이터». 여기서 만든 규칙을 다른 방에도 그대로 쓴다.
+     서버가 안 될 때도 화면은 살아 있게: 로컬 사본을 항상 함께 둔다.
+   ══════════════════════════════════════════════════════════════ */
+/* ⚠️ var로 선언한다 — 위쪽 enterApp이 이 아래 것들을 부르므로 const/let이면 TDZ로 앱이 죽는다 */
+var CK = K('cache');
+var _items = [], _itemsLoaded = false, _online = true;
+
+function sessNow(){
+  try{ return JSON.parse(localStorage.getItem(K('sess'))||sessionStorage.getItem(K('sess'))||'null'); }
+  catch(e){ return null; }
+}
+function cacheGet(){ try{ return JSON.parse(localStorage.getItem(CK)||'[]'); }catch(e){ return []; } }
+function cacheSet(list){ try{ localStorage.setItem(CK, JSON.stringify(list||[])); }catch(e){} }
+
+async function itemsLoad(force){
+  if(_itemsLoaded && !force) return _items;
+  const s = sessNow();
+  _items = cacheGet();                       // 먼저 사본으로 화면을 채우고
+  _itemsLoaded = true;
+  if(!s || !s.code || !s.token || s.token==='demo'){ _online=false; return _items; }
+  try{
+    const rows = await rpc('cme_items_get', {p_code:s.code, p_token:s.token});
+    _items = Array.isArray(rows) ? rows : [];
+    _online = true;
+    cacheSet(_items);                        // 서버 것으로 사본 갱신
+  }catch(e){ _online = false; }
+  return _items;
+}
+async function itemsSave(rows){              // 담기·고치기 (여러 개 가능)
+  const s = sessNow();
+  rows = Array.isArray(rows) ? rows : [rows];
+  rows.forEach(r=>{
+    const i = _items.findIndex(x=>x.id===r.id);
+    if(i>=0) _items[i] = r; else _items.push(r);
+  });
+  cacheSet(_items);
+  if(!s || !s.token || s.token==='demo'){ _online=false; return false; }
+  try{
+    const res = await rpc('cme_items_upsert', {p_code:s.code, p_token:s.token, p_rows:rows});
+    /* ⚠️ 서버는 실패해도 HTTP 200으로 {ok:false}를 준다 — 여기서 안 보면 «저장된 줄» 안다 */
+    if(res && res.ok===false){ _online=false; toast('서버가 거절했어요: '+(res.msg||'알 수 없음')); return false; }
+    _online=true; return true;
+  }catch(e){ _online=false; toast('서버에 못 올렸어요 — 이 기기에만 저장됩니다'); return false; }
+}
+async function itemsDel(ids){
+  const s = sessNow();
+  ids = Array.isArray(ids) ? ids : [ids];
+  _items = _items.filter(x=>ids.indexOf(x.id)<0);
+  cacheSet(_items);
+  if(!s || !s.token || s.token==='demo'){ _online=false; return false; }
+  try{
+    const res = await rpc('cme_items_del', {p_code:s.code, p_token:s.token, p_ids:ids});
+    if(res && res.ok===false){ _online=false; toast('서버가 거절했어요: '+(res.msg||'알 수 없음')); return false; }
+    _online=true; return true;
+  }catch(e){ _online=false; return false; }
+}
+/* ⚠️ cme_items.id는 uuid — 아무 문자열이나 넣으면 서버가 통째로 거부한다 */
+function newId(){
+  try{ if(crypto && crypto.randomUUID) return crypto.randomUUID(); }catch(e){}
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c=>{
+    const r = Math.random()*16|0, v = c==='x' ? r : (r&0x3|0x8);
+    return v.toString(16);
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   v8 · 🎵 음악 서랍 — 링크 하나로 인스타/유튜브 자동 분기
+   ══════════════════════════════════════════════════════════════ */
+const MUS_TAGS0 = ['🔥 동기부여','⚡ 빠른 템포','🌿 브이로그','💡 생활 꿀팁','🌊 감성'];
+let _musFilter='all', _musOpen='', _musEdit=false;
+
+function musParse(raw){
+  let u = String(raw||'').trim();
+  if(!u) return null;
+  if(u.indexOf('http')!==0) u = 'https://'+u.replace(/^\/+/,'');
+  const low = u.toLowerCase();
+  if(low.indexOf('youtu.be/')>=0 || low.indexOf('youtube.com')>=0 || low.indexOf('youtube-nocookie.com')>=0){
+    let id='', m;
+    if((m=u.match(/[?&]v=([A-Za-z0-9_-]{6,})/))) id=m[1];
+    if(!id && (m=u.match(/youtu\.be\/([A-Za-z0-9_-]{6,})/))) id=m[1];
+    if(!id && (m=u.match(/\/shorts\/([A-Za-z0-9_-]{6,})/))) id=m[1];
+    if(!id && (m=u.match(/\/embed\/([A-Za-z0-9_-]{6,})/))) id=m[1];
+    return {kind:'yt', url:u, ytid:id};
+  }
+  if(low.indexOf('instagram.com')>=0) return {kind:'ig', url:u, ytid:''};
+  return {kind:'etc', url:u, ytid:''};
+}
+async function musFetchTitle(it){            // 유튜브 제목·그림 자동 (oEmbed · 키 없음)
+  if(it.grp!=='yt' || !it.memo) return false;
+  try{
+    const r = await fetch('https://www.youtube.com/oembed?format=json&url='+encodeURIComponent('https://www.youtube.com/watch?v='+it.memo));
+    if(!r.ok) return false;
+    const j = await r.json();
+    if(j && j.title){ it.title = String(j.title).slice(0,90); if(j.thumbnail_url) it.img_path = j.thumbnail_url; return true; }
+  }catch(e){}
+  return false;
+}
+function musDefTitle(k){ return k==='ig' ? '인스타 음악 — 이름을 붙여주세요' : (k==='yt' ? '유튜브 음악' : '음악 링크'); }
+const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function musTagList(){
+  const saved = _items.filter(x=>x.type==='musictag').map(x=>x.title);
+  return saved.length ? saved : MUS_TAGS0;
+}
+function musList(){
+  let list = _items.filter(x=>x.type==='music').sort((a,b)=> String(b.created_at||'').localeCompare(String(a.created_at||'')) );
+  if(_musFilter!=='all') list = list.filter(x=>(x.tags||[]).indexOf(_musFilter)>=0);
+  return list;
+}
+async function musAdd(raw){
+  const p = musParse(raw);
+  if(!p){ toast('링크를 붙여넣어 주세요'); return; }
+  const dup = _items.filter(x=>x.type==='music' && x.url===p.url)[0];
+  if(dup){ _musOpen=dup.id; musRender(); toast('이미 담아둔 음악이에요'); return; }
+  const it = { id:newId(), user_code:(sessNow()||{}).code||'', ws:'all', type:'music', grp:p.kind,
+               url:p.url, title:musDefTitle(p.kind), memo:p.ytid, img_path:'', tags:[],
+               created_at:new Date().toISOString() };
+  _musOpen = it.id;
+  await itemsSave(it); musRender();
+  toast('🎵 담았어요 — 이름과 태그를 달아두면 나중에 찾기 쉬워요');
+  if(await musFetchTitle(it)){ await itemsSave(it); musRender(); }
+}
+function musCard(it){
+  const open = _musOpen===it.id;
+  const src = it.grp==='ig' ? ['ig','인스타'] : (it.grp==='yt' ? ['yt','유튜브'] : ['etc','링크']);
+  const art = it.img_path ? '<div class="art" style="background-image:url('+esc(it.img_path)+')"></div>'
+                          : '<div class="art">'+(it.grp==='ig'?'📷':(it.grp==='yt'?'▶':'🔗'))+'</div>';
+  const tgs = (it.tags||[]).map(t=>'<span class="msd-mtg">'+esc(t)+'</span>').join('');
+  const btn = it.grp==='yt'
+    ? '<button type="button" class="msd-play'+(open?' on':'')+'" data-musopen="'+it.id+'">'+(open?'■ 닫기':'▶ 재생')+'</button>'
+    : '<button type="button" class="msd-play" data-musgo="'+it.id+'">듣기 ↗</button>';
+  let body='';
+  if(open){
+    const emb = (it.grp==='yt'&&it.memo)
+      ? '<div class="msd-emb"><iframe src="https://www.youtube-nocookie.com/embed/'+esc(it.memo)+'?rel=0" allow="encrypted-media;picture-in-picture" allowfullscreen loading="lazy"></iframe></div>' : '';
+    const picks = musTagList().map(t=>{
+      const on = (it.tags||[]).indexOf(t)>=0;
+      return '<button type="button" class="p'+(on?' on':'')+'" data-mustag="'+it.id+'|'+esc(t)+'">'+(on?'✓ ':'')+esc(t)+'</button>';
+    }).join('');
+    body = '<div class="msd-open">'+emb+
+      '<input class="msd-nm" data-musnm="'+it.id+'" value="'+esc(it.title)+'" placeholder="이 음악 이름 — 나중에 찾을 말로">'+
+      '<div class="msd-pick">'+picks+'</div>'+
+      '<div class="msd-acts">'+
+        (it.grp==='yt'?'':'<button type="button" class="go" data-musgo="'+it.id+'">↗ '+src[1]+'에서 듣기</button>')+
+        '<button type="button" class="dl" data-musdel="'+it.id+'">삭제</button>'+
+      '</div></div>';
+  }
+  return '<div class="msd-card'+(open?' sel':'')+'">'+
+    '<div class="msd-row" data-musrow="'+it.id+'">'+art+
+      '<div class="bd"><div class="t1">'+esc(it.title)+'</div>'+
+      '<div class="t2"><span class="msd-src '+src[0]+'">'+src[1]+'</span>'+tgs+'</div></div>'+btn+
+    '</div>'+body+'</div>';
+}
+function musRender(){
+  const tw = $('#mus-tags'), lw = $('#mus-list');
+  if(!tw||!lw) return;
+  tw.innerHTML = '<button type="button" class="msd-tg'+(_musFilter==='all'?' on':'')+'" data-musflt="all">전체</button>'+
+    musTagList().map(t=>'<button type="button" class="msd-tg'+(_musFilter===t?' on':'')+'" data-musflt="'+esc(t)+'">'+
+      esc(t)+(_musEdit?'<span class="del" data-mustagdel="'+esc(t)+'">×</span>':'')+'</button>').join('')+
+    '<button type="button" class="msd-tg add" data-mustagadd="1">＋ 태그</button>'+
+    '<button type="button" class="msd-tg edit" data-mustagedit="1">'+(_musEdit?'완료':'태그 정리')+'</button>';
+  const list = musList();
+  lw.innerHTML = list.length ? list.map(musCard).join('')
+    : (_musFilter!=='all'
+       ? '<p class="msd-hint" style="text-align:center;padding:20px 0">이 태그로 담아둔 음악이 아직 없어요</p>'
+       : '<div class="msd-ghost"><div class="gt">🔥 Eye of the Tiger — 인스타</div><div class="gs">동기부여 · 빠른 템포</div></div>'+
+         '<div class="msd-ghost"><div class="gt">🌿 잔잔한 로파이 브금 — 유튜브</div><div class="gs">브이로그</div></div>'+
+         '<p class="msd-hint" style="text-align:center">이렇게 쌓입니다 — 위에 링크를 하나 붙여넣어 보세요</p>');
+  const n = _items.filter(x=>x.type==='music').length;
+  const seg = document.querySelector('#dseg b[data-pane="dp3"]');
+  if(seg) seg.textContent = '🎵 사운드 '+n;
+  lw.insertAdjacentHTML('beforeend','<p class="msd-sync">'+(_online?'☁ 서버에 저장됩니다 — 폰에서도 그대로 보여요':'⚠ 지금은 이 기기에만 저장됩니다')+'</p>');
+}
+/* 음악 서랍 클릭 — 서랍 화면 전체에 한 번만 건다 */
+document.addEventListener('click', async e=>{
+  const t = e.target; if(!t.closest) return;
+  const hit = a => { const el=t.closest('['+a+']'); return el ? el.getAttribute(a) : null; };
+
+  if(hit('data-musadd')){ const i=$('#mus-in'); if(i){ const v=i.value; i.value=''; await musAdd(v); } return; }
+  const tdel = hit('data-mustagdel');
+  if(tdel){                                   /* ⚠️ ×는 필터 버튼 «안»에 있다 — 필터보다 먼저 잡아야 한다 */
+    e.stopPropagation();
+    const row = _items.filter(x=>x.type==='musictag' && x.title===tdel)[0];
+    _items.filter(x=>x.type==='music').forEach(m=>{
+      if((m.tags||[]).indexOf(tdel)>=0){ m.tags = m.tags.filter(z=>z!==tdel); itemsSave(m); }
+    });
+    if(row) await itemsDel(row.id);
+    else {                                    /* 기본 목록에서 지우는 첫 순간 = 내 목록으로 굳힌다 */
+      const keep = musTagList().filter(x=>x!==tdel);
+      for(const label of keep) await itemsSave({id:newId(),user_code:(sessNow()||{}).code||'',ws:'all',type:'musictag',title:label,tags:[],created_at:new Date().toISOString()});
+    }
+    if(_musFilter===tdel) _musFilter='all';
+    musRender(); return;
+  }
+  if(hit('data-mustagedit')){ _musEdit=!_musEdit; musRender(); return; }
+  if(hit('data-mustagadd')){
+    const nm = window.prompt('새 태그 이름 (이모지도 됩니다 — 예: 🎬 시네마틱)');
+    if(nm && nm.trim()){
+      if(!_items.some(x=>x.type==='musictag')){   /* 처음 추가하면 기본 5개도 함께 내 목록으로 */
+        for(const label of MUS_TAGS0) await itemsSave({id:newId(),user_code:(sessNow()||{}).code||'',ws:'all',type:'musictag',title:label,tags:[],created_at:new Date().toISOString()});
+      }
+      await itemsSave({id:newId(),user_code:(sessNow()||{}).code||'',ws:'all',type:'musictag',title:nm.trim().slice(0,14),tags:[],created_at:new Date().toISOString()});
+      musRender();
+    }
+    return;
+  }
+  const flt = hit('data-musflt'); if(flt){ _musFilter=flt; musRender(); return; }
+  const go = hit('data-musgo');
+  if(go){ const it=_items.filter(x=>x.id===go)[0]; if(it) window.open(it.url,'_blank','noopener'); return; }
+  const tg = hit('data-mustag');
+  if(tg){
+    const p = tg.split('|'), it = _items.filter(x=>x.id===p[0])[0];
+    if(it){ it.tags = it.tags||[];
+      const at = it.tags.indexOf(p[1]);
+      if(at>=0) it.tags.splice(at,1); else it.tags.push(p[1]);
+      await itemsSave(it); musRender(); }
+    return;
+  }
+  const dl = hit('data-musdel');
+  if(dl){ await itemsDel(dl); if(_musOpen===dl) _musOpen=''; musRender(); toast('지웠어요'); return; }
+  const op = hit('data-musopen') || hit('data-musrow');
+  if(op){ if(t.closest('.msd-open')) return; _musOpen = (_musOpen===op) ? '' : op; musRender(); return; }
+});
+document.addEventListener('change', async e=>{
+  const nm = e.target.closest && e.target.closest('[data-musnm]'); if(!nm) return;
+  const it = _items.filter(x=>x.id===nm.dataset.musnm)[0];
+  if(it){ it.title = String(nm.value||'').slice(0,90); await itemsSave(it); }
+});
+document.addEventListener('keydown', e=>{
+  if(e.key!=='Enter' || e.keyCode===229) return;          /* 한글 조합 중 Enter 무시 */
+  if(e.target && e.target.id==='mus-in'){ e.preventDefault(); const v=e.target.value; e.target.value=''; musAdd(v); }
+  else if(e.target && e.target.dataset && e.target.dataset.musnm) e.target.blur();
 });
 
 /* ── 발열 헌법 ── */
