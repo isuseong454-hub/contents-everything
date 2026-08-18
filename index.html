@@ -1043,7 +1043,7 @@ body.in-sub #tb-set{display:none}
 const APP_CFG = {
   name: '컨텐츠의 모든것',
   key: 'cme',
-  ver: 'v10',
+  ver: 'v11',
   tagline: '오늘 본 것이 휘발되지 않는다',
   demo: false,   // v7 · 실서버 배선 완료(2026-08-18)
   demoCode: 'EEEEEE', demoPin: '2222',
@@ -1599,51 +1599,26 @@ function vidRender(){
       '<p class="msd-hint" style="grid-column:1/-1;text-align:center">이렇게 쌓입니다 — 위에 영상 링크를 붙여넣어 보세요</p>';
 }
 /* ══════════════════════════════════════════════════════════════
-   v10 · 🔪 분해 — 마스터즈의 분해봇 흐름을 컨모에 맞게 줄인 것
-     손으로 6칸 채우는 게 아니라: 원고 붙여넣기 → 프롬프트 복사 → GPT 결과 붙여넣기 → 자동으로 구간이 찬다
-     ⚠️ 마스터즈 프롬프트(썸네일유형·퍼널·왜터졌나…)는 그 앱 시트 칸에 맞춘 것이라 여기선 과하다.
-        컨모가 쌓아야 하는 건 «구간 + 훔칠 것» 이므로 그만큼만 시킨다.
+   v11 · 원고 → 구간 나누기 (AI 없음)
+     ⚠️ v10에서 GPT 분해봇을 넣었다가 걷어냈다 — 사장님이 말한 «분해»는 그게 아니었고,
+        비용 드는 AI를 묻지도 않고 넣은 것 자체가 규칙 위반이었다(AI는 opt-in만).
    ══════════════════════════════════════════════════════════════ */
-function cmeBuildPrompt(){
-  return [
-    '너는 컨텐츠 아카이브의 «원고 분해봇»이야.',
-    '내가 영상의 자막·캡션(원고)을 던지면, 아래 양식 그대로만 출력해. 인사·설명·다른 말은 절대 붙이지 마.',
-    '',
-    '=== 출력 양식 ===',
-    '주제> (무엇에 대한 컨텐츠인가 — 명사 한 단어. 예: 남자머리)',
-    '잘함> (이 영상이 가장 잘한 일 1개 — 후킹 / 구성 / 전환 / 프로덕션 중 하나만)',
-    '도입부> (멈추게 한 첫 마디)',
-    '공감> (어 내 얘기다 — 구체적인 고통·상황)',
-    '근거> (왜 그런가 — 알면 안심하고 계속 보는 이유)',
-    '방법> (실제로 어떻게 하는지)',
-    '변화> (이걸 하면 뭐가 달라지나 — 기분·효과)',
-    'CTA> (저장·공유·팔로우·DM 등 행동 유도. 없으면 이 줄 통째로 빼)',
-    '훔칠것> (내가 다음 컨텐츠에 가져다 쓸 «한 줄». 기법으로 적어라)',
-    '=== 규칙 ===',
-    '1. 없는 구간은 그 줄을 통째로 빼라. 지어내지 마.',
-    '2. 순서는 «원고에 실제로 나온 순서» 그대로. 템플릿에 맞추려고 옮기지 마.',
-    '3. 한 구간이 여러 덩어리면 방법1> 방법2> 처럼 번호를 붙여라.',
-    '4. 각 줄은 한 문장으로 짧게. 원고를 그대로 복사하지 말고 «무슨 일이 일어났는지»를 적어라.',
-    '5. 훔칠것> 은 반드시 채워라 — 이게 이 카드의 핵심이다.',
-    '',
-    '=== 원고 ===',
-    '(여기에 자막·캡션을 붙여넣으세요)'
-  ].join('\n');
-}
-/* GPT가 뱉은 «역할> 내용» 을 읽어 구간에 담는다 (역할1> 처럼 번호가 붙어도 인식) */
+/* 붙여넣은 원고를 구간으로 나눈다 — 라벨 줄(«도입부», «도입부>», «[도입부]»)을 찾아 그 아래를 담는다.
+   ⚠️ AI를 쓰지 않는다. 라벨이 없으면 통째로 도입부에 넣고 사장님이 옮기면 된다. */
 function cmeParseSegs(text){
   const out={segs:{}, topic:'', axis:'', steal:''};
-  String(text||'').split(/\r?\n/).forEach(line=>{
-    const m = line.match(/^\s*([가-힣A-Za-z]+)\s*([0-9]*)\s*>\s*(.+)$/);
-    if(!m) return;
-    const key=m[1].trim(), val=m[3].trim();
-    if(!val) return;
-    if(key==='주제'){ out.topic=val; return; }
-    if(key==='잘함'){ out.axis=val.replace(/[^가-힣]/g,''); return; }
-    if(key==='훔칠것'||key==='훔칠'){ out.steal=val; return; }
-    const role = VID_ROLES.filter(r=>key.indexOf(r)===0)[0] || (key==='CTA'?'CTA':'');
-    if(!role) return;
-    out.segs[role] = out.segs[role] ? (out.segs[role]+' · '+val) : val;
+  const lines = String(text||'').split(/\r?\n/);
+  let cur='';
+  lines.forEach(raw=>{
+    const line = raw.trim(); if(!line) return;
+    const m = line.match(/^[\[\(]?\s*([가-힣A-Za-z]{2,4})\s*[0-9]*\s*[\]\)]?\s*[:>·\-]?\s*(.*)$/);
+    const key = m ? m[1] : '';
+    const role = key ? (VID_ROLES.filter(r=>key===r)[0] || (key==='CTA'?'CTA':'')) : '';
+    if(role){ cur=role; const rest=(m[2]||'').trim(); if(rest) out.segs[role]=(out.segs[role]?out.segs[role]+' ':'')+rest; return; }
+    if(key==='주제'){ out.topic=(m[2]||'').trim(); return; }
+    if(key==='훔칠것'||key==='훔칠'){ out.steal=(m[2]||'').trim(); return; }
+    if(!cur) cur='도입부';                       /* 라벨이 하나도 없는 통짜 원고 */
+    out.segs[cur] = (out.segs[cur] ? out.segs[cur]+' ' : '') + line;
   });
   return out;
 }
@@ -1682,15 +1657,11 @@ function anatRender(){
       }).join('')+'</div>'+
       '<input class="msd-nm" data-anatf="text" value="'+esc(v.text||'')+'" placeholder="✂ 훔칠 것 한 줄 — 이 영상에서 가져갈 하나">'+
     '</div>'+
-    /* 🔪 분해 — 손으로 채우는 게 아니라 «붙여넣고 받아오는» 자리 */
+    /* v11 · 원고를 붙여넣으면 구간이 «라벨 줄»대로 자동으로 나뉜다 — AI 안 씀 */
     '<div class="anat-cut">'+
-      '<div class="cut-hd">🔪 분해 <s>원고를 넣으면 구간이 자동으로 채워집니다</s></div>'+
-      '<div class="cut-row">'+
-        '<button type="button" class="cut-b go" data-cutprompt="1">① 분해봇 프롬프트 복사</button>'+
-        '<button type="button" class="cut-b" data-cutopen="1">② GPT 열기 ↗</button>'+
-      '</div>'+
-      '<textarea class="msd-nm" id="cut-in" rows="3" placeholder="③ GPT가 준 결과를 여기 붙여넣으세요 — «도입부&gt; …» 형식" style="height:auto;resize:vertical"></textarea>'+
-      '<button type="button" class="cut-b go" data-cutapply="1" style="width:100%;margin-top:8px">④ 구간 채우기</button>'+
+      '<div class="cut-hd">✎ 원고 붙여넣기 <s>«도입부» 같은 줄이 있으면 알아서 나뉩니다</s></div>'+
+      '<textarea class="msd-nm" id="cut-in" rows="4" placeholder="자막·캡션을 그대로 붙여넣으세요" style="height:auto;resize:vertical"></textarea>'+
+      '<button type="button" class="cut-b go" data-cutapply="1" style="width:100%;margin-top:8px">구간으로 나누기</button>'+
     '</div>'+
     VID_ROLES.map((r,ri)=>{
       const val = (m.segs||{})[r] || '';
@@ -2103,13 +2074,7 @@ document.addEventListener('click', async e=>{
   if(prd){ await itemsDel(prd); if(_prOpen===prd) _prOpen=''; prRender(); toast('지웠어요'); return; }
   const pro = hit('data-propen');
   if(pro){ if(t.closest('.msd-open')) return; _prOpen = (_prOpen===pro) ? '' : pro; prRender(); return; }
-  /* ── v10 · 🔪 분해 ── */
-  if(hit('data-cutprompt')){
-    try{ await navigator.clipboard.writeText(cmeBuildPrompt()); toast('복사했어요 — GPT에 붙여넣고, 그 아래 원고를 넣으세요'); }
-    catch(e){ toast('복사에 실패했어요'); }
-    return;
-  }
-  if(hit('data-cutopen')){ window.open('https://chatgpt.com/','_blank','noopener'); return; }
+  /* ── v11 · 원고 붙여넣기 → 구간 나누기 (AI 없음) ── */
   if(hit('data-cutapply')){
     const ta=$('#cut-in'); if(!ta) return;
     await cmeApplyParse(ta.value); ta.value='';
