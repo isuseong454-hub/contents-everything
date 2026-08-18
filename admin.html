@@ -155,7 +155,15 @@ const H2Q=(function(){
     return out; };
 })();
 (function(){ const el=$('#g-id');
-  el.addEventListener('input',()=>{ const v=H2Q(el.value); if(v!==el.value) el.value=v; });
+  /* 🚨 한글 조합 중에 value를 건드리면 IME가 깨져 글자가 씹힌다 — 조합이 끝난 뒤에만 */
+  function conv(){
+    const v=H2Q(el.value); if(v===el.value) return;
+    const atEnd = el.selectionStart === el.value.length;
+    el.value = v;
+    try{ const c = atEnd ? v.length : el.selectionStart; el.setSelectionRange(c, c); }catch(_){}
+  }
+  el.addEventListener('input', e=>{ if(e.isComposing) return; conv(); });
+  el.addEventListener('compositionend', conv);
 })();
 
 /* 게이트 — index와 같은 저장키(cme-adminpin)를 본다 */
