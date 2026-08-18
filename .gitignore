@@ -8,3 +8,7 @@ _media/
 _engine/
 .DS_Store
 Thumbs.db
+
+# 작업 백업본은 저장소에 두지 않는다
+*.bak
+*.bak-*
