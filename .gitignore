@@ -1,0 +1,10 @@
+# 영상 실물·대용량 자료는 저장소에 올리지 않는다 (로컬 아카이브가 본체)
+*.mp4
+*.mov
+*.mkv
+*.wav
+*.mp3
+_media/
+_engine/
+.DS_Store
+Thumbs.db
