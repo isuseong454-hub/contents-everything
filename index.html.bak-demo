@@ -1102,13 +1102,13 @@ body.in-sub #tb-set{display:none}
 const APP_CFG = {
   name: '컨텐츠의 모든것',
   key: 'cme',
-  ver: 'v7',
+  ver: 'v6',
   tagline: '오늘 본 것이 휘발되지 않는다',
-  demo: false,   // v7 · 실서버 배선 완료(2026-08-18)
+  demo: true,
   demoCode: 'EEEEEE', demoPin: '2222',
   adminId: 'qkdna12',
   adminTempPin: '2222',
-  supabaseUrl: 'https://azmayrzdzdeftrjzcycf.supabase.co', supabaseKey: 'sb_publishable_U8UKG1E4bimFMLkZVCYlVw_8IQXZcC4',
+  supabaseUrl: '', supabaseKey: '',
   rpcPrefix: 'cme',
 };
 

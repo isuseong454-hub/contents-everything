@@ -1,46 +1,3 @@
--- ══════════════════════════════════════════════════════════════
--- 컨텐츠의 모든것(cme) — 백엔드 1단계
---   ⚠️ 2026-08-18 수리: 앱 공장 템플릿이 «아이디어 폴더» 테이블명을 그대로 갖고 있어
---      컨모 전용(cme_users / cme_items)으로 바꾸고, 두 테이블 생성 구문을 앞에 붙였다.
---   안전: 전부 «있으면 넘어감(if not exists)» — 기존 데이터를 지우거나 바꾸지 않는다.
--- ══════════════════════════════════════════════════════════════
-
-create table if not exists cme_users (
-  id            uuid primary key default gen_random_uuid(),
-  code          text not null unique,
-  pin           text not null,
-  name          text,
-  created_at    timestamptz default now(),
-  expires_at    timestamptz,
-  is_admin      boolean default false,
-  note          text,
-  must_set_pin  boolean default true,
-  hash_ver      int default 0,
-  fail_count    int default 0,
-  locked_until  timestamptz
-);
-
-create table if not exists cme_items (
-  id          uuid primary key default gen_random_uuid(),
-  user_code   text not null,
-  ws          text not null default 'benchmark',
-  grp         text default '유형 미지정',
-  type        text default 'idea',
-  text        text,
-  url         text,
-  title       text,
-  img_path    text,
-  memo        text,
-  tags        text[] default '{}',
-  fav         boolean default false,
-  uses        int default 0,
-  views       text,
-  created_at  timestamptz default now()
-);
-
-create index if not exists cme_items_user_idx on cme_items(user_code);
-create index if not exists cme_items_ws_idx   on cme_items(user_code, ws);
-
 -- ═══════════════════════════════════════════════════════════════
 -- 아이디어 폴더 🔐 보안 1단계 (2026-07-26)
 -- 막는 것: ①코드·비번 목록 통째 열람 ②비번 원문 저장 ③무제한 대입
@@ -53,9 +10,9 @@ create index if not exists cme_items_ws_idx   on cme_items(user_code, ws);
 create extension if not exists pgcrypto with schema extensions;   -- ⚠️ Supabase는 pgcrypto가 extensions 방에 설치됨
 
 -- 1) 컬럼 추가 (실패 잠금 + 해시 버전)
-alter table cme_users add column if not exists hash_ver    int default 0;
-alter table cme_users add column if not exists fail_count  int default 0;
-alter table cme_users add column if not exists locked_until timestamptz;
+alter table idea_folder_users add column if not exists hash_ver    int default 0;
+alter table idea_folder_users add column if not exists fail_count  int default 0;
+alter table idea_folder_users add column if not exists locked_until timestamptz;
 
 -- 2) 세션 테이블
 create table if not exists cme_sessions(
@@ -66,11 +23,11 @@ create table if not exists cme_sessions(
 );
 
 -- 3) 문 잠그기 — 테이블 직접 접근 전면 차단
-alter table cme_users enable row level security;
-alter table cme_items enable row level security;
+alter table idea_folder_users enable row level security;
+alter table idea_folder_items enable row level security;
 alter table cme_sessions      enable row level security;
-revoke all on table cme_users from anon, authenticated;
-revoke all on table cme_items from anon, authenticated;
+revoke all on table idea_folder_users from anon, authenticated;
+revoke all on table idea_folder_items from anon, authenticated;
 revoke all on table cme_sessions      from anon, authenticated;
 
 -- 4) 소금 해시 (코드가 소금 — 같은 PIN이어도 사람마다 해시가 다름)
@@ -79,22 +36,22 @@ language sql immutable set search_path=public, extensions as
 $$ select encode(digest(upper(trim(p_code))||':'||p_pin,'sha256'),'hex') $$;
 
 -- 5) 내부: 비번 검증 + 실패 잠금(8회/5분) + 소금 승급. 실패 시 예외(no_code/locked/wrong)
-create or replace function cme_check_user(p_code text, p_pin text) returns cme_users
+create or replace function cme_check_user(p_code text, p_pin text) returns idea_folder_users
 language plpgsql security definer set search_path=public, extensions as $$
-declare u cme_users;
+declare u idea_folder_users;
 begin
-  select * into u from cme_users where upper(code)=upper(trim(p_code));
+  select * into u from idea_folder_users where upper(code)=upper(trim(p_code));
   if u.code is null then raise exception 'no_code'; end if;
   if u.locked_until is not null and u.locked_until>now() then raise exception 'locked'; end if;
   if not ( u.pin = p_pin
         or u.pin = encode(digest(p_pin,'sha256'),'hex')
         or u.pin = cme_salt(u.code,p_pin) ) then
-    update cme_users set fail_count=coalesce(fail_count,0)+1,
+    update idea_folder_users set fail_count=coalesce(fail_count,0)+1,
       locked_until=case when coalesce(fail_count,0)+1>=8 then now()+interval '5 minutes' else locked_until end
       where code=u.code;
     raise exception 'wrong';
   end if;
-  update cme_users set fail_count=0, locked_until=null,
+  update idea_folder_users set fail_count=0, locked_until=null,
     pin=cme_salt(u.code,p_pin), hash_ver=1 where code=u.code;
   return u;
 end $$;
@@ -102,7 +59,7 @@ end $$;
 -- 6) 로그인 → 세션 토큰 발급 (만료+3일 유예)
 create or replace function cme_login(p_code text, p_pin text) returns jsonb
 language plpgsql security definer set search_path=public as $$
-declare u cme_users; tok uuid;
+declare u idea_folder_users; tok uuid;
 begin
   begin u:=cme_check_user(p_code,p_pin);
   exception when others then return jsonb_build_object('ok',false,'msg',sqlerrm); end;
@@ -118,12 +75,12 @@ end $$;
 -- 7) 세션 확인 (자동 로그인)
 create or replace function cme_session(p_code text, p_token uuid) returns jsonb
 language plpgsql security definer set search_path=public as $$
-declare s cme_sessions; u cme_users;
+declare s cme_sessions; u idea_folder_users;
 begin
   select * into s from cme_sessions
     where token=p_token and upper(code)=upper(trim(p_code)) and expires_at>now();
   if s.token is null then return jsonb_build_object('ok',false,'msg','session'); end if;
-  select * into u from cme_users where code=s.code;
+  select * into u from idea_folder_users where code=s.code;
   if u.code is null then return jsonb_build_object('ok',false,'msg','no_code'); end if;
   if u.expires_at is not null and u.expires_at + interval '3 days' < now() then
     delete from cme_sessions where code=u.code;
@@ -136,12 +93,12 @@ end $$;
 -- 8) 내부: 세션 유효성 → 코드 반환 (데이터 함수용)
 create or replace function cme_sess_ok(p_code text, p_token uuid) returns text
 language plpgsql security definer set search_path=public as $$
-declare s cme_sessions; u cme_users;
+declare s cme_sessions; u idea_folder_users;
 begin
   select * into s from cme_sessions
     where token=p_token and upper(code)=upper(trim(p_code)) and expires_at>now();
   if s.token is null then raise exception 'session'; end if;
-  select * into u from cme_users where code=s.code;
+  select * into u from idea_folder_users where code=s.code;
   if u.expires_at is not null and u.expires_at + interval '3 days' < now() then
     raise exception 'expired';
   end if;
@@ -151,9 +108,9 @@ end $$;
 -- 9) 처음이신가요 — 코드 상태 확인 / 첫 비번 설정
 create or replace function cme_first_check(p_code text) returns text
 language plpgsql security definer set search_path=public as $$
-declare u cme_users;
+declare u idea_folder_users;
 begin
-  select * into u from cme_users where upper(code)=upper(trim(p_code));
+  select * into u from idea_folder_users where upper(code)=upper(trim(p_code));
   if u.code is null or coalesce(u.is_admin,false) then return 'no_code'; end if;
   if u.expires_at is not null and u.expires_at + interval '3 days' < now() then return 'expired'; end if;
   if not coalesce(u.must_set_pin,false) then return 'already_set'; end if;
@@ -162,13 +119,13 @@ end $$;
 
 create or replace function cme_first(p_code text, p_pin text, p_nick text) returns jsonb
 language plpgsql security definer set search_path=public as $$
-declare u cme_users; tok uuid;
+declare u idea_folder_users; tok uuid;
 begin
-  select * into u from cme_users where upper(code)=upper(trim(p_code));
+  select * into u from idea_folder_users where upper(code)=upper(trim(p_code));
   if u.code is null or coalesce(u.is_admin,false) then return jsonb_build_object('ok',false,'msg','no_code'); end if;
   if u.expires_at is not null and u.expires_at + interval '3 days' < now() then return jsonb_build_object('ok',false,'msg','expired'); end if;
   if not coalesce(u.must_set_pin,false) then return jsonb_build_object('ok',false,'msg','already_set'); end if;
-  update cme_users set pin=cme_salt(u.code,p_pin), hash_ver=1, must_set_pin=false,
+  update idea_folder_users set pin=cme_salt(u.code,p_pin), hash_ver=1, must_set_pin=false,
     name=coalesce(nullif(trim(p_nick),''),name), fail_count=0, locked_until=null
     where code=u.code;
   insert into cme_sessions(code) values(u.code) returning token into tok;
@@ -182,19 +139,19 @@ declare v_code text; v_exp timestamptz; v_name text;
 begin
   begin v_code:=cme_sess_ok(p_code,p_token);
   exception when others then return jsonb_build_object('ok',false,'msg',sqlerrm); end;
-  update cme_users set pin=cme_salt(v_code,p_pin), hash_ver=1, must_set_pin=false,
+  update idea_folder_users set pin=cme_salt(v_code,p_pin), hash_ver=1, must_set_pin=false,
     name=coalesce(nullif(trim(p_nick),''),name)
     where code=v_code returning expires_at, name into v_exp, v_name;
   return jsonb_build_object('ok',true,'expires_at',v_exp,'name',coalesce(v_name,''));
 end $$;
 
 -- 11) 데이터 — 세션 토큰으로만 (내 것만)
-create or replace function cme_items_get(p_code text, p_token uuid) returns setof cme_items
+create or replace function cme_items_get(p_code text, p_token uuid) returns setof idea_folder_items
 language plpgsql security definer set search_path=public as $$
 declare v_code text;
 begin
   v_code:=cme_sess_ok(p_code,p_token);
-  return query select * from cme_items where user_code=v_code order by created_at desc;
+  return query select * from idea_folder_items where user_code=v_code order by created_at desc;
 end $$;
 
 create or replace function cme_items_upsert(p_code text, p_token uuid, p_rows jsonb) returns jsonb
@@ -203,10 +160,10 @@ declare v_code text;
 begin
   begin v_code:=cme_sess_ok(p_code,p_token);
   exception when others then return jsonb_build_object('ok',false,'msg',sqlerrm); end;
-  delete from cme_items
+  delete from idea_folder_items
     where user_code=v_code and id::text in (select e->>'id' from jsonb_array_elements(p_rows) e);
-  insert into cme_items
-    select * from jsonb_populate_recordset(null::cme_items,
+  insert into idea_folder_items
+    select * from jsonb_populate_recordset(null::idea_folder_items,
       (select coalesce(jsonb_agg(jsonb_set(e,'{user_code}',to_jsonb(v_code))),'[]'::jsonb)
          from jsonb_array_elements(p_rows) e));
   return jsonb_build_object('ok',true);
@@ -218,7 +175,7 @@ declare v_code text;
 begin
   begin v_code:=cme_sess_ok(p_code,p_token);
   exception when others then return jsonb_build_object('ok',false,'msg',sqlerrm); end;
-  delete from cme_items where user_code=v_code and id::text = any(p_ids);
+  delete from idea_folder_items where user_code=v_code and id::text = any(p_ids);
   return jsonb_build_object('ok',true);
 end $$;
 
@@ -233,9 +190,9 @@ end $$;
 
 create or replace function cme_admin(p_id text, p_pw text, p_op text, p_args jsonb default '{}'::jsonb) returns jsonb
 language plpgsql security definer set search_path=public as $$
-declare a cme_users; r jsonb; v_code text; v_months int; v_pin text; v_exp timestamptz; i int; v_name text;
+declare a idea_folder_users; r jsonb; v_code text; v_months int; v_pin text; v_exp timestamptz; i int; v_name text;
 begin
-  select * into a from cme_users where upper(code)=upper(trim(p_id)) and coalesce(is_admin,false)=true;
+  select * into a from idea_folder_users where upper(code)=upper(trim(p_id)) and coalesce(is_admin,false)=true;
   if a.code is null then return jsonb_build_object('ok',false,'msg','auth'); end if;
   begin perform cme_check_user(a.code, p_pw);
   exception when others then return jsonb_build_object('ok',false,'msg',sqlerrm); end;
@@ -246,7 +203,7 @@ begin
   elsif p_op='list' then
     select jsonb_build_object('ok',true,'rows',
       coalesce(jsonb_agg((to_jsonb(t) - 'pin') order by t.created_at desc),'[]'::jsonb)) into r
-    from (select * from cme_users where coalesce(is_admin,false)=false) t;
+    from (select * from idea_folder_users where coalesce(is_admin,false)=false) t;
 
   elsif p_op='create' then
     v_months:=coalesce((p_args->>'months')::int,12);
@@ -254,7 +211,7 @@ begin
     for i in 1..8 loop
       v_code:=cme_gen_code();
       begin
-        insert into cme_users(code,pin,name,expires_at,is_admin,must_set_pin,hash_ver)
+        insert into idea_folder_users(code,pin,name,expires_at,is_admin,must_set_pin,hash_ver)
         values(v_code, cme_salt(v_code, lpad((floor(random()*9000)+1000)::int::text,4,'0')), v_name,
                case when v_months>0 then now()+(v_months||' months')::interval else null end,
                false, true, 1);
@@ -262,12 +219,12 @@ begin
       exception when unique_violation then v_code:=null; end;
     end loop;
     if v_code is null then return jsonb_build_object('ok',false,'msg','gen'); end if;
-    select expires_at into v_exp from cme_users where code=v_code;
+    select expires_at into v_exp from idea_folder_users where code=v_code;
     r:=jsonb_build_object('ok',true,'code',v_code,'expires_at',v_exp);
 
   elsif p_op='extend' then
     v_code:=upper(trim(p_args->>'code')); v_months:=coalesce((p_args->>'months')::int,12);
-    update cme_users
+    update idea_folder_users
       set expires_at = greatest(coalesce(expires_at,now()),now()) + (v_months||' months')::interval
       where upper(code)=v_code and coalesce(is_admin,false)=false and expires_at is not null
       returning expires_at into v_exp;
@@ -277,7 +234,7 @@ begin
   elsif p_op='temp' then
     v_code:=upper(trim(p_args->>'code'));
     v_pin:=lpad((floor(random()*9000)+1000)::int::text,4,'0');
-    update cme_users set pin=cme_salt(v_code,v_pin), must_set_pin=true, hash_ver=1,
+    update idea_folder_users set pin=cme_salt(v_code,v_pin), must_set_pin=true, hash_ver=1,
       fail_count=0, locked_until=null
       where upper(code)=v_code and coalesce(is_admin,false)=false;
     if not found then return jsonb_build_object('ok',false,'msg','no_code'); end if;
@@ -286,13 +243,13 @@ begin
 
   elsif p_op='del' then
     v_code:=upper(trim(p_args->>'code'));
-    delete from cme_items where upper(user_code)=v_code;
+    delete from idea_folder_items where upper(user_code)=v_code;
     delete from cme_sessions where upper(code)=v_code;
-    delete from cme_users where upper(code)=v_code and coalesce(is_admin,false)=false;
+    delete from idea_folder_users where upper(code)=v_code and coalesce(is_admin,false)=false;
     r:=jsonb_build_object('ok',true);
 
   elsif p_op='setpw' then
-    update cme_users set pin=cme_salt(a.code, p_args->>'pw'), hash_ver=1 where code=a.code;
+    update idea_folder_users set pin=cme_salt(a.code, p_args->>'pw'), hash_ver=1 where code=a.code;
     r:=jsonb_build_object('ok',true);
 
   else
@@ -316,10 +273,10 @@ revoke all on function cme_gen_code()             from public, anon, authenticat
 
 -- ═══ 확인용 (RUN 후 이 두 줄만 따로 실행해보세요) ═══
 -- select cme_first_check('없는코드');                      → 'no_code' 나오면 정상
--- select * from cme_users limit 1;                → permission denied 나오면 잠금 성공
+-- select * from idea_folder_users limit 1;                → permission denied 나오면 잠금 성공
 
 -- ═══ 🆘 롤백 (문제 생겼을 때만 아래 주석을 풀고 실행 — 예전 상태로 복귀) ═══
--- alter table cme_users disable row level security;
--- alter table cme_items disable row level security;
--- grant all on table cme_users to anon, authenticated;
--- grant all on table cme_items to anon, authenticated;
+-- alter table idea_folder_users disable row level security;
+-- alter table idea_folder_items disable row level security;
+-- grant all on table idea_folder_users to anon, authenticated;
+-- grant all on table idea_folder_items to anon, authenticated;
