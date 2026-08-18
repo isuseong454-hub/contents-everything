@@ -231,9 +231,22 @@ body.in-sub #tb-set{display:none}
 .list-row small{font-size:12px;color:var(--tx2)}
 
 /* ── 워크스페이스 필 ── */
-.cws{display:flex;gap:6px;margin:2px 2px 14px;overflow-x:auto;scrollbar-width:none}
-.cws b{flex:none;font-weight:600;font-size:12.5px;color:var(--tx2);padding:8px 13px;border-radius:99px;border:1px solid transparent;transition:.2s;cursor:pointer}
-.cws b.on{color:var(--tx1);background:var(--glass);border-color:var(--line2)}
+/* v13 · 워크스페이스 = 애플 세그먼트 (유리 트랙 + 미끄러지는 필) */
+.wseg{position:relative;display:flex;margin:2px 0 14px;padding:4px;border-radius:15px;
+  background:rgba(255,255,255,.05);border:1px solid var(--line);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.wseg b{position:relative;z-index:1;flex:1;text-align:center;cursor:pointer;font-weight:700;font-size:12.5px;
+  color:var(--tx2);padding:9px 6px;border-radius:11px;transition:color .22s;white-space:nowrap;
+  display:flex;align-items:center;justify-content:center;gap:5px}
+.wseg b em{font-style:normal;font-size:13px;opacity:.85;transition:opacity .22s}
+.wseg b.on{color:var(--tx1)}
+.wseg b.on em{opacity:1}
+.wseg b:active{transform:scale(.97)}
+.wseg .fill{position:absolute;top:4px;left:0;height:calc(100% - 8px);border-radius:11px;
+  background:rgba(255,255,255,.10);border:1px solid var(--line2);
+  box-shadow:0 2px 10px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.12);
+  transition:transform .38s var(--spring), width .38s var(--spring);pointer-events:none}
+@media(max-width:400px){ .wseg b{font-size:11.5px;padding:9px 3px} .wseg b em{font-size:12px} }
 
 /* ── 만능 붙여넣기 바 ── */
 .paste{display:flex;gap:9px;margin-bottom:8px}
@@ -662,10 +675,12 @@ body.in-sub #tb-set{display:none}
 <main class="wrap">
   <!-- ═══ 타일1: 홈 ═══ -->
   <section class="scr on" id="scr-s1">
-    <nav class="cws" id="cws">
-      <b class="on" data-ws="lecture">🎓 강의 자료실</b>
-      <b data-ws="channel">📺 내 채널</b>
-      <b data-ws="scout">🔭 정찰</b>
+    <!-- v13 · 애플 세그먼트 — 유리 트랙 위를 «필»이 미끄러진다 -->
+    <nav class="wseg" id="cws">
+      <i class="fill" id="wseg-fill"></i>
+      <b class="on" data-ws="lecture"><em>🎓</em>강의 자료실</b>
+      <b data-ws="channel"><em>📺</em>내 채널</b>
+      <b data-ws="scout"><em>🔭</em>정찰</b>
     </nav>
     <div class="hero">
       <div class="hi"><span id="home-date"></span> · 누적 <em id="hm-total">0편</em> · 훔칠 것 <em id="hm-steal">0줄</em></div>
@@ -762,20 +777,9 @@ body.in-sub #tb-set{display:none}
 
   <!-- ═══ 타일5: 성적표 ═══ -->
   <section class="scr" id="scr-s5">
-    <div class="hero"><h1>성적표</h1><div class="sub">남의 것만 모으면 반쪽 — «내가 뭘 했더니 떴는가»도 자산</div></div>
-    <div class="score">
-      <div class="sc"><div class="k">이번 주 조회</div><div class="v">184K<small>+31%</small></div></div>
-      <div class="sc"><div class="k">평균 지속률</div><div class="v">64%<small>+6%p</small></div></div>
-      <div class="sc"><div class="k">저장/조회</div><div class="v">4.2%<small>목표 5%</small></div></div>
-    </div>
-    <div class="card">
-      <h3>📬 주간 결산 <span class="badge ac">일요일 자동</span></h3>
-      <p>이번 주 저장한 12편의 공통점: <b style="color:var(--tx1)">11편이 첫 3초에 숫자 또는 상식깨기</b>를 썼습니다. 사장님 최근 3편은 인사말로 시작 — 다음 편은 도입부·숫자를 시험해 볼 차례.</p>
-    </div>
-    <div class="card">
-      <h3>🕯 원본이 사라진 영상 <span class="badge">2편</span></h3>
-      <div class="list-row"><span class="ico">🎬</span><div><b>"단골 만드는 인사법" (유튜브에서 삭제됨)</b><small>내 금고엔 있습니다 — 이게 이 앱의 존재 이유</small></div></div>
-    </div>
+    <div class="hero"><h1>성적표</h1><div class="sub">이번 주 내가 얼마나 모았고, 무엇을 배웠나</div></div>
+    <div class="score" id="sc-tiles"></div>
+    <div id="sc-body"></div>
   </section>
 
   <!-- ═══ 서브뷰: 한 편의 해부 ═══ -->
@@ -855,61 +859,11 @@ body.in-sub #tb-set{display:none}
     </div>
 
     <div class="dpane" id="sp2">
-      <button class="rm hot">
-        <div class="hd3"><span class="ic3">🔥</span>
-          <span><span class="nm3">3기 전사들</span><div class="meta3">방장 김민지 · 멤버 7 · 코드 A3K7MQ</div></span>
-          <span class="tag5 hot2">활발</span></div>
-        <div class="ln3">이번 주 업로드 합계 <b>19편</b> · 평균 상승률 <b>+12%</b> · 어제 🥇민지 100만 축하 6건</div>
-        <div class="acts3"><b>📣 공지 보내기</b><b>🔑 비번 리셋</b><b>👑 방장 교체</b><b>🚪 방 닫기</b></div>
-      </button>
-      <button class="rm">
-        <div class="hd3"><span class="ic3">🎓</span>
-          <span><span class="nm3">동문회 (졸업생)</span><div class="meta3">방장 정도윤 · 멤버 8 · 코드 Q9WT2E</div></span>
-          <span class="tag5 hot2" style="color:var(--story);border-color:rgba(142,199,246,.35);background:var(--story-g)">보통</span></div>
-        <div class="ln3">이번 주 업로드 합계 <b>6편</b> · 수강생이 직접 만든 방 — 자동으로 관제에 잡힘</div>
-        <div class="acts3"><b>📣 공지 보내기</b><b>🔑 비번 리셋</b><b>👑 방장 교체</b><b>🚪 방 닫기</b></div>
-      </button>
-      <button class="rm cold">
-        <div class="hd3"><span class="ic3">🕯</span>
-          <span><span class="nm3">2기 마무리반</span><div class="meta3">방장 박서준 · 멤버 4 · 코드 H2MK8P</div></span>
-          <span class="tag5 cold2">2주째 조용</span></div>
-        <div class="ln3">활동 없음 14일 — «오늘» 탭에 불씨 경보가 올라가 있습니다</div>
-        <div class="acts3"><b>📣 공지 보내기</b><b>🔑 비번 리셋</b><b>👑 방장 교체</b><b>🚪 방 닫기</b></div>
-      </button>
-      <p style="margin-top:4px;font-size:11px;color:var(--dim)">누구나 방을 만들 수 있지만, 모든 방은 여기 자동으로 잡힙니다 — 숨은 방 없음(동의 게이트 명시)</p>
-    </div>
-
-    <div class="sgrid" style="display:none">
-      <button class="stc" data-sub="stu">
-        <div class="face" style="background:linear-gradient(150deg,#2a2450,#141126)"><b>민</b><span class="gi">3기</span><span class="gd" style="color:var(--prod)">6주차</span></div>
-        <div class="bd2"><div class="nm2">김민지</div><div class="pe">7.1 ~ 9.22 · 헤어디자이너</div>
-          <div class="row2"><span class="up">+840<small>팔로워</small></span><span class="spk" style="--c:var(--prod)"><i style="height:30%"></i><i style="height:45%"></i><i style="height:40%"></i><i style="height:62%"></i><i style="height:78%"></i><i style="height:100%"></i></span></div>
-          <div class="pgb"><i style="width:50%"></i></div></div>
-      </button>
-      <button class="stc" data-sub="stu">
-        <div class="face" style="background:linear-gradient(150deg,#0e3a33,#0a1f1c)"><b>서</b><span class="gi">2기</span><span class="gd" style="color:var(--conv)">졸업주</span></div>
-        <div class="bd2"><div class="nm2">박서준</div><div class="pe">5.26 ~ 8.18 · 살롱 원장</div>
-          <div class="row2"><span class="up">+2,140<small>팔로워</small></span><span class="spk" style="--c:var(--conv)"><i style="height:20%"></i><i style="height:35%"></i><i style="height:55%"></i><i style="height:60%"></i><i style="height:82%"></i><i style="height:100%"></i></span></div>
-          <div class="pgb"><i style="width:96%"></i></div></div>
-      </button>
-      <button class="stc" data-sub="stu">
-        <div class="face" style="background:linear-gradient(150deg,#12304a,#0b1a2c)"><b>하</b><span class="gi">3기</span><span class="gd" style="color:var(--story)">4주차</span></div>
-        <div class="bd2"><div class="nm2">이하늘</div><div class="pe">7.14 ~ 10.6 · 네일아티스트</div>
-          <div class="row2"><span class="up">+310<small>팔로워</small></span><span class="spk" style="--c:var(--story)"><i style="height:40%"></i><i style="height:35%"></i><i style="height:50%"></i><i style="height:48%"></i><i style="height:70%"></i><i style="height:100%"></i></span></div>
-          <div class="pgb"><i style="width:33%"></i></div></div>
-      </button>
-      <button class="stc" data-sub="stu">
-        <div class="face" style="background:linear-gradient(150deg,#3a3316,#1f1c0c)"><b>유</b><span class="gi">3기</span><span class="gd" style="color:var(--hook)">2주차</span></div>
-        <div class="bd2"><div class="nm2">최유나</div><div class="pe">8.4 ~ 10.27 · 속눈썹샵</div>
-          <div class="row2"><span class="up">+95<small>팔로워</small></span><span class="spk" style="--c:var(--hook)"><i style="height:55%"></i><i style="height:40%"></i><i style="height:62%"></i><i style="height:58%"></i><i style="height:80%"></i><i style="height:100%"></i></span></div>
-          <div class="pgb"><i style="width:16%"></i></div></div>
-      </button>
-      <button class="stc" data-sub="stu">
-        <div class="face" style="background:linear-gradient(150deg,#232a4e,#101426)"><b>도</b><span class="gi">2기</span><span class="gd" style="color:var(--conv)">졸업</span></div>
-        <div class="bd2"><div class="nm2">정도윤</div><div class="pe">3.3 ~ 5.26 · 바버샵</div>
-          <div class="row2"><span class="up">+3,800<small>팔로워</small></span><span class="spk" style="--c:var(--conv)"><i style="height:15%"></i><i style="height:30%"></i><i style="height:45%"></i><i style="height:70%"></i><i style="height:85%"></i><i style="height:100%"></i></span></div>
-          <div class="pgb"><i style="width:100%"></i></div></div>
-      </button>
+      <div class="card">
+        <h3>🚪 커뮤니티 방 <span class="badge">준비 중</span></h3>
+        <p>수강생끼리 성장을 나누는 방입니다 — 서버 기능이 붙으면 여기서 열고 닫습니다.<br>
+        지금은 마스터즈 앱의 커뮤니티가 그 자리를 대신하고 있습니다.</p>
+      </div>
     </div>
   </section>
 
@@ -955,80 +909,8 @@ body.in-sub #tb-set{display:none}
 
   <!-- 서브뷰: 수강생 상세 — 그 사람의 모든 것 -->
   <section class="scr" id="scr-stu">
-    <div class="sd-hd">
-      <div class="av" style="background:linear-gradient(150deg,#2a2450,#141126)">민</div>
-      <div><h2>김민지</h2>
-        <div class="tags2"><span class="tag hook">3기 · 6주차</span><span class="tag story">헤어디자이너</span><span class="tag conv">진단: 전환 약함</span></div></div>
-    </div>
-    <div class="pgb" style="margin:0 2px 14px"><i style="width:50%"></i></div>
-    <div class="stat3">
-      <div class="sc"><div class="k">팔로워</div><div class="v">2,140<small>+840</small></div></div>
-      <div class="sc"><div class="k">총 조회</div><div class="v">82만<small>+31만</small></div></div>
-      <div class="sc"><div class="k">평균 지속률</div><div class="v">58%<small>+9%p</small></div></div>
-    </div>
-    <div class="dseg" id="chseg" style="margin-bottom:12px">
-      <b class="on" data-ch="yt">📺 유튜브 <small style="font-weight:600;color:var(--tx3)">자동 수집</small></b>
-      <b data-ch="ig">📸 인스타 <small style="font-weight:600;color:var(--tx3)">주간 입력</small></b>
-    </div>
-    <div class="chpane on" id="ch-yt">
-      <div class="card">
-        <h3>📈 구독자 추이 <span class="badge ac">매주 자동</span></h3>
-        <div class="gr" style="--c:var(--prod)"><i style="height:26%"></i><i style="height:38%"></i><i style="height:35%"></i><i style="height:55%"></i><i style="height:74%"></i><i class="hot" style="height:100%"></i></div>
-        <div class="gr-x"><s>1주</s><s>2주</s><s>3주</s><s>4주</s><s>5주</s><s>6주</s></div>
-      </div>
-      <div class="card">
-        <h3>👁 조회수 추이 <span class="badge">편당 평균</span></h3>
-        <div class="gr" style="--c:var(--story)"><i style="height:30%"></i><i style="height:28%"></i><i style="height:52%"></i><i style="height:44%"></i><i style="height:68%"></i><i class="hot" style="height:100%"></i></div>
-        <div class="gr-x"><s>1주</s><s>2주</s><s>3주</s><s>4주</s><s>5주</s><s>6주</s></div>
-      </div>
-    </div>
-    <div class="chpane" id="ch-ig">
-      <div class="card">
-        <h3>📈 팔로워 추이 <span class="badge ac">본인 입력 · 주 1회</span></h3>
-        <div class="gr" style="--c:var(--hook)"><i style="height:34%"></i><i style="height:40%"></i><i style="height:52%"></i><i style="height:58%"></i><i style="height:80%"></i><i class="hot" style="height:100%"></i></div>
-        <div class="gr-x"><s>1주</s><s>2주</s><s>3주</s><s>4주</s><s>5주</s><s>6주</s></div>
-      </div>
-      <div class="card">
-        <h3>👁 최고 조회수 추이 <span class="badge">주간 베스트</span></h3>
-        <div class="gr" style="--c:var(--conv)"><i style="height:22%"></i><i style="height:45%"></i><i style="height:38%"></i><i style="height:60%"></i><i style="height:55%"></i><i class="hot" style="height:100%"></i></div>
-        <div class="gr-x"><s>1주</s><s>2주</s><s>3주</s><s>4주</s><s>5주</s><s>6주</s></div>
-        <p style="margin-top:10px;font-size:11.5px;color:var(--tx3)">이번 주 숫자는 아직 안 들어왔습니다 — 마스터즈 앱 «이번 주 성적»에서 입력하면 채워집니다</p>
-      </div>
-    </div>
-    <div class="tcaps">
-      <div class="t1">⏳ 타임캡슐 — 입학 날의 눈</div>
-      <div class="then">입학 날 처방 5편을 보고: <b>"그냥 다 좋아 보여요. 뭐가 다른지 모르겠어요."</b></div>
-      <div class="vs">6주 뒤 · 지금</div>
-      <div class="then">같은 5편을 다시 보고: <b>"첫 편은 숫자 훅, 셋째 편은 CTA가 댓글이네요."</b> — 구간이 읽히기 시작했습니다. 졸업 때 한 번 더 엽니다.</div>
-    </div>
-    <div class="card">
-      <h3>⚖️ 비포 / 애프터 <span class="badge">입학 첫 원고 vs 이번 주</span></h3>
-      <div class="ba" style="margin-top:12px">
-        <div class="col"><h4>입학 첫 원고</h4>
-          <div class="mini">
-            <i style="--c:var(--hook)" class="miss">도입부 — 인사말</i>
-            <i style="--c:var(--story)">공감</i>
-            <i style="--c:var(--story)" class="miss">근거 없음</i>
-            <i style="--c:var(--conv)">방법</i>
-            <i style="--c:var(--conv)" class="miss">변화 없음</i>
-            <i style="--c:var(--prod)" class="miss">CTA 없음</i>
-          </div></div>
-        <div class="col"><h4>이번 주 원고</h4>
-          <div class="mini">
-            <i style="--c:var(--hook)">도입부 · 숫자</i>
-            <i style="--c:var(--story)">공감</i>
-            <i style="--c:var(--story)">근거 · 지표</i>
-            <i style="--c:var(--conv)">방법</i>
-            <i style="--c:var(--conv)" class="miss">변화 — 이번 처방</i>
-            <i style="--c:var(--prod)">CTA · 댓글</i>
-          </div></div>
-      </div>
-    </div>
-    <div class="card">
-      <h3>💊 처방 이력 <span class="badge">2건</span></h3>
-      <div class="list-row"><span class="ico">💊</span><div><b>№24 전환 보강 3편</b><small>발급 대기 — 오늘</small></div></div>
-      <div class="list-row"><span class="ico">💊</span><div><b>№19 첫 3초 보강 2편</b><small>7.28 · 2편 모두 시청 ✓</small></div></div>
-    </div>
+    <div class="hero"><h1 id="stu-nm">수강생</h1><div class="sub" id="stu-sub">명단에서 고르면 그 사람의 모든 것이 여기 모입니다</div></div>
+    <div id="stu-body"></div>
   </section>
 </main>
 
@@ -1069,7 +951,7 @@ body.in-sub #tb-set{display:none}
 const APP_CFG = {
   name: '컨텐츠의 모든것',
   key: 'cme',
-  ver: 'v12',
+  ver: 'v13',
   tagline: '오늘 본 것이 휘발되지 않는다',
   demo: false,   // v7 · 실서버 배선 완료(2026-08-18)
   demoCode: 'EEEEEE', demoPin: '2222',
@@ -1079,6 +961,9 @@ const APP_CFG = {
   rpcPrefix: 'cme',
 };
 
+/* v13 · 지금 열려 있는 워크스페이스 — 담을 때 이 값이 붙고, 볼 때 이 값으로 거른다
+   ⚠️ 아래 저장 계층보다 «위»에서 쓰이므로 여기서 var로 먼저 세운다(TDZ 차단) */
+var _ws = 'lecture';
 const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
 const K = k => APP_CFG.key + '-' + k;
 
@@ -1168,9 +1053,17 @@ $('#pw-go').addEventListener('click', async ()=>{
   if (a.length < 4) { $('#pw-err').textContent = '4자리 이상으로 정해주세요'; return; }
   if (a !== b)      { $('#pw-err').textContent = '두 번 넣은 값이 다릅니다'; return; }
   if (a === APP_CFG.adminTempPin) { $('#pw-err').textContent = '임시 비밀번호와 달라야 합니다'; return; }
+  /* v13 · 서버에도 바꾼다 — 이전엔 이 기기에만 저장돼 폰에서 옛 비번이 살아 있었다 */
+  const ss = sessNow();
+  if (ss && ss.code && ss.token && ss.token !== 'demo') {
+    try {
+      const res = await rpc('cme_set_pin', { p_code: ss.code, p_token: ss.token, p_pin: a, p_nick: null });
+      if (res && res.ok === false) { $('#pw-err').textContent = '서버가 거절했어요: ' + (res.msg || '알 수 없음'); return; }
+    } catch (e) { $('#pw-err').textContent = '서버에 못 바꿨어요 — 인터넷을 확인해주세요'; return; }
+  }
   localStorage.setItem(AKEY, await sha256(a));
   $('#pw-ov').style.display = 'none';
-  toast('비밀번호를 바꿨습니다');
+  toast('비밀번호를 바꿨습니다 — 폰에서도 새 비번으로 들어옵니다');
 });
 $('#set-pw').addEventListener('click', ()=>{ sheetClose(); openPw(false); });
 
@@ -1236,6 +1129,7 @@ function enterApp(sess){
   /* v8 · 들어오는 순간 서버 창고에서 내 것을 꺼내온다 (실패해도 로컬 사본으로 화면은 산다)
      ⚠️ setTimeout 0 = 스크립트가 «끝까지 읽힌 뒤» 부른다. 바로 부르면 아래쪽 변수가 아직 없어(TDZ) 앱이 통째로 죽는다. */
   setTimeout(()=>{ try{ itemsLoad(true).then(()=>{ try{ paintAll(); }catch(e){} }).catch(()=>{}); }catch(e){} }, 0);
+  setTimeout(()=>{ try{ wsFillMove(); }catch(e){} }, 120);   /* 로그인 창이 걷힌 뒤 세그먼트 자리 잡기 */
 }
 function doLogout(){
   sessionStorage.removeItem(K('sess'));
@@ -1262,6 +1156,7 @@ function showScr(id){
   $('#scr-'+id).classList.add('on');
   $$('.dock button').forEach(b=>b.classList.toggle('on',b.dataset.scr===id));
   document.scrollingElement.scrollTop=0;
+  if(id==='s1') try{ requestAnimationFrame(wsFillMove); }catch(e){}   /* 홈이 보일 때 필 자리 다시 잡기 */
 }
 function setMode(m,silent){
   mode=m; localStorage.setItem(K('mode'),m);
@@ -1269,6 +1164,7 @@ function setMode(m,silent){
   $('#dock').style.display   = m==='i' ? 'flex' : 'none';
   $('#dock-s').style.display = m==='s' ? 'flex' : 'none';
   subStack=[]; document.body.classList.remove('in-sub');
+  setTimeout(()=>{ try{ wsFillMove(); }catch(e){} }, 60);   /* 강사실로 돌아오면 세그먼트 자리 다시 */
   cur = m==='i' ? 's1' : 't1'; showScr(cur);
   if(!silent) toast(m==='i' ? '🗄 강사실 — 내 금고' : '👥 수강생실 — 12명 자라는 중');
 }
@@ -1301,14 +1197,28 @@ $('#sheet-ov').addEventListener('click',sheetClose);
 
 /* ── 워크스페이스 전환 (완전 분리 — 서랍 전체가 갈아끼워짐) ── */
 const WS_NAMES={lecture:'강의 자료실',channel:'내 채널',scout:'정찰'};
-$('#cws').addEventListener('click',e=>{
+/* v13 · 워크스페이스 — 이제 «진짜로» 서랍을 가른다 (담을 땐 지금 방 것으로, 볼 땐 그 방 것만) */
+function wsFillMove(){
+  const f=$('#wseg-fill'), on=document.querySelector('#cws b.on');
+  if(!f||!on || !on.offsetWidth) return;   /* 화면이 아직 안 보이면 폭이 0이라 나중에 다시 */
+  f.style.width = on.offsetWidth+'px';
+  f.style.transform = 'translateX('+on.offsetLeft+'px)';
+}
+$('#cws').addEventListener('click', async e=>{
   const b=e.target.closest('b[data-ws]'); if(!b)return;
   $$('#cws b').forEach(x=>x.classList.toggle('on',x===b));
-  localStorage.setItem(K('ws'),b.dataset.ws);
-  toast('「'+WS_NAMES[b.dataset.ws]+'」 워크스페이스 — 서랍 전체가 이 방 것으로 바뀝니다');
+  _ws = b.dataset.ws;
+  localStorage.setItem(K('ws'), _ws);
+  wsFillMove();
+  paintAll();
 });
-(function(){ const w=localStorage.getItem(K('ws'));
-  if(w){ $$('#cws b').forEach(x=>x.classList.toggle('on',x.dataset.ws===w)); } })();
+(function(){
+  const w=localStorage.getItem(K('ws'));
+  if(w){ _ws=w; $$('#cws b').forEach(x=>x.classList.toggle('on',x.dataset.ws===w)); }
+})();
+/* 로그인 화면에 가려져 있으면 폭이 0이라 자리를 못 잡는다 — 보일 때까지 몇 번 더 시도 */
+[80, 400, 1200].forEach(ms=>setTimeout(wsFillMove, ms));
+window.addEventListener('resize', wsFillMove);
 
 /* 관 복원 + 수강생실 날짜
    ⚠️ 화면을 갈아끼우면 여기서 찾던 요소가 사라진다 — 없으면 조용히 넘어가야 «그 아래 배선 전부 미부착» 사고가 안 난다 */
@@ -1374,13 +1284,7 @@ document.addEventListener('click',e=>{
   toast(a.textContent+' — 서버(SQL RUN) 연결 후 실제 작동');
 },true);
 
-/* ── 수강생 상세: 유튜브/인스타 채널 토글 ── */
-$('#chseg').addEventListener('click',e=>{
-  const b=e.target.closest('b[data-ch]'); if(!b)return;
-  $$('#chseg b').forEach(x=>x.classList.toggle('on',x===b));
-  $('#ch-yt').classList.toggle('on',b.dataset.ch==='yt');
-  $('#ch-ig').classList.toggle('on',b.dataset.ch==='ig');
-});
+/* (v13 · 옛 수강생 상세의 채널 토글은 화면이 실데이터로 바뀌며 사라졌다 — 배선도 함께 제거) */
 
 /* ══════════════════════════════════════════════════════════════
    v8 · 저장 배선 — 앱 ↔ 서버 창고(cme_items)를 잇는 길
@@ -1490,7 +1394,7 @@ function musTagList(){
   return saved.length ? saved : MUS_TAGS0;
 }
 function musList(){
-  let list = _items.filter(x=>x.type==='music').sort((a,b)=> String(b.created_at||'').localeCompare(String(a.created_at||'')) );
+  let list = _items.filter(x=>x.type==='music' && inWs(x)).sort((a,b)=> String(b.created_at||'').localeCompare(String(a.created_at||'')) );
   if(_musFilter!=='all') list = list.filter(x=>(x.tags||[]).indexOf(_musFilter)>=0);
   return list;
 }
@@ -1499,7 +1403,7 @@ async function musAdd(raw){
   if(!p){ toast('링크를 붙여넣어 주세요'); return; }
   const dup = _items.filter(x=>x.type==='music' && x.url===p.url)[0];
   if(dup){ _musOpen=dup.id; musRender(); toast('이미 담아둔 음악이에요'); return; }
-  const it = { id:newId(), user_code:(sessNow()||{}).code||'', ws:'all', type:'music', grp:p.kind,
+  const it = { id:newId(), user_code:(sessNow()||{}).code||'', ws:_ws, type:'music', grp:p.kind,
                url:p.url, title:musDefTitle(p.kind), memo:p.ytid, img_path:'', tags:[],
                created_at:new Date().toISOString() };
   _musOpen = it.id;
@@ -1553,7 +1457,7 @@ function musRender(){
        : '<div class="msd-ghost"><div class="gt">🔥 Eye of the Tiger — 인스타</div><div class="gs">동기부여 · 빠른 템포</div></div>'+
          '<div class="msd-ghost"><div class="gt">🌿 잔잔한 로파이 브금 — 유튜브</div><div class="gs">브이로그</div></div>'+
          '<p class="msd-hint" style="text-align:center">이렇게 쌓입니다 — 위에 링크를 하나 붙여넣어 보세요</p>');
-  const n = _items.filter(x=>x.type==='music').length;
+  const n = _items.filter(x=>x.type==='music' && inWs(x)).length;
   const seg = document.querySelector('#dseg b[data-pane="dp3"]');
   if(seg) seg.textContent = '🎵 사운드 '+n;
   lw.insertAdjacentHTML('beforeend','<p class="msd-sync">'+(_online?'☁ 서버에 저장됩니다 — 폰에서도 그대로 보여요':'⚠ 지금은 이 기기에만 저장됩니다')+'</p>');
@@ -1569,7 +1473,9 @@ let _vfTopic='all', _vfAxis='all', _anatId='', _anatPen='도입부';
 
 function vmeta(it){ try{ return JSON.parse(it.memo||'{}'); }catch(e){ return {}; } }
 function vmetaSet(it,o){ it.memo = JSON.stringify(o||{}); }
-function vidAll(){ return _items.filter(x=>x.type==='video'); }
+/* 지금 방 것 + 방 표시가 없는 옛것 */
+function inWs(x){ return !x.ws || x.ws==='all' || x.ws===_ws; }
+function vidAll(){ return _items.filter(x=>x.type==='video' && inWs(x)); }
 function vidTopics(){
   const s = {}; vidAll().forEach(v=>{ if(v.grp) s[v.grp]=1; });
   return Object.keys(s);
@@ -1584,7 +1490,7 @@ async function vidAdd(raw){
   const p = musParse(raw);
   if(!p){ toast('영상 링크를 붙여넣어 주세요'); return; }
   if(vidAll().some(v=>v.url===p.url)){ toast('이미 서재에 있는 영상이에요'); return; }
-  const it = { id:newId(), user_code:(sessNow()||{}).code||'', ws:'all', type:'video', grp:'',
+  const it = { id:newId(), user_code:(sessNow()||{}).code||'', ws:_ws, type:'video', grp:'',
                url:p.url, title:(p.kind==='yt'?'유튜브 영상':'영상'), text:'', views:'', img_path:'',
                memo:JSON.stringify({yt:p.ytid, segs:{}, why:''}), tags:[], created_at:new Date().toISOString() };
   await itemsSave(it); vidRender();
@@ -1773,7 +1679,7 @@ async function anatSave(patch){
 const PR_MOODS0 = ['사진술','시네마틱','3D 렌더링','일러스트','레트로','미니멀'];
 let _pfUse='all', _pfMood='all', _prOpen='';
 
-function prAll(){ return _items.filter(x=>x.type==='prompt'); }
+function prAll(){ return _items.filter(x=>x.type==='prompt' && inWs(x)); }
 function prUses(){ const s={}; prAll().forEach(p=>{ if(p.grp) s[p.grp]=1; }); return Object.keys(s); }
 function prMoods(){
   const saved = _items.filter(x=>x.type==='promptmood').map(x=>x.title);
@@ -1788,7 +1694,7 @@ function prList(){
 async function prAdd(body){
   const t = String(body||'').trim();
   if(!t){ toast('프롬프트 본문을 붙여넣어 주세요'); return; }
-  const it = { id:newId(), user_code:(sessNow()||{}).code||'', ws:'all', type:'prompt', grp:'',
+  const it = { id:newId(), user_code:(sessNow()||{}).code||'', ws:_ws, type:'prompt', grp:'',
                title:t.slice(0,28), text:t, uses:0, tags:[], created_at:new Date().toISOString() };
   _prOpen = it.id;
   await itemsSave(it); prRender();
@@ -1854,12 +1760,12 @@ function shrink(file, cb){
     img.src=url;
   }catch(e){ cb(null); }
 }
-function thAll(){ return _items.filter(x=>x.type==='thumb'); }
+function thAll(){ return _items.filter(x=>x.type==='thumb' && inWs(x)); }
 async function thAddImage(file){
   return new Promise(res=>{
     shrink(file, async dataUrl=>{
       if(!dataUrl){ toast('이미지를 못 읽었어요'); return res(false); }
-      const it={ id:newId(), user_code:(sessNow()||{}).code||'', ws:'all', type:'thumb', grp:'',
+      const it={ id:newId(), user_code:(sessNow()||{}).code||'', ws:_ws, type:'thumb', grp:'',
                  title:'', text:'', img_path:dataUrl, tags:[], created_at:new Date().toISOString() };
       await itemsSave(it); thRender(); toast('🖼 담았어요 — 느낌을 적어두면 나중에 찾기 쉬워요'); res(true);
     });
@@ -1867,7 +1773,7 @@ async function thAddImage(file){
 }
 async function thAddNote(t){
   t=String(t||'').trim(); if(!t){ toast('사진을 붙여넣거나 느낌을 적어주세요'); return; }
-  const it={ id:newId(), user_code:(sessNow()||{}).code||'', ws:'all', type:'thumb', grp:'',
+  const it={ id:newId(), user_code:(sessNow()||{}).code||'', ws:_ws, type:'thumb', grp:'',
              title:t.slice(0,20), text:'', img_path:'', tags:[], created_at:new Date().toISOString() };
   await itemsSave(it); thRender(); toast('🖼 담았어요');
 }
@@ -1880,7 +1786,7 @@ function thRender(){
     : '<p class="msd-hint" style="grid-column:1/-1;text-align:center">아직 비어 있어요 — 스크린샷을 Ctrl+V 해보세요</p>';
   const seg=document.querySelector('#dseg b[data-pane="dp1"]'); if(seg) seg.textContent='🖼 썸네일 '+l.length;
 }
-function lnAll(){ return _items.filter(x=>x.type==='line'); }
+function lnAll(){ return _items.filter(x=>x.type==='line' && inWs(x)); }
 function lnList(){
   let l = lnAll().sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')));
   if(_lnAxis!=='all') l = l.filter(x=>(x.tags||[]).indexOf(_lnAxis)>=0);
@@ -1888,7 +1794,7 @@ function lnList(){
 }
 async function lnAdd(t){
   t=String(t||'').trim(); if(!t){ toast('문장을 적어주세요'); return; }
-  const it={ id:newId(), user_code:(sessNow()||{}).code||'', ws:'all', type:'line', grp:'',
+  const it={ id:newId(), user_code:(sessNow()||{}).code||'', ws:_ws, type:'line', grp:'',
              title:'', text:t, tags:[], created_at:new Date().toISOString() };
   await itemsSave(it); lnRender(); toast('✍️ 담았어요');
 }
@@ -1994,7 +1900,8 @@ function stCard(s){
       '<span class="av" style="background:linear-gradient(150deg,#2a2450,#141126)">'+esc(ini)+'</span>'+
       '<span><span class="nm">'+esc(s.title)+'</span><div class="pe">'+esc(s.grp||'기수 미정')+(s.views?' · 팔로워 '+esc(s.views):'')+'</div></span>'+
       '<span class="st4">'+esc(stt||'상태 달기')+'</span></div>'+
-    '<div class="ln">'+(s.text?esc(s.text):'이 수강생의 한 줄 — 카드를 눌러 적어주세요')+'</div>'+
+    '<div class="ln">'+(s.text?esc(s.text):'이 수강생의 한 줄 — 카드를 눌러 적어주세요')+
+      '<button type="button" class="msd-tg" style="float:right;padding:3px 10px;font-size:9.5px" data-stugo="'+s.id+'">자세히 ›</button></div>'+
     (open ? '<div class="msd-open" style="border-top:1px solid var(--line);margin-top:10px">'+
       '<input class="msd-nm" data-stf="'+s.id+'|title" value="'+esc(s.title)+'" placeholder="이름">'+
       '<div style="display:flex;gap:8px;margin-top:8px">'+
@@ -2017,6 +1924,35 @@ function stRender(){
       '<p class="msd-hint" style="grid-column:1/-1;text-align:center">이렇게 쌓입니다 — 위에 수강생 이름을 적어보세요</p>';
   const seg=document.querySelector('#t2seg b[data-pane="sp1"]'); if(seg) seg.textContent='👤 수강생 '+stAll().length;
 }
+/* ── v13 · 👤 수강생 상세 — 그 사람 이름이 들어간 처방·숙제를 한자리에 ── */
+let _stuId='';
+function stuRender(){
+  const s=_items.filter(x=>x.id===_stuId)[0];
+  const nm=$('#stu-nm'), sub=$('#stu-sub'), body=$('#stu-body');
+  if(!body) return;
+  if(!s){ if(nm) nm.textContent='수강생'; if(sub) sub.textContent='명단에서 고르면 그 사람의 모든 것이 여기 모입니다'; body.innerHTML=''; return; }
+  const name=String(s.title||'');
+  const mine = t => _items.filter(x=>x.type===t && (x.grp===s.id || String(x.title||'').indexOf(name)>=0));
+  const rxs=mine('rx'), hws=mine('hw');
+  const stt=(s.tags||[])[0]||'';
+  if(nm) nm.textContent=name;
+  if(sub) sub.innerHTML = esc(s.grp||'기수 미정') + (s.views?' · 팔로워 '+esc(s.views):'') + (stt?' · '+esc(stt):'');
+  body.innerHTML =
+    '<div class="one" style="margin-bottom:12px"><div class="oh">한 줄 진단</div>'+
+      '<div class="orow"><span class="v'+(s.text?'':' dim')+'">'+(esc(s.text||'')||'수강생 카드에서 적으면 여기 뜹니다')+'</span></div></div>'+
+    '<div class="card" style="margin-bottom:10px"><h3>💊 처방 이력 <span class="badge'+(rxs.length?' ac':'')+'">'+rxs.length+'건</span></h3>'+
+      (rxs.length ? rxs.map(r=>'<div class="prow"><span class="pt">'+esc(r.title)+'</span>'+
+        '<span class="st '+((r.tags||[]).indexOf('발급')>=0?'done">✓ 발급':'wait">준비 중')+'</span></div>').join('')
+        : '<p class="msd-hint">아직 없어요 — 영상 해부 끝에서 «💊 처방에 담기»를 누르면 여기 쌓입니다</p>')+'</div>'+
+    '<div class="card" style="margin-bottom:10px"><h3>📝 숙제 <span class="badge'+(hws.length?' ac':'')+'">'+hws.length+'건</span></h3>'+
+      (hws.length ? hws.map(h=>{
+        const miss=VID_ROLES.filter(r=>(h.tags||[]).indexOf(r)<0);
+        return '<div class="prow"><span class="pt">'+esc(h.title)+'</span>'+
+          '<span class="st '+(miss.length?'wait">'+miss.length+'칸 빔':'done">6/6')+'</span></div>';
+      }).join('') : '<p class="msd-hint">숙제함에서 이 사람 이름으로 담으면 여기 모입니다</p>')+'</div>'+
+    '<div class="msd-acts"><button type="button" class="go" data-stuback="1">‹ 명단으로</button></div>';
+}
+
 /* ── 💊 처방전 · 📝 숙제함 (같은 문법) ── */
 function rxAll(){ return _items.filter(x=>x.type==='rx'); }
 function hwAll(){ return _items.filter(x=>x.type==='hw'); }
@@ -2064,6 +2000,45 @@ function hwRender(){
     '<p class="msd-hint" style="text-align:center">이렇게 쌓입니다 — 위에 숙제 제목을 적어보세요</p>';
 }
 
+/* ══════════════════════════════════════════════════════════════
+   v13 · 📊 성적표 — 이번 주 내가 모은 것과 «배운 것»을 센다 (하드코딩 0)
+   ══════════════════════════════════════════════════════════════ */
+function scoreRender(){
+  const tw=$('#sc-tiles'), bw=$('#sc-body'); if(!bw) return;
+  const wk=weekAgoISO();
+  const vids=vidAll(), lines=lnAll(), prompts=prAll(), thumbs=thAll();
+  const musics=_items.filter(x=>x.type==='music' && inWs(x));
+  const weekAll=[...vids,...lines,...prompts,...thumbs,...musics].filter(x=>String(x.created_at||'')>wk);
+  const cut=vids.filter(v=>{ const m=vmeta(v); return VID_ROLES.some(r=>String((m.segs||{})[r]||'').trim()); });
+  const steal=vids.filter(v=>String(v.text||'').trim()).length + lines.length;
+  const pct = vids.length ? Math.round(cut.length/vids.length*100) : 0;
+
+  if(tw) tw.innerHTML =
+    '<div class="sc"><div class="k">이번 주 담음</div><div class="v">'+weekAll.length+'<small>전체 '+(vids.length+lines.length+prompts.length+thumbs.length+musics.length)+'</small></div></div>'+
+    '<div class="sc"><div class="k">해부 끝낸 영상</div><div class="v">'+cut.length+'<small>'+pct+'%</small></div></div>'+
+    '<div class="sc"><div class="k">훔칠 것</div><div class="v">'+steal+'<small>줄</small></div></div>';
+
+  /* 이번 주 배운 것 — 축이 어디로 쏠렸나 */
+  const byAx={}; VID_AXES.forEach(a=>byAx[a[0]]=0);
+  vids.forEach(v=>(v.tags||[]).forEach(t=>{ if(t in byAx) byAx[t]++; }));
+  const top=Object.keys(byAx).sort((a,b)=>byAx[b]-byAx[a])[0];
+  const lean = byAx[top] ? '이번 주 모은 것은 <b style="color:var(--tx1)">'+top+'</b>에 몰려 있습니다 ('+byAx[top]+'편)' : '아직 «잘하는 일»을 단 영상이 없습니다';
+
+  /* 해부를 기다리는 것 */
+  const todo=vids.filter(v=>{ const m=vmeta(v); return !VID_ROLES.some(r=>String((m.segs||{})[r]||'').trim()); });
+
+  bw.innerHTML =
+    '<div class="card"><h3>📬 이번 주 결산 <span class="badge ac">'+WS_NAMES[_ws]+'</span></h3>'+
+      '<p>'+lean+'.<br>'+
+      (todo.length ? '해부를 기다리는 영상이 <b style="color:var(--tx1)">'+todo.length+'편</b> 있습니다 — 한 편만 뜯어도 훔칠 것이 한 줄 늘어납니다.'
+                   : '담은 영상을 전부 뜯었습니다 — 새 영상을 주우러 갈 차례입니다.')+'</p></div>'+
+    '<div class="card"><h3>✂ 모은 훔칠 것 <span class="badge'+(steal?' ac':'')+'">'+steal+'줄</span></h3>'+
+      (steal ? vids.filter(v=>String(v.text||'').trim()).slice(0,6).map(v=>
+          '<div class="list-row" data-vid="'+v.id+'" style="cursor:pointer"><span class="ico">✂</span><div><b>'+esc(v.text)+'</b><small>'+esc(v.title)+'</small></div></div>').join('')
+             + lines.slice(0,4).map(l=>'<div class="list-row"><span class="ico">✍️</span><div><b>'+esc(l.text)+'</b><small>문장 서랍</small></div></div>').join('')
+             : '<p class="msd-hint">영상을 해부하고 «훔칠 것»을 적으면 여기 모입니다 — 강의 만들 때 이 목록만 훑으면 됩니다</p>')+'</div>';
+}
+
 /* 데이터가 바뀌면 화면 전부를 다시 그린다 — 한 곳에서 부르게 모아둔다 */
 function paintAll(){
   try{ musRender(); }catch(e){}
@@ -2076,6 +2051,8 @@ function paintAll(){
   try{ stRender(); }catch(e){}
   try{ rxRender(); }catch(e){}
   try{ hwRender(); }catch(e){}
+  try{ stuRender(); }catch(e){}
+  try{ scoreRender(); }catch(e){}
 }
 
 /* 음악 서랍 클릭 — 서랍 화면 전체에 한 번만 건다 */
@@ -2093,6 +2070,9 @@ document.addEventListener('click', async e=>{
   /* ── v9 · 수강생 · 처방전 · 숙제함 ── */
   if(hit('data-stadd')){ const i=$('#st-in'); if(i){ const v=i.value; i.value=''; await stAdd(v); } return; }
   const stc = hit('data-stc'); if(stc){ _stCohort=stc; stRender(); return; }
+  const stugo = hit('data-stugo');
+  if(stugo){ _stuId=stugo; stuRender(); subStack.push(cur+''); document.body.classList.add('in-sub'); showScr('stu'); return; }
+  if(hit('data-stuback')){ const b=$('#tb-back'); if(b) b.click(); return; }
   const sto = hit('data-stopen'); if(sto){ _stOpen=(_stOpen===sto)?'':sto; stRender(); return; }
   const sts = hit('data-ststate');
   if(sts){ const q=sts.split('|'), x=_items.filter(y=>y.id===q[0])[0]; if(!x) return;
