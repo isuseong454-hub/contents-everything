@@ -99,6 +99,15 @@ body.off #offbar{display:block}
 .pklb s{text-decoration:none;font-weight:600;color:var(--tx3);margin-left:6px}
 .msd-pick .p.add{border-style:dashed;color:var(--conv);border-color:rgba(111,224,200,.45)}
 .msd-pick .p.on{border-color:var(--pc,rgba(111,224,200,.5));color:var(--pc,var(--conv))}
+/* v19 · 도구실 */
+.lecline{display:flex;flex-direction:column;gap:2px;border-left:2px solid var(--line2);padding:7px 0 7px 11px;margin-bottom:6px}
+.lecline b{font-size:12px;font-weight:700;color:var(--tx1)}
+.lecline s{text-decoration:none;font-size:10.5px;color:var(--tx3)}
+.swapl{margin-top:9px}
+.swapr{display:flex;align-items:center;gap:8px;background:var(--glass);border-radius:9px;padding:7px 10px;margin-bottom:5px}
+.swapr b{font-size:11.5px;font-weight:700;color:var(--tx1)}
+.swapr i{font-style:normal;color:var(--tx3);font-size:11px}
+.swapr button{margin-left:auto;background:transparent;border:none;color:var(--danger);font-size:14px;cursor:pointer;font-family:inherit}
 /* v18 · 🏛 마스터 실 */
 .mrmeta{font-size:10.5px;color:var(--tx3);margin-top:2px}
 .mrintro{font-size:12px;color:var(--tx2);margin-top:8px;line-height:1.6}
@@ -920,22 +929,8 @@ body.in-sub #tb-set{display:none}
 
   <!-- t5: 도구실 — 위계: 마법 2개 크게, 나머지 작게 -->
   <section class="scr" id="scr-t5">
-    <div class="hero"><h1>도구실</h1><div class="sub">금고가 찰수록 강해지는 도구들</div></div>
-    <div class="tools-big">
-      <button class="tool" style="--c:var(--hook)">
-        <div class="ic2">🔁</div><h3>업종 치환기</h3>
-        <p>2,000만뷰 영상의 구조는 그대로, 살만 수강생 업종으로 — "미용실 버전으로 바꿔줘"</p>
-      </button>
-      <button class="tool" style="--c:var(--conv)">
-        <div class="ic2">⚖️</div><h3>첫 3초 심판</h3>
-        <p>훅 문장을 금고의 100만뷰 훅 100개와 비교 — 근거 영상까지 붙여서 판정</p>
-      </button>
-    </div>
-    <div class="tools-sm">
-      <button class="tool sm" style="--c:var(--prod)"><div class="ic2">🎞</div><h3>강의 자동 조립</h3><p>큐레이션 → 슬라이드 초안</p></button>
-      <button class="tool sm" style="--c:var(--story)"><div class="ic2">🕯</div><h3>절판 도서관</h3><p>세상에서 여기만 남은 2편</p></button>
-      <button class="tool sm" style="--c:var(--hook)"><div class="ic2">🎯</div><h3>문제은행</h3><p>금고 → 트레이닝 문제로</p></button>
-    </div>
+    <div class="hero"><h1 id="tl-h1">도구실</h1><div class="sub" id="tl-sub">금고가 찰수록 강해지는 도구들</div></div>
+    <div id="tl-body"></div>
   </section>
 
   <!-- 서브뷰: 수강생 상세 — 그 사람의 모든 것 -->
@@ -982,7 +977,7 @@ body.in-sub #tb-set{display:none}
 const APP_CFG = {
   name: '컨텐츠의 모든것',
   key: 'cme',
-  ver: 'v18',
+  ver: 'v19',
   tagline: '오늘 본 것이 휘발되지 않는다',
   demo: false,   // v7 · 실서버 배선 완료(2026-08-18)
   demoCode: 'EEEEEE', demoPin: '2222',
@@ -2284,6 +2279,195 @@ function mrRender(){
   }
 }
 
+
+/* ══════════════════════════════════════════════════════════════
+   v19 · 🪄 도구실 — 금고가 찰수록 강해지는 도구 5
+     ⚠️ AI 안 씀. 전부 «이미 담은 것»에서 계산한다.
+   ══════════════════════════════════════════════════════════════ */
+let _tool='';               // '' | lec | judge | swap | gone | quiz
+let _swapText='', _judgeText='';
+
+const TOOLS = [
+  ['lec',  '🎞','강의 자동 조립','준비된 선반을 커리큘럼 초안으로', 'prod', 1],
+  ['judge','⚖️','첫 3초 심판','내 금고의 도입부들과 견줘 판정', 'conv', 1],
+  ['swap', '🔁','업종 치환기','구조는 그대로, 말만 그 업종으로', 'hook', 0],
+  ['gone', '🕯','절판 도서관','원본이 사라진 것만 모아둔 칸', 'story', 0],
+  ['quiz', '🎯','문제은행','금고에서 문제를 뽑아 낸다', 'hook', 0]
+];
+
+/* ── 공통: 도입부 문장 모으기 ── */
+function allHooks(){
+  return vidAll().map(v=>{
+    const m=vmeta(v);
+    const h=String((m.segs||{})['도입부']||'').trim();
+    return h ? {t:h, title:v.title, views:v.views, id:v.id} : null;
+  }).filter(Boolean);
+}
+/* ── 훅 채점 규칙 (내 금고에서 «자주 쓰인 수법»을 기준으로) ── */
+const HOOK_RULES = [
+  ['숫자',      t=>/[0-9]+(만|억|개|가지|년|초|분|%)/.test(t)],
+  ['상식깨기',  t=>/(아니|거짓|착각|반대|사실은|오해|하지 마|안 됩니다|없습니다)/.test(t)],
+  ['질문',      t=>/\?$|나요\??|까요\??/.test(t)],
+  ['지목',      t=>/(당신|여러분|사장님|원장님|하시는 분|이신 분)/.test(t)],
+  ['결과 먼저', t=>/(했더니|하고 나서|덕분에|바뀌었|늘었|줄었)/.test(t)],
+  ['금지·경고', t=>/(절대|주의|조심|망하|실수|이것만은)/.test(t)]
+];
+function hookScore(t){
+  const hit=HOOK_RULES.filter(r=>r[1](t)).map(r=>r[0]);
+  return {hit, score:Math.min(100, hit.length*22 + (t.length<=28?12:0) + (t.length<=45?8:0))};
+}
+
+/* ── ① 강의 자동 조립 ── */
+function toolLec(){
+  const vids=vidAll();
+  const groups=[];
+  vidAxes().forEach(a=>{
+    const arr=vids.filter(v=>(v.tags||[]).indexOf(a[0])>=0);
+    if(arr.length) groups.push([a[0], 'var(--'+a[1]+')', arr]);
+  });
+  const byTopic={}; vids.forEach(v=>{ if(v.grp)(byTopic[v.grp]=byTopic[v.grp]||[]).push(v); });
+  Object.keys(byTopic).forEach((g,i)=>groups.push([g,'var(--'+['hook','story','conv','prod'][i%4]+')',byTopic[g]]));
+  const ready=groups.filter(g=>lecReady(g[2]).ok);
+  if(!ready.length){
+    return '<div class="msd-ghost"><div class="gt">아직 조립할 선반이 없어요</div>'+
+      '<div class="gs">영상 '+LEC_MIN_V+'편 + 훔칠 것 '+LEC_MIN_S+'줄이 모이면 그 칸으로 강의 한 편이 짜집니다</div></div>'+
+      '<p class="msd-hint" style="text-align:center">📚 자료실에서 «강의 준비됨»이 뜬 칸이 여기 나타납니다</p>';
+  }
+  return ready.map(g=>{
+    const [name,color,arr]=g;
+    const steals=arr.filter(v=>String(v.text||'').trim());
+    return '<div class="card" style="margin-bottom:12px;border-left:3px solid '+color+'">'+
+      '<h3>'+esc(name)+' 강의 초안 <span class="badge ac">'+arr.length+'편</span></h3>'+
+      '<div class="lecline"><b>1. 여는 말</b><s>왜 지금 '+esc(name)+'인가 — 아래 «훔칠 것»에서 한 줄 고르기</s></div>'+
+      steals.slice(0,5).map((v,i)=>
+        '<div class="lecline"><b>'+(i+2)+'. '+esc(String(v.text).slice(0,32))+'</b>'+
+        '<s>근거 영상 · '+esc(String(v.title).slice(0,28))+'</s></div>').join('')+
+      '<div class="lecline"><b>'+(Math.min(steals.length,5)+2)+'. 정리</b><s>오늘 가져갈 것 3가지 · 다음 과제</s></div>'+
+      '<div class="msd-acts"><button type="button" class="go" data-leccopy="'+esc(name)+'">⧉ 초안 복사</button></div></div>';
+  }).join('');
+}
+/* ── ② 첫 3초 심판 ── */
+function toolJudge(){
+  const hooks=allHooks();
+  const t=_judgeText.trim();
+  let verdict='';
+  if(t){
+    const r=hookScore(t);
+    const near=hooks.map(h=>({h, s:hookScore(h.t)})).sort((a,b)=>b.s.score-a.s.score).slice(0,3);
+    verdict='<div class="card" style="margin-bottom:12px">'+
+      '<h3>판정 <span class="badge'+(r.score>=60?' ac':'')+'">'+r.score+'점</span></h3>'+
+      '<p class="mrintro">"'+esc(t)+'"</p>'+
+      '<div class="msd-pick" style="margin-top:9px">'+HOOK_RULES.map(rl=>
+        '<span class="p'+(r.hit.indexOf(rl[0])>=0?' on':'')+'">'+(r.hit.indexOf(rl[0])>=0?'✓ ':'')+rl[0]+'</span>').join('')+'</div>'+
+      '<div class="vd" style="margin-top:10px">'+
+        (r.score>=60 ? '멈춰 세울 힘이 있습니다 — '+r.hit.join('·')+'이(가) 걸려 있어요'
+                     : (r.hit.length? '지금은 '+r.hit.join('·')+'만 있습니다. 숫자나 상식깨기를 하나 더 얹어보세요'
+                                    : '수법이 하나도 안 걸렸어요 — 숫자·상식깨기·지목 중 하나를 넣어보세요'))+
+      '</div>'+
+      (near.length ? '<div class="pklb" style="margin-top:12px">내 금고에서 잘 걸린 도입부</div>'+
+        near.map(n=>'<div class="mrit" data-vid="'+n.h.id+'" style="cursor:pointer"><b>'+esc(String(n.h.t).slice(0,46))+'</b>'+
+          '<s>'+n.s.score+'점</s></div>').join('') : '')+
+    '</div>';
+  }
+  return '<div class="card" style="margin-bottom:12px">'+
+      '<h3>훅 문장을 넣어보세요</h3>'+
+      '<textarea class="msd-nm" id="judge-in" rows="2" placeholder="예) 내림머리 자르기 전에 이것부터 보세요" style="height:auto;resize:vertical">'+esc(_judgeText)+'</textarea>'+
+      '<button type="button" class="cut-b go" data-judge="1" style="width:100%;margin-top:8px">심판하기</button>'+
+    '</div>'+ verdict +
+    '<p class="msd-hint">기준은 «내 금고에 담긴 도입부들»입니다 — 영상을 해부할수록 판정이 정확해집니다 (지금 '+hooks.length+'개)</p>';
+}
+/* ── ③ 업종 치환기 ── */
+function swapPairs(){
+  return _items.filter(x=>x.type==='swap').map(x=>({id:x.id, a:x.title||'', b:x.text||''}));
+}
+function toolSwap(){
+  const ps=swapPairs();
+  let out=_swapText;
+  ps.forEach(p=>{ if(p.a) out=out.split(p.a).join(p.b||p.a); });
+  return '<div class="card" style="margin-bottom:12px">'+
+      '<h3>바꿀 말 짝 <span class="badge">'+ps.length+'쌍</span></h3>'+
+      '<div class="swapl">'+(ps.length? ps.map(p=>
+        '<div class="swapr"><b>'+esc(p.a)+'</b><i>→</i><b>'+esc(p.b)+'</b>'+
+        '<button type="button" data-swapdel="'+p.id+'">×</button></div>').join('')
+        : '<p class="msd-hint">아직 없어요 — «미용실 → 카페»처럼 짝을 만들어 두면 원고가 통째로 바뀝니다</p>')+'</div>'+
+      '<button type="button" class="cut-b go" data-swapadd="1" style="width:100%;margin-top:8px">＋ 짝 만들기</button>'+
+    '</div>'+
+    '<div class="card">'+
+      '<h3>원고 넣기</h3>'+
+      '<textarea class="msd-nm" id="swap-in" rows="4" placeholder="바꾸고 싶은 원고를 붙여넣으세요" style="height:auto;resize:vertical">'+esc(_swapText)+'</textarea>'+
+      '<button type="button" class="cut-b go" data-swapgo="1" style="width:100%;margin-top:8px">바꾸기</button>'+
+      (_swapText ? '<div class="pklb" style="margin-top:12px">바뀐 원고</div>'+
+        '<div class="script" style="max-height:220px">'+esc(out)+'</div>'+
+        '<div class="msd-acts"><button type="button" class="go" data-swapcopy="1">⧉ 복사</button></div>' : '')+
+    '</div>';
+}
+/* ── ④ 절판 도서관 ── */
+function toolGone(){
+  const gone=vidAll().filter(v=>(v.tags||[]).indexOf('절판')>=0);
+  const live=vidAll().filter(v=>(v.tags||[]).indexOf('절판')<0);
+  return '<div class="card" style="margin-bottom:12px">'+
+      '<h3>🕯 여기만 남은 것 <span class="badge'+(gone.length?' ac':'')+'">'+gone.length+'편</span></h3>'+
+      (gone.length ? '<div class="vgrid" style="margin-top:9px">'+gone.map(vidCard).join('')+'</div>'
+        : '<p class="msd-hint">아직 없어요 — 원본이 내려간 영상을 «절판»으로 표시해두면 여기 모입니다</p>')+
+    '</div>'+
+    '<div class="card">'+
+      '<h3>절판으로 표시하기</h3>'+
+      '<p class="msd-hint" style="margin-bottom:9px">원본이 삭제·비공개된 영상을 골라주세요 — 이게 이 앱의 존재 이유입니다</p>'+
+      '<div class="msd-pick">'+(live.length? live.slice(0,20).map(v=>
+        '<button type="button" class="p" data-goneadd="'+v.id+'">'+esc(String(v.title).slice(0,18))+'</button>').join('')
+        : '<span class="msd-hint">담은 영상이 없어요</span>')+'</div>'+
+    '</div>';
+}
+/* ── ⑤ 문제은행 ── */
+function toolQuiz(){
+  const hooks=allHooks().filter(h=>{
+    const n=String(h.views||'').replace(/[^0-9]/g,'');
+    return true;
+  });
+  if(hooks.length<2){
+    return '<div class="msd-ghost"><div class="gt">문제를 뽑으려면 도입부가 2개는 있어야 해요</div>'+
+      '<div class="gs">영상을 해부해서 «도입부» 칸을 채우면 여기서 문제가 만들어집니다</div></div>';
+  }
+  const qs=[];
+  for(let i=0;i<hooks.length-1 && qs.length<6;i++){
+    const a=hooks[i], b=hooks[i+1];
+    const sa=hookScore(a.t).score, sb=hookScore(b.t).score;
+    if(sa===sb) continue;
+    qs.push({a,b,win:sa>sb?'A':'B',sa,sb});
+  }
+  if(!qs.length){
+    return '<div class="msd-ghost"><div class="gt">아직 견줄 만한 짝이 없어요</div><div class="gs">도입부가 더 쌓이면 문제가 만들어집니다</div></div>';
+  }
+  return qs.map((q,i)=>
+    '<div class="card" style="margin-bottom:10px"><h3>Q'+(i+1)+' 어느 쪽이 더 멈춰 세울까요?</h3>'+
+    '<div class="mrit"><b>A. '+esc(String(q.a.t).slice(0,42))+'</b></div>'+
+    '<div class="mrit"><b>B. '+esc(String(q.b.t).slice(0,42))+'</b></div>'+
+    '<div class="vd">답: <b>'+q.win+'</b> ('+Math.max(q.sa,q.sb)+'점 vs '+Math.min(q.sa,q.sb)+'점)</div></div>').join('')+
+    '<p class="msd-hint" style="text-align:center">이 문제들을 수강생 트레이닝에 그대로 낼 수 있습니다</p>';
+}
+
+function toolRender(){
+  const w=$('#tl-body'), h1=$('#tl-h1'), sub=$('#tl-sub');
+  if(!w) return;
+  if(!_tool){
+    if(h1) h1.textContent='도구실';
+    if(sub) sub.textContent='금고가 찰수록 강해지는 도구들';
+    w.innerHTML = '<div class="tools-big">'+TOOLS.filter(t=>t[5]).map(t=>
+        '<button class="tool" style="--c:var(--'+t[4]+')" data-tool="'+t[0]+'">'+
+        '<div class="ic2">'+t[1]+'</div><h3>'+t[2]+'</h3><p>'+t[3]+'</p></button>').join('')+'</div>'+
+      '<div class="tools-sm">'+TOOLS.filter(t=>!t[5]).map(t=>
+        '<button class="tool sm" style="--c:var(--'+t[4]+')" data-tool="'+t[0]+'">'+
+        '<div class="ic2">'+t[1]+'</div><h3>'+t[2]+'</h3><p>'+t[3]+'</p></button>').join('')+'</div>';
+    return;
+  }
+  const T=TOOLS.filter(t=>t[0]===_tool)[0]||['','','도구'];
+  if(h1) h1.textContent=T[1]+' '+T[2];
+  if(sub) sub.textContent=T[3];
+  const body = _tool==='lec'?toolLec() : _tool==='judge'?toolJudge() : _tool==='swap'?toolSwap()
+             : _tool==='gone'?toolGone() : toolQuiz();
+  w.innerHTML = '<button type="button" class="cut-b" data-toolback="1" style="margin-bottom:12px">‹ 도구실</button>' + body;
+}
+
 /* 데이터가 바뀌면 화면 전부를 다시 그린다 — 한 곳에서 부르게 모아둔다 */
 function paintAll(){
   try{ musRender(); }catch(e){}
@@ -2299,6 +2483,7 @@ function paintAll(){
   try{ stuRender(); }catch(e){}
   try{ scoreRender(); }catch(e){}
   try{ mrRender(); }catch(e){}
+  try{ toolRender(); }catch(e){}
 }
 
 /* 음악 서랍 클릭 — 서랍 화면 전체에 한 번만 건다 */
@@ -2331,6 +2516,45 @@ document.addEventListener('click', async e=>{
   const vfa = hit('data-vfa'); if(vfa){ _vfAxis=vfa; vidRender(); return; }
   const vid = hit('data-vid');
   if(vid){ _anatId=vid; anatRender(); subStack.push(cur+''); document.body.classList.add('in-sub'); showScr('anat'); return; }
+  /* ── v19 · 🪄 도구실 ── */
+  const tl = hit('data-tool');
+  if(tl){ _tool=tl; toolRender(); document.scrollingElement.scrollTop=0; return; }
+  if(hit('data-toolback')){ _tool=''; toolRender(); return; }
+  if(hit('data-judge')){
+    const ta=$('#judge-in'); _judgeText = ta ? ta.value : '';
+    toolRender(); return;
+  }
+  const leccopy = hit('data-leccopy');
+  if(leccopy){
+    const card = t.closest('.card');
+    const txt = card ? card.innerText.replace(/⧉ 초안 복사/g,'').trim() : '';
+    try{ await navigator.clipboard.writeText(txt); toast('강의 초안을 복사했어요'); }catch(e){ toast('복사 실패'); }
+    return;
+  }
+  if(hit('data-swapadd')){
+    const a = window.prompt('바꿀 말 (예: 미용실)'); if(!a || !a.trim()) return;
+    const b = window.prompt('무엇으로? (예: 카페)'); if(b===null) return;
+    await itemsSave({ id:newId(), user_code:(sessNow()||{}).code||'', ws:'all', type:'swap',
+      title:a.trim().slice(0,20), text:(b||'').trim().slice(0,20), tags:[], created_at:new Date().toISOString() });
+    toolRender(); return;
+  }
+  const swapdel = hit('data-swapdel');
+  if(swapdel){ await itemsDel(swapdel); toolRender(); return; }
+  if(hit('data-swapgo')){
+    const ta=$('#swap-in'); _swapText = ta ? ta.value : '';
+    toolRender(); return;
+  }
+  if(hit('data-swapcopy')){
+    const box=document.querySelector('#tl-body .script');
+    try{ await navigator.clipboard.writeText(box?box.textContent:''); toast('복사했어요'); }catch(e){ toast('복사 실패'); }
+    return;
+  }
+  const goneadd = hit('data-goneadd');
+  if(goneadd){
+    const v=_items.filter(x=>x.id===goneadd)[0]; if(!v) return;
+    v.tags=v.tags||[]; if(v.tags.indexOf('절판')<0) v.tags.push('절판');
+    await itemsSave(v); toolRender(); vidRender(); toast('🕯 절판으로 표시했어요'); return;
+  }
   /* ── v18 · 🏛 마스터 실 ── */
   const mrp = hit('data-mrpane');
   if(mrp){ _mrPane=mrp; mrRender(); return; }
