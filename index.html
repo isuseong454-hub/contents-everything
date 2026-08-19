@@ -393,9 +393,28 @@ body.in-sub #tb-set{display:none}
 
 /* ═══════ 수강생실 (v3) ═══════ */
 /* 관 전환 스위치 — 상단바 중앙 */
-.mode{display:flex;gap:3px;padding:4px;border-radius:14px;background:rgba(0,0,0,.3);border:1px solid var(--line)}
-.mode b{padding:7px 13px;border-radius:11px;font-size:12.5px;font-weight:700;color:var(--tx2);cursor:pointer;transition:.2s;white-space:nowrap}
-.mode b.on{color:var(--tx1);background:color-mix(in srgb,var(--ac1) 22%,transparent);box-shadow:inset 0 1px 0 var(--glass-hi)}
+/* v20 · 통합 배너 — 관 › 워크스페이스를 한 줄에 (상위 › 하위가 «›» 하나로 읽힌다) */
+.uni{display:flex;align-items:center;gap:7px;min-width:0;flex:1;padding:4px 6px;border-radius:14px;
+  background:rgba(0,0,0,.3);border:1px solid var(--line)}
+.uni>b{flex:none;display:flex;align-items:center;justify-content:center;padding:6px;border-radius:10px;
+  color:var(--tx3);cursor:pointer;transition:.2s;-webkit-tap-highlight-color:transparent}
+.uni>b svg{width:19px;height:19px;display:block;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.uni>b.on{color:var(--tx1);background:var(--glass-hi)}
+.uni>b:active{transform:scale(.93)}
+.uni-ar{font-style:normal;color:var(--tx3);font-size:12px;flex:none}
+.uni-ws{display:flex;gap:4px;min-width:0;overflow-x:auto;scrollbar-width:none}
+.uni-ws::-webkit-scrollbar{display:none}
+.uni-ws b{flex:none;font-size:11.5px;font-weight:700;color:var(--tx2);padding:6px 11px;border-radius:99px;
+  border:1px solid transparent;cursor:pointer;transition:.2s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.uni-ws b.on{color:var(--wc);border-color:color-mix(in srgb,var(--wc) 40%,transparent);
+  background:color-mix(in srgb,var(--wc) 13%,transparent)}
+.uni-ws b:active{transform:scale(.95)}
+/* 수강생실엔 워크스페이스가 없다 — 흐려져서 «여긴 해당 없음»이 저절로 보인다 */
+/* 수강생실엔 워크스페이스가 없다 — 흐려서 «여긴 해당 없음»이 저절로 보인다
+   ⚠️ !important — 전역 애니메이션 규칙이 opacity를 되돌리는 걸 막는다 */
+body.stu-mode .uni-ws{opacity:.3 !important;pointer-events:none;filter:grayscale(1)}
+body.stu-mode .uni-ar{opacity:.3 !important}
+@media(max-width:420px){ .uni-ws b{font-size:11px;padding:6px 9px} }
 /* 오늘 할 일 — 위계 1등 카드 */
 .big1{background:linear-gradient(140deg,color-mix(in srgb,var(--ac1) 10%,var(--bg1)),var(--bg1) 55%);
   border:1px solid var(--line2);border-top-color:var(--glass-hi);border-radius:var(--r-lg);padding:22px 20px;margin-bottom:14px;position:relative;overflow:hidden}
@@ -636,11 +655,16 @@ body.in-sub #tb-set{display:none}
   background:rgba(10,13,19,.62);border:1px solid var(--line);border-top-color:var(--glass-hi);
   backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
   box-shadow:0 18px 50px rgba(0,0,0,.55)}
-.dock button{width:60px;padding:8px 0 7px;border-radius:19px;display:flex;flex-direction:column;align-items:center;gap:3px;
-  font-size:19px;color:var(--tx2);transition:transform .18s var(--spring),background .2s,color .2s}
+.dock button{width:60px;padding:9px 0 7px;border-radius:19px;display:flex;flex-direction:column;align-items:center;gap:4px;
+  color:var(--tx3);transition:transform .18s var(--spring),background .2s,color .2s}
+/* v20 · 선화 아이콘 — 이모지(기기마다 다른 «스티커»)를 걷어냈다 */
+.dock button svg{width:22px;height:22px;display:block;stroke:currentColor;fill:none;
+  stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:stroke-width .2s}
 .dock button span{font-size:10px;font-weight:700;letter-spacing:-.01em}
 .dock button:active{transform:scale(.9)}
-.dock button.on{color:var(--tx1);background:color-mix(in srgb,var(--ac1) 20%,transparent)}
+/* 기획실 구슬처럼 칸마다 제 색 — 켜질 때만 드러난다 */
+.dock button.on{color:var(--dc,var(--tx1));background:color-mix(in srgb,var(--dc,#fff) 15%,transparent)}
+.dock button.on svg{stroke-width:2}
 
 /* ═══════ ⑥ 설정 시트 ═══════ */
 .sheet-ov{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .28s var(--ease)}
@@ -703,9 +727,15 @@ body.in-sub #tb-set{display:none}
 <!-- ══ 앱 본체 ══ -->
 <header class="tb">
   <div class="tb-l"><span class="tb-logo" id="tb-logo">✦</span><b class="tb-tt" id="tb-tt">컨텐츠의 모든것</b></div>
-  <div class="mode" id="mode">
-    <b class="on" data-mode="i">🗄 강사실</b>
-    <b data-mode="s">👥 수강생실</b>
+  <div class="uni" id="mode">
+    <b class="on" data-mode="i" title="강사실"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="7" rx="1.6"/><rect x="4" y="13" width="16" height="7" rx="1.6"/><path d="M10.5 7.5h3M10.5 16.5h3"/></svg></b>
+    <b data-mode="s" title="수강생실"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.9-3.4 2.9-5.2 5.5-5.2S13.6 15.6 14.5 19"/><path d="M16 7.5a2.6 2.6 0 0 1 0 5"/><path d="M17 14c2 .6 3.3 2.2 3.9 4.4"/></svg></b>
+    <i class="uni-ar">›</i>
+    <nav class="uni-ws" id="cws">
+      <b class="on" data-ws="lecture" style="--wc:var(--prod)">강의 자료실</b>
+      <b data-ws="channel" style="--wc:var(--story)">내 채널</b>
+      <b data-ws="scout" style="--wc:var(--hook)">정찰</b>
+    </nav>
   </div>
   <div class="tb-r">
     <button id="tb-set" title="설정">⚙</button>
@@ -717,12 +747,7 @@ body.in-sub #tb-set{display:none}
   <!-- ═══ 타일1: 홈 ═══ -->
   <section class="scr on" id="scr-s1">
     <!-- v13 · 애플 세그먼트 — 유리 트랙 위를 «필»이 미끄러진다 -->
-    <nav class="wseg" id="cws">
-      <i class="fill" id="wseg-fill"></i>
-      <b class="on" data-ws="lecture"><em>🎓</em>강의 자료실</b>
-      <b data-ws="channel"><em>📺</em>내 채널</b>
-      <b data-ws="scout"><em>🔭</em>정찰</b>
-    </nav>
+    <!-- v20 · 워크스페이스는 상단 통합 배너로 올라갔다 -->
     <div class="hero">
       <div class="hi"><span id="home-date"></span> · 누적 <em id="hm-total">0편</em> · 훔칠 것 <em id="hm-steal">0줄</em></div>
       <h1><em>오늘 본 것이<br>휘발되지 않는다</em></h1>
@@ -942,19 +967,19 @@ body.in-sub #tb-set{display:none}
 
 <!-- ══ 하단 유리 도크 — 강사실 ══ -->
 <nav class="dock" id="dock">
-  <button data-scr="s1" class="on">🏠<span>홈</span></button>
-  <button data-scr="s2">📚<span>자료실</span></button>
-  <button data-scr="s3">✦<span>프롬프트</span></button>
-  <button data-scr="s4">🗄<span>서랍</span></button>
-  <button data-scr="s5">📊<span>성적표</span></button>
+  <button data-scr="s1" class="on" style="--dc:var(--tx1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11 12 4l8 7"/><path d="M6 10v9h12v-9"/></svg><span>홈</span></button>
+  <button data-scr="s2" style="--dc:var(--story)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h5v14H5z"/><path d="M12 5h4l3 14h-4z"/></svg><span>자료실</span></button>
+  <button data-scr="s3" style="--dc:var(--hook)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 13.7 9l5.5 1.7-5.5 1.7L12 18l-1.7-5.6L4.8 10.7 10.3 9z"/><path d="M18.5 4.5v3M20 6h-3"/></svg><span>프롬프트</span></button>
+  <button data-scr="s4" style="--dc:var(--conv)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="6" rx="1.5"/><rect x="4" y="13" width="16" height="6" rx="1.5"/><path d="M10.5 8h3M10.5 16h3"/></svg><span>서랍</span></button>
+  <button data-scr="s5" style="--dc:var(--prod)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9M12 19V5M19 19v-7"/></svg><span>성적표</span></button>
 </nav>
 <!-- ══ 하단 유리 도크 — 수강생실 ══ -->
 <nav class="dock" id="dock-s" style="display:none">
-  <button data-scr="t1" class="on">🏠<span>홈</span></button>
-  <button data-scr="t2">👥<span>수강생</span></button>
-  <button data-scr="t3">💊<span>처방전</span></button>
-  <button data-scr="t4">📝<span>숙제함</span></button>
-  <button data-scr="t5">🪄<span>도구실</span></button>
+  <button data-scr="t1" class="on" style="--dc:var(--tx1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11 12 4l8 7"/><path d="M6 10v9h12v-9"/></svg><span>홈</span></button>
+  <button data-scr="t2" style="--dc:var(--story)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.9-3.4 2.9-5.2 5.5-5.2S13.6 15.6 14.5 19"/><path d="M16 7.5a2.6 2.6 0 0 1 0 5"/><path d="M17 14c2 .6 3.3 2.2 3.9 4.4"/></svg><span>수강생</span></button>
+  <button data-scr="t3" style="--dc:var(--conv)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="13" height="16" rx="2"/><path d="M8 9h5M8 13h3"/><circle cx="17.5" cy="16.5" r="3.2"/><path d="M16 16.5h3M17.5 15v3"/></svg><span>처방전</span></button>
+  <button data-scr="t4" style="--dc:var(--hook)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2.4"/><path d="M8 12.2l2.6 2.6L16 9.4"/></svg><span>숙제함</span></button>
+  <button data-scr="t5" style="--dc:var(--prod)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.2 4.6a4.2 4.2 0 0 0 5.2 5.6L11 19.6a2.4 2.4 0 0 1-3.4-3.4l9.4-9.4a4.2 4.2 0 0 0-1.8-2.2z"/><circle cx="7.4" cy="16.6" r=".9"/></svg><span>도구실</span></button>
 </nav>
 
 <!-- ══ 설정 시트 ══ -->
@@ -977,7 +1002,7 @@ body.in-sub #tb-set{display:none}
 const APP_CFG = {
   name: '컨텐츠의 모든것',
   key: 'cme',
-  ver: 'v19',
+  ver: 'v20',
   tagline: '오늘 본 것이 휘발되지 않는다',
   demo: false,   // v7 · 실서버 배선 완료(2026-08-18)
   demoCode: 'EEEEEE', demoPin: '2222',
@@ -1166,7 +1191,6 @@ function enterApp(sess){
      ⚠️ setTimeout 0 = 스크립트가 «끝까지 읽힌 뒤» 부른다. 바로 부르면 아래쪽 변수가 아직 없어(TDZ) 앱이 통째로 죽는다. */
   setTimeout(()=>{ try{ itemsLoad(true).then(()=>{ try{ paintAll(); }catch(e){} }).catch(()=>{}); }catch(e){} }, 0);
   setTimeout(()=>{ try{ mrLoad().then(()=>{ try{ mrRender(); }catch(e){} }); }catch(e){} }, 400);
-  setTimeout(()=>{ try{ wsFillMove(); }catch(e){} }, 120);   /* 로그인 창이 걷힌 뒤 세그먼트 자리 잡기 */
 }
 function doLogout(){
   sessionStorage.removeItem(K('sess'));
@@ -1193,15 +1217,14 @@ function showScr(id){
   $('#scr-'+id).classList.add('on');
   $$('.dock button').forEach(b=>b.classList.toggle('on',b.dataset.scr===id));
   document.scrollingElement.scrollTop=0;
-  if(id==='s1') try{ requestAnimationFrame(wsFillMove); }catch(e){}   /* 홈이 보일 때 필 자리 다시 잡기 */
 }
 function setMode(m,silent){
   mode=m; localStorage.setItem(K('mode'),m);
-  $$('#mode b').forEach(x=>x.classList.toggle('on',x.dataset.mode===m));
+  $$('#mode > b').forEach(x=>x.classList.toggle('on',x.dataset.mode===m));
   $('#dock').style.display   = m==='i' ? 'flex' : 'none';
   $('#dock-s').style.display = m==='s' ? 'flex' : 'none';
   subStack=[]; document.body.classList.remove('in-sub');
-  setTimeout(()=>{ try{ wsFillMove(); }catch(e){} }, 60);   /* 강사실로 돌아오면 세그먼트 자리 다시 */
+  document.body.classList.toggle('stu-mode', m==='s');   /* v20 · 수강생실엔 워크스페이스가 없다 */   /* 강사실로 돌아오면 세그먼트 자리 다시 */
   cur = m==='i' ? 's1' : 't1'; showScr(cur);
   if(!silent) toast(m==='i' ? '🗄 강사실 — 내 금고' : '👥 수강생실 — 12명 자라는 중');
 }
@@ -1235,18 +1258,11 @@ $('#sheet-ov').addEventListener('click',sheetClose);
 /* ── 워크스페이스 전환 (완전 분리 — 서랍 전체가 갈아끼워짐) ── */
 const WS_NAMES={lecture:'강의 자료실',channel:'내 채널',scout:'정찰'};
 /* v13 · 워크스페이스 — 이제 «진짜로» 서랍을 가른다 (담을 땐 지금 방 것으로, 볼 땐 그 방 것만) */
-function wsFillMove(){
-  const f=$('#wseg-fill'), on=document.querySelector('#cws b.on');
-  if(!f||!on || !on.offsetWidth) return;   /* 화면이 아직 안 보이면 폭이 0이라 나중에 다시 */
-  f.style.width = on.offsetWidth+'px';
-  f.style.transform = 'translateX('+on.offsetLeft+'px)';
-}
 $('#cws').addEventListener('click', async e=>{
   const b=e.target.closest('b[data-ws]'); if(!b)return;
   $$('#cws b').forEach(x=>x.classList.toggle('on',x===b));
   _ws = b.dataset.ws;
   localStorage.setItem(K('ws'), _ws);
-  wsFillMove();
   paintAll();
 });
 (function(){
@@ -1254,8 +1270,6 @@ $('#cws').addEventListener('click', async e=>{
   if(w){ _ws=w; $$('#cws b').forEach(x=>x.classList.toggle('on',x.dataset.ws===w)); }
 })();
 /* 로그인 화면에 가려져 있으면 폭이 0이라 자리를 못 잡는다 — 보일 때까지 몇 번 더 시도 */
-[80, 400, 1200].forEach(ms=>setTimeout(wsFillMove, ms));
-window.addEventListener('resize', wsFillMove);
 
 /* 관 복원 + 수강생실 날짜
    ⚠️ 화면을 갈아끼우면 여기서 찾던 요소가 사라진다 — 없으면 조용히 넘어가야 «그 아래 배선 전부 미부착» 사고가 안 난다 */
