@@ -88,6 +88,9 @@
   background:rgba(224,123,123,.16);border-bottom:1px solid rgba(224,123,123,.4);color:#E07B7B;
   font-size:11.5px;font-weight:700;padding:7px 12px;backdrop-filter:blur(8px)}
 body.off #offbar{display:block}
+/* v21 · 로그인이 풀린 것은 «못 올림»보다 급하다 — 누를 수 있는 문으로 보이게 */
+#offbar.dead{background:rgba(200,241,105,.14);border-bottom-color:rgba(200,241,105,.42);color:var(--prod);cursor:pointer}
+#offbar.dead #off-relog{margin-left:8px;padding:2px 10px;border-radius:999px;background:var(--prod);color:#050609;font-weight:900}
 /* v9 · 해부 화면 — 구간마다 한 줄씩 적는 칸 */
 .anat-meta{border:1px solid var(--line);border-radius:var(--r-md);background:var(--glass);padding:12px;margin-bottom:12px}
 /* ⚠️ 16px 미만이면 아이폰이 화면을 확 당긴다 — 입력칸은 무조건 16px 이상 */
@@ -867,7 +870,7 @@ body.stu-mode .uni-ar{opacity:.3 !important}
   <!-- t1: 수강생실 홈 — 위계: 오늘 할 일이 왕 -->
   <section class="scr" id="scr-t1">
     <div class="hero">
-      <div class="hi"><span id="stu-date"></span> · 수강생 <em>12명</em> 자라는 중</div>
+      <div class="hi"><span id="stu-date"></span><span id="stu-head"></span></div>
       <h1><em>오늘 손볼 사람이<br>정해져 있습니다</em></h1>
     </div>
     <div class="big1">
@@ -884,7 +887,7 @@ body.stu-mode .uni-ar{opacity:.3 !important}
       <h3>🏆 이번 주 졸업 <span class="badge">1명</span></h3>
       <div class="list-row"><span class="ico" style="background:linear-gradient(135deg,#0e3a33,#0a1f1c)">서</span><div><b>박서준 · 2기 · 12주 완주</b><small>팔로워 +2,140 · 타임캡슐이 준비됐습니다</small></div></div>
     </div>
-    <div class="slb"><h2>수강생</h2><span class="more" data-go="t2">전체 12명 →</span></div>
+    <div class="slb"><h2>수강생</h2><span class="more" data-go="t2" id="stu-more">전체 보기 →</span></div>
     <div class="sgrid">
       <button class="stc" data-sub="stu">
         <div class="face" style="background:linear-gradient(150deg,#2a2450,#141126)"><b>민</b><span class="gi">3기</span><span class="gd" style="color:var(--prod)">6주차</span></div>
@@ -1002,7 +1005,7 @@ body.stu-mode .uni-ar{opacity:.3 !important}
 const APP_CFG = {
   name: '컨텐츠의 모든것',
   key: 'cme',
-  ver: 'v20',
+  ver: 'v21',
   tagline: '오늘 본 것이 휘발되지 않는다',
   demo: false,   // v7 · 실서버 배선 완료(2026-08-18)
   demoCode: 'EEEEEE', demoPin: '2222',
@@ -1068,8 +1071,26 @@ async function rpc(fn,args){
     method:'POST',
     headers:{'Content-Type':'application/json',apikey:APP_CFG.supabaseKey,Authorization:'Bearer '+APP_CFG.supabaseKey},
     body:JSON.stringify(args||{})});
-  if(!r.ok) throw new Error('rpc:'+r.status);
+  /* v21 · 🚨 «인터넷이 끊긴 것»과 «로그인이 풀린 것»은 다르다.
+           서버는 토큰이 죽으면 400 + {message:'session'}을 준다.
+           전에는 상태 코드만 보고 둘 다 «오프라인»이라 말해서,
+           사용자는 로그인이 풀린 줄 모른 채 계속 담았고 그건 서버로 안 갔다. */
+  if(!r.ok){
+    let msg=''; try{ msg=(await r.json()||{}).message||''; }catch(e){}
+    const err=new Error('rpc:'+r.status+(msg?':'+msg:''));
+    if(r.status===400 && /session/.test(msg)) err.session=true;
+    throw err;
+  }
   return r.json();
+}
+/* v21 · 세션이 죽었을 때 — 조용히 넘어가지 않고, 다시 들어갈 문을 준다 */
+let _sessDead=false;
+function sessExpired(){
+  setOnline(false);
+  if(_sessDead) return; _sessDead=true;
+  const bar=$('#offbar'); if(!bar) return;
+  bar.classList.add('dead');
+  bar.innerHTML='🔑 로그인이 풀렸어요 — 지금 담는 것은 서버에 안 올라갑니다 <b id="off-relog">다시 로그인 ›</b>';
 }
 
 /* ── 무차별 대입 잠금 ── */
@@ -1226,8 +1247,17 @@ function setMode(m,silent){
   subStack=[]; document.body.classList.remove('in-sub');
   document.body.classList.toggle('stu-mode', m==='s');   /* v20 · 수강생실엔 워크스페이스가 없다 */   /* 강사실로 돌아오면 세그먼트 자리 다시 */
   cur = m==='i' ? 's1' : 't1'; showScr(cur);
-  if(!silent) toast(m==='i' ? '🗄 강사실 — 내 금고' : '👥 수강생실 — 12명 자라는 중');
+  if(m==='s') try{ stHeadPaint(); }catch(e){}   /* v21 · 들어올 때마다 실제 명단으로 다시 센다 */
+  if(!silent) toast(m==='i' ? '🗄 강사실 — 내 금고' : '👥 수강생실 — 오늘 손볼 사람');
 }
+/* v21 · 로그인이 풀렸다는 띠를 누르면 그 자리에서 다시 들어간다 */
+$('#offbar').addEventListener('click',()=>{
+  if(!$('#offbar').classList.contains('dead')) return;
+  _sessDead=false;
+  $('#offbar').classList.remove('dead');
+  $('#offbar').textContent='⚠ 서버에 못 올리고 있어요 — 지금 담는 것은 이 기기에만 남습니다';
+  doLogout();
+});
 $('#mode').addEventListener('click',e=>{
   const b=e.target.closest('b[data-mode]'); if(!b||b.dataset.mode===mode)return;
   setMode(b.dataset.mode);
@@ -1365,7 +1395,7 @@ async function itemsLoad(force){
     _items = Array.isArray(rows) ? rows : [];
     setOnline(true);
     cacheSet(_items);                        // 서버 것으로 사본 갱신
-  }catch(e){ setOnline(false); }
+  }catch(e){ if(e && e.session) sessExpired(); else setOnline(false); }
   return _items;
 }
 async function itemsSave(rows){              // 담기·고치기 (여러 개 가능)
@@ -1382,7 +1412,10 @@ async function itemsSave(rows){              // 담기·고치기 (여러 개 �
     /* ⚠️ 서버는 실패해도 HTTP 200으로 {ok:false}를 준다 — 여기서 안 보면 «저장된 줄» 안다 */
     if(res && res.ok===false){ setOnline(false); toast('서버가 거절했어요: '+(res.msg||'알 수 없음')); return false; }
     setOnline(true); return true;
-  }catch(e){ setOnline(false); toast('서버에 못 올렸어요 — 이 기기에만 저장됩니다'); return false; }
+  }catch(e){
+    if(e && e.session){ sessExpired(); toast('로그인이 풀렸어요 — 위 띠를 눌러 다시 로그인해주세요'); return false; }
+    setOnline(false); toast('서버에 못 올렸어요 — 이 기기에만 저장됩니다'); return false;
+  }
 }
 async function itemsDel(ids){
   const s = sessNow();
@@ -2039,6 +2072,16 @@ function stRender(){
     : '<div class="msd-ghost" style="grid-column:1/-1"><div class="gt">김민지 · 3기 6주차</div><div class="gs2">조회 증가율이 팔로워를 3배 앞섬 — 지금 업로드 늘릴 때</div></div>'+
       '<p class="msd-hint" style="grid-column:1/-1;text-align:center">이렇게 쌓입니다 — 위에 수강생 이름을 적어보세요</p>';
   const seg=document.querySelector('#t2seg b[data-pane="sp1"]'); if(seg) seg.textContent='👤 수강생 '+stAll().length;
+  stHeadPaint();
+}
+/* v21 · 🚨 수강생실 헤드라인은 «실제 명단»을 말한다.
+   전에는 «12명»이 마크업에 박혀 있어, 0명이든 3명이든 12명이라고 우겼다(앱이 거짓말).
+   0명일 때 «0명»이라 겁주지 않고, 할 일 하나를 준다(빈 화면 4법칙 ③④). */
+function stHeadPaint(){
+  const n=stAll().length;
+  const h=$('#stu-head'); if(h) h.innerHTML = n ? ' · 수강생 <em>'+n+'명</em> 자라는 중'
+                                              : ' · <em>첫 수강생</em>을 등록해보세요';
+  const m=$('#stu-more'); if(m) m.textContent = n ? '전체 '+n+'명 →' : '수강생실 →';
 }
 /* ── v13 · 👤 수강생 상세 — 그 사람 이름이 들어간 처방·숙제를 한자리에 ── */
 let _stuId='';
@@ -2147,7 +2190,10 @@ function scoreRender(){
     '<div class="card"><h3>📬 이번 주 결산 <span class="badge ac">'+WS_NAMES[_ws]+'</span></h3>'+
       '<p>'+lean+'.<br>'+
       (todo.length ? '해부를 기다리는 영상이 <b style="color:var(--tx1)">'+todo.length+'편</b> 있습니다 — 한 편만 뜯어도 훔칠 것이 한 줄 늘어납니다.'
-                   : '담은 영상을 전부 뜯었습니다 — 새 영상을 주우러 갈 차례입니다.')+'</p></div>'+
+       /* v21 · 🚨 0편일 때 «전부 뜯었습니다»는 아무것도 안 했는데 다 했다는 거짓 칭찬이었다.
+                 담은 게 아예 없으면 «칭찬»이 아니라 «첫 걸음»을 준다. */
+       : vids.length ? '담은 영상을 전부 뜯었습니다 — 새 영상을 주우러 갈 차례입니다.'
+                     : '아직 담은 영상이 없습니다 — 링크 하나만 붙여넣으면 여기가 채워집니다.')+'</p></div>'+
     '<div class="card"><h3>✂ 모은 훔칠 것 <span class="badge'+(steal?' ac':'')+'">'+steal+'줄</span></h3>'+
       (steal ? vids.filter(v=>String(v.text||'').trim()).slice(0,6).map(v=>
           '<div class="list-row" data-vid="'+v.id+'" style="cursor:pointer"><span class="ico">✂</span><div><b>'+esc(v.text)+'</b><small>'+esc(v.title)+'</small></div></div>').join('')
