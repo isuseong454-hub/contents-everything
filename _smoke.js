@@ -97,10 +97,14 @@
       if (/auto|scroll/.test(getComputedStyle(p).overflowX)) return true;
     return false;
   };
-  const over = [...document.querySelectorAll('.scr.on *')].filter(el => {
+  /* ⚠️ 판이 숨겨져 있으면 clientWidth가 0이라 «전부 화면 밖»으로 잡힌다(2026-08-19 오탐).
+        잴 수 없는 상태를 «넘쳤다»고 말하지 않는다. */
+  const over = de.clientWidth < 320 ? [] : [...document.querySelectorAll('.scr.on *')].filter(el => {
     const b = el.getBoundingClientRect();
     return b.width > 0 && (b.right > de.clientWidth + 2 || b.left < -2) && !inScroller(el);
   });
+  if (de.clientWidth < 320) warn('가로 넘침', true, '판이 숨겨져 폭이 ' + de.clientWidth + 'px — 측정 못 함(판을 열고 다시)');
+  else
   add('가로 넘침', !over.length && de.scrollWidth <= de.clientWidth + 2,
     over.length ? over.length + '개 요소가 화면 밖 (' + (over[0].className || over[0].tagName) + ' …)' : '없음');
 
@@ -164,6 +168,47 @@
           사용자는 계속 담고, 담은 것은 서버로 안 간다 — 다시 로그인할 길을 줘야 한다 ── */
   add('세션 만료 안내', /session/.test(src) && /(재로그인|다시 로그인|로그인이 풀)/.test(src),
     '서버가 session 오류를 줄 때 재로그인으로 안내하는 줄');
+
+  /* ── 20. 🚨 발열 헌법 — 상시 반복 모션 금지(화면 안 쓰면 모션 OFF) ──
+          v21 이전엔 배경 광원 둘이 26초·32초로 «항상» 돌았다. 로딩 표시만 예외. */
+  var inf = [...document.querySelectorAll('*')].filter(function(el){
+    var s = getComputedStyle(el);
+    return s.animationName !== 'none' && s.animationIterationCount === 'infinite';
+  });
+  add('무한 반복 모션 0', !inf.length,
+    inf.length ? inf.length + '개: ' + [...new Set(inf.map(e => e.className || e.tagName))].slice(0, 4).join(', ') : '없음');
+
+  /* ── 21. 폰에 없는 hover가 «눌어붙는» 것 —
+          가드 없는 :hover는 폰에서 한 번 누르면 그 상태로 남는다(문장이 칠해진 것처럼 보였다) ── */
+  var hoverAll = 0, hoverGuarded = 0;
+  try {
+    for (const sh of document.styleSheets) {
+      let rules; try { rules = sh.cssRules; } catch (e) { continue; }
+      for (const r of rules || []) {
+        if (r.selectorText && r.selectorText.indexOf(':hover') > -1) hoverAll++;
+        if (r.media && /hover\s*:\s*hover/.test(r.conditionText || ''))
+          for (const in2 of r.cssRules || []) if ((in2.selectorText || '').indexOf(':hover') > -1) { hoverAll++; hoverGuarded++; }
+      }
+    }
+  } catch (e) {}
+  add('hover 미디어 가드', hoverAll === 0 || hoverGuarded === hoverAll,
+    hoverAll ? hoverGuarded + '/' + hoverAll + ' 가드됨' : ':hover 규칙 없음');
+
+  /* ── 22. UX 마감이 실제로 붙어 있는가 (v21) ── */
+  var uxOut = false, ux16 = false;
+  try {
+    for (const sh of document.styleSheets) {
+      let rules; try { rules = sh.cssRules; } catch (e) { continue; }
+      for (const r of rules || []) {
+        if (r.selectorText === '.ux-out') uxOut = true;
+        if (r.media && /768px/.test(r.conditionText || '') && /16px/.test(r.cssText || '')) ux16 = true;
+      }
+    }
+  } catch (e) {}
+  var body = document.body;
+  warn('UX 마감 부착', uxOut && ux16 && typeof uxRowOut === 'function',
+    (uxOut ? '' : '.ux-out 없음 ') + (ux16 ? '' : '입력칸 안전망 없음 ') +
+    (typeof uxRowOut === 'function' ? '' : 'uxRowOut 없음 ') || '삭제 FLIP·입력칸 안전망·글씨 마감 모두 존재');
 
   /* ── 결과 ── */
   const bad = R.filter(r => !r.ok && r.level === 'err');

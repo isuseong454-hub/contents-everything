@@ -153,7 +153,9 @@ body.off #offbar{display:block}
 .script{border:1px solid var(--line);border-radius:var(--r-md);background:var(--glass);padding:12px;
   font-size:13px;line-height:2.1;color:var(--tx2);max-height:280px;overflow-y:auto}
 .sen{cursor:pointer;border-radius:5px;padding:2px 3px;transition:.12s}
-.sen:hover{background:rgba(255,255,255,.05)}
+/* v21 · 폰에는 hover가 없다 — 가드가 없으면 한 번 누른 문장에 배경이 «눌어붙어»
+         칠하지도 않은 문장이 칠해진 것처럼 보인다. 마우스가 진짜 있을 때만. */
+@media (hover:hover) and (pointer:fine){ .sen:hover{background:rgba(255,255,255,.05)} }
 .sen.on{background:color-mix(in srgb, var(--c) 22%, transparent);color:var(--tx1);
   box-shadow:inset 0 -2px 0 var(--c)}
 .segs{margin-top:10px}
@@ -188,8 +190,11 @@ input,textarea,select{font-family:inherit;font-size:16px}
 
 /* ── 배경 광원 — 발열 헌법: 화면 안 보면 정지 ── */
 .orb{position:fixed;border-radius:50%;filter:blur(90px);opacity:.3;pointer-events:none;z-index:0}
-.orb1{width:44vmax;height:44vmax;left:-14vmax;top:-16vmax;background:radial-gradient(circle,var(--hook),transparent 70%);animation:drift 26s var(--ease) infinite alternate}
-.orb2{width:36vmax;height:36vmax;right:-12vmax;bottom:-10vmax;background:radial-gradient(circle,var(--conv),transparent 70%);animation:drift 32s var(--ease) infinite alternate-reverse}
+/* v21 · 🚨 발열 헌법 — 상시 반복 모션 금지(화면 안 쓰면 모션 OFF).
+         전에는 배경 광원 둘이 26초·32초로 «항상» 돌아 폰이 계속 일했다.
+         한 번만 흐르고 그 자리에 정착한다(forwards) — 처음의 «살아있음»은 남고 발열은 없다. */
+.orb1{width:44vmax;height:44vmax;left:-14vmax;top:-16vmax;background:radial-gradient(circle,var(--hook),transparent 70%);animation:drift 26s var(--ease) 1 alternate forwards}
+.orb2{width:36vmax;height:36vmax;right:-12vmax;bottom:-10vmax;background:radial-gradient(circle,var(--conv),transparent 70%);animation:drift 32s var(--ease) 1 alternate-reverse forwards}
 @keyframes drift{to{transform:translate(6vmax,4vmax) scale(1.08)}}
 body.heat-off .orb{animation-play-state:paused}
 @media (prefers-reduced-motion:reduce){.orb{animation:none}}
@@ -273,23 +278,8 @@ body.in-sub #tb-set{display:none}
 .list-row b{font-size:14px;display:block}
 .list-row small{font-size:12px;color:var(--tx2)}
 
-/* ── 워크스페이스 필 ── */
-/* v13 · 워크스페이스 = 애플 세그먼트 (유리 트랙 + 미끄러지는 필) */
-.wseg{position:relative;display:flex;margin:2px 0 14px;padding:4px;border-radius:15px;
-  background:rgba(255,255,255,.05);border:1px solid var(--line);
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-.wseg b{position:relative;z-index:1;flex:1;text-align:center;cursor:pointer;font-weight:700;font-size:12.5px;
-  color:var(--tx2);padding:9px 6px;border-radius:11px;transition:color .22s;white-space:nowrap;
-  display:flex;align-items:center;justify-content:center;gap:5px}
-.wseg b em{font-style:normal;font-size:13px;opacity:.85;transition:opacity .22s}
-.wseg b.on{color:var(--tx1)}
-.wseg b.on em{opacity:1}
-.wseg b:active{transform:scale(.97)}
-.wseg .fill{position:absolute;top:4px;left:0;height:calc(100% - 8px);border-radius:11px;
-  background:rgba(255,255,255,.10);border:1px solid var(--line2);
-  box-shadow:0 2px 10px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.12);
-  transition:transform .38s var(--spring), width .38s var(--spring);pointer-events:none}
-@media(max-width:400px){ .wseg b{font-size:11.5px;padding:9px 3px} .wseg b em{font-size:12px} }
+/* v21 · 🧹 죽은 CSS 청소 — v20에서 워크스페이스를 상단 통합 배너(.uni-ws)로 옮기며
+         마크업은 지웠는데 .wseg 규칙 8줄이 남아 있었다(쓰는 곳 0). width 애니도 여기 있었다. */
 
 /* ── 만능 붙여넣기 바 ── */
 .paste{display:flex;gap:9px;margin-bottom:8px}
@@ -311,7 +301,10 @@ body.in-sub #tb-set{display:none}
 .st{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;border:1px solid var(--line);margin-right:6px;margin-top:2px;font-weight:600;font-size:11px}
 .st.done{color:var(--conv);border-color:rgba(111,224,200,.3);background:var(--conv-g)}
 .st.run{color:var(--story);border-color:rgba(142,199,246,.35);background:var(--story-g)}
-.st.run i{width:5px;height:5px;border-radius:50%;background:var(--story);animation:pul 1.1s infinite}
+/* v21 · 이건 «로딩»이 아니라 «해부 3/6»이라는 상태다 — 목록에 여러 개가 동시에 떠서
+         화면 전체가 계속 깜빡였다. 점은 그냥 켜져 있으면 된다(발열 헌법). */
+.st.run i{width:5px;height:5px;border-radius:50%;background:var(--story);
+  box-shadow:0 0 7px color-mix(in srgb,var(--story) 55%,transparent)}
 .st.wait{color:var(--tx3)}
 @keyframes pul{50%{opacity:.35}}
 
@@ -690,6 +683,48 @@ body.stu-mode .uni-ar{opacity:.3 !important}
   padding:10px 18px;font-size:13.5px;font-weight:700;opacity:0;pointer-events:none;
   transition:opacity .25s,transform .3s var(--spring);backdrop-filter:blur(12px);max-width:88vw;text-align:center}
 .toast.on{opacity:1;transform:translateX(-50%)}
+
+/* ═══════════════════════════════════════════════════════════════
+   v21 · UX 마감 — 폰에서 «아프지 않게» + 정적 완성도
+   접두어 ux- 는 grep으로 선점 없음 확인(2026-08-19)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ① 입력칸 안전망 — iOS는 16px 미만 칸에 커서가 가면 화면을 제멋대로 확대한다.
+      지금은 칸마다 16px을 직접 적어 막고 있어서, 새 칸을 만들면 그때 샌다.
+      ⚠️ ::placeholder(12.5px)는 본문이 아니라 안내 글씨라 확대와 무관 — 건드리지 않는다. */
+@media (max-width:768px){
+  input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),
+  textarea, select, [contenteditable="true"]{ font-size:16px }
+}
+
+/* ② 글씨 — 한국어 화면에서 체감이 제일 큰 항목.
+      제목은 줄이 «고르게» 나뉘고(balance), 본문은 외톨이 글자를 안 만든다(pretty). */
+h1,h2,h3,.tl-h1,.hero h1,.big1 h2{ text-wrap:balance }
+p,.tl-sub,.ds,.gs,.gs2,.msd-hint,.hi small,.list-row small{ text-wrap:pretty }
+
+/* ③ 고무줄 — 시트·오버레이 끝에서 더 당길 때 뒤 화면이 딸려오지 않게.
+      지금은 body에만 걸려 있어서 시트 안에서는 여전히 새어 나간다. */
+.sheet,.lg-ov,#pw-ov,#sheet-ov{ overscroll-behavior:contain }
+
+/* ④ 카드 그림자 — 한 겹 짙은 그림자는 «붕 뜬» 느낌,
+      세 겹 + 윗선 빛은 «놓여 있는» 느낌이 된다. 어두운 앱이라 윗선이 특히 산다. */
+.card,.big1,.one,.shelf2,.msd-ghost{
+  box-shadow:0 1px 1px rgba(0,0,0,.28), 0 3px 6px rgba(0,0,0,.2),
+             0 10px 24px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.05)}
+
+/* ⑤ 목록에서 하나 지울 때 — 아래 줄이 순간이동하면 «내가 뭘 지웠지?»가 된다.
+      uxRemoveRow()가 지운 자리만큼 아래를 내렸다가 제자리로 올린다(FLIP). */
+.ux-out{ opacity:0 !important; transform:scale(.94) !important;
+  transition:opacity 140ms var(--ease), transform 140ms var(--ease) !important }
+
+/* ⑥ 움직임 줄이기 — 시스템에서 «동작 줄이기»를 켠 사람에게는 전부 끈다.
+      전에는 배경 광원 하나만 껐다. */
+@media (prefers-reduced-motion:reduce){
+  .orb{animation:none}
+  *,*::before,*::after{
+    animation-duration:.01ms !important; animation-iteration-count:1 !important;
+    transition-duration:.01ms !important; scroll-behavior:auto !important}
+}
 </style>
 </head>
 <body>
@@ -1005,7 +1040,7 @@ body.stu-mode .uni-ar{opacity:.3 !important}
 const APP_CFG = {
   name: '컨텐츠의 모든것',
   key: 'cme',
-  ver: 'v21',
+  ver: 'v22',
   tagline: '오늘 본 것이 휘발되지 않는다',
   demo: false,   // v7 · 실서버 배선 완료(2026-08-18)
   demoCode: 'EEEEEE', demoPin: '2222',
@@ -1417,9 +1452,49 @@ async function itemsSave(rows){              // 담기·고치기 (여러 개 �
     setOnline(false); toast('서버에 못 올렸어요 — 이 기기에만 저장됩니다'); return false;
   }
 }
+/* v21 · 지운 줄이 «사라지는 게 보이게» — 지우면 아래가 순간이동해서
+         «내가 방금 뭘 지웠지?»가 됐다. 지운 자리만큼 아래를 내렸다 제자리로 올린다(FLIP).
+         ⚠️ 행을 못 찾으면 조용히 넘어간다 — 애니는 «있으면 좋은 것»이지 삭제를 막으면 안 된다. */
+function uxRowOut(id){
+  return new Promise(function(res){
+    var btn=null;
+    try{
+      btn = document.querySelector('[data-stdel="'+id+'"],[data-rxdel="'+id+'"],[data-hwdel="'+id+'"],'+
+        '[data-lndel="'+id+'"],[data-prdel="'+id+'"],[data-musdel="'+id+'"],[data-swapdel="'+id+'"]');
+    }catch(e){}
+    /* ⚠️ 컨모의 «줄»은 클래스가 없는 것도 있다(문장 서랍 등).
+          그래서 클래스로 찾지 않고 «이 목록의 직계 자식»이 되는 지점까지 거슬러 올라간다. */
+    /* ⚠️ 여기엔 «목록»만 적는다. `.dr`은 목록이 아니라 «줄 하나»라서
+          넣었더니 그 안의 <p>를 줄로 오인해 애니가 안 보였다(2026-08-19). */
+    var LISTS='#ln-list,#pr-list,#th-list,#mus-list,#st-list,#rx-list,#hw-list,#vid-list,.sgrid,.vgrid';
+    var el=null;
+    if(btn){
+      var lw = btn.closest(LISTS);
+      if(lw){ el=btn; while(el && el.parentElement && el.parentElement!==lw) el=el.parentElement;
+              if(el && el.parentElement!==lw) el=null; }
+      if(!el) el = btn.closest('.list-row,.card,.msd-row,.stc,.vc2,.prc,li');
+    }
+    /* ⚠️ offsetParent로 «보이나»를 판정하면 안 된다 — 조상에 position:fixed가 있으면
+          멀쩡히 보이는 요소에도 null을 준다(2026-08-19에 이걸로 애니가 통째로 안 돌았다).
+          실제 크기로 본다. */
+    var box = el ? el.getBoundingClientRect() : null;
+    if(!el || !el.parentElement || !box || box.height<=0){ res(); return; }
+    var rest=[], n=el.nextElementSibling;
+    while(n){ rest.push(n); n=n.nextElementSibling; }
+    var h = box.height + 8;
+    el.classList.add('ux-out');
+    setTimeout(function(){
+      rest.forEach(function(r){ r.style.transition='none'; r.style.transform='translateY('+h+'px)'; });
+      void document.body.offsetWidth;                                  /* 강제 리플로우 */
+      rest.forEach(function(r){ r.style.transition='transform 240ms var(--ease)'; r.style.transform=''; });
+      setTimeout(function(){ rest.forEach(function(r){ r.style.transition=''; }); res(); }, 240);
+    }, 140);
+  });
+}
 async function itemsDel(ids){
   const s = sessNow();
   ids = Array.isArray(ids) ? ids : [ids];
+  if(ids.length===1){ try{ await uxRowOut(ids[0]); }catch(e){} }
   _items = _items.filter(x=>ids.indexOf(x.id)<0);
   cacheSet(_items);
   if(!s || !s.token || s.token==='demo'){ setOnline(false); return false; }
