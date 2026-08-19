@@ -99,6 +99,18 @@ body.off #offbar{display:block}
 .pklb s{text-decoration:none;font-weight:600;color:var(--tx3);margin-left:6px}
 .msd-pick .p.add{border-style:dashed;color:var(--conv);border-color:rgba(111,224,200,.45)}
 .msd-pick .p.on{border-color:var(--pc,rgba(111,224,200,.5));color:var(--pc,var(--conv))}
+/* v18 · 🏛 마스터 실 */
+.mrmeta{font-size:10.5px;color:var(--tx3);margin-top:2px}
+.mrintro{font-size:12px;color:var(--tx2);margin-top:8px;line-height:1.6}
+.mrnum{display:flex;gap:6px;margin-top:10px}
+.mrnum i{flex:1;font-style:normal;text-align:center;background:var(--glass);border:1px solid var(--line);border-radius:10px;padding:7px 2px}
+.mrnum i b{display:block;font-size:14px;font-weight:800;color:var(--conv)}
+.mrnum i s{display:block;text-decoration:none;font-size:9px;color:var(--tx3);margin-top:2px}
+.mritems{margin-top:9px}
+.mrit{display:flex;align-items:center;gap:8px;background:var(--glass);border-left:2px solid var(--conv);
+  border-radius:0 9px 9px 0;padding:7px 10px;margin-bottom:5px}
+.mrit b{font-size:11.5px;font-weight:700;color:var(--tx1)}
+.mrit s{text-decoration:none;font-size:9.5px;color:var(--tx3);margin-left:auto}
 /* v16 · 선반 = 제목줄 + 그 아래 «서재 카드 그대로» (뷰를 둘로 쪼개지 않는다) */
 .shsec{font-size:10.5px;font-weight:800;color:var(--tx3);letter-spacing:.04em;margin:18px 2px 8px}
 .shelf2{margin-bottom:16px}
@@ -865,7 +877,7 @@ body.in-sub #tb-set{display:none}
   <section class="scr" id="scr-t2">
     <div class="hero"><h1>수강생</h1><div class="sub">변화가 클수록 카드가 빛납니다 · 카드를 누르면 그 사람의 모든 것</div></div>
     <div class="dseg" id="t2seg">
-      <b class="on" data-pane="sp1">👤 수강생 12</b><b data-pane="sp2">🚪 방 3</b>
+      <b class="on" data-pane="sp1">👤 수강생</b><b data-pane="sp2">📥 신청함</b>
     </div>
 
     <!-- 👤 개인 -->
@@ -879,11 +891,10 @@ body.in-sub #tb-set{display:none}
     </div>
 
     <div class="dpane" id="sp2">
-      <div class="card">
-        <h3>🚪 커뮤니티 방 <span class="badge">준비 중</span></h3>
-        <p>수강생끼리 성장을 나누는 방입니다 — 서버 기능이 붙으면 여기서 열고 닫습니다.<br>
-        지금은 마스터즈 앱의 커뮤니티가 그 자리를 대신하고 있습니다.</p>
+      <div class="dseg" id="mrseg" style="margin-bottom:12px">
+        <b class="on" data-mrpane="link">🤝 연동 신청</b><b data-mrpane="req">💬 피드백 신청</b><b data-mrpane="sent">📤 보낸 답</b>
       </div>
+      <div id="mr-body"></div>
     </div>
   </section>
 
@@ -971,7 +982,7 @@ body.in-sub #tb-set{display:none}
 const APP_CFG = {
   name: '컨텐츠의 모든것',
   key: 'cme',
-  ver: 'v17',
+  ver: 'v18',
   tagline: '오늘 본 것이 휘발되지 않는다',
   demo: false,   // v7 · 실서버 배선 완료(2026-08-18)
   demoCode: 'EEEEEE', demoPin: '2222',
@@ -1159,6 +1170,7 @@ function enterApp(sess){
   /* v8 · 들어오는 순간 서버 창고에서 내 것을 꺼내온다 (실패해도 로컬 사본으로 화면은 산다)
      ⚠️ setTimeout 0 = 스크립트가 «끝까지 읽힌 뒤» 부른다. 바로 부르면 아래쪽 변수가 아직 없어(TDZ) 앱이 통째로 죽는다. */
   setTimeout(()=>{ try{ itemsLoad(true).then(()=>{ try{ paintAll(); }catch(e){} }).catch(()=>{}); }catch(e){} }, 0);
+  setTimeout(()=>{ try{ mrLoad().then(()=>{ try{ mrRender(); }catch(e){} }); }catch(e){} }, 400);
   setTimeout(()=>{ try{ wsFillMove(); }catch(e){} }, 120);   /* 로그인 창이 걷힌 뒤 세그먼트 자리 잡기 */
 }
 function doLogout(){
@@ -2147,6 +2159,131 @@ function lecReady(list){
   const steal=list.filter(v=>String(v.text||'').trim()).length;
   return { v:list.length, s:steal, ok:(list.length>=LEC_MIN_V && steal>=LEC_MIN_S) };
 }
+
+/* ══════════════════════════════════════════════════════════════
+   v18 · 🏛 마스터 실 (강사 쪽) — 연동 신청 · 피드백 신청 · 보낸 답
+     ⚠️ 이 화면만 «공용 테이블(cm_*)»을 쓴다 — 마스터즈 수강생과 같은 곳을 본다
+     수락하면 👥 수강생실에 카드가 «자동 생성»된다 (사장님 지시)
+   ══════════════════════════════════════════════════════════════ */
+let _mrPane='link', _mrLinks=[], _mrReqs=[], _mrSent=[], _mrOpen='', _mrStats={};
+
+function mrNum(n){ n=+n||0; return n>=10000 ? (n/10000).toFixed(n>=100000?0:1)+'만' : n.toLocaleString(); }
+function mrWhen(t){ if(!t) return ''; const d=new Date(t); return (d.getMonth()+1)+'/'+d.getDate(); }
+
+async function mrLoad(){
+  const ss=sessNow(); if(!ss || !ss.code || !ss.token || ss.token==='demo'){ return; }
+  try{ _mrLinks = await rpc('cm_link_list', {p_code:ss.code, p_token:ss.token, p_status:null}) || []; }catch(e){ _mrLinks=[]; }
+  try{ _mrReqs  = await rpc('cm_req_list',  {p_code:ss.code, p_token:ss.token, p_status:null}) || []; }catch(e){ _mrReqs=[]; }
+  try{ _mrSent  = await rpc('cm_fb_sent',   {p_code:ss.code, p_token:ss.token}) || []; }catch(e){ _mrSent=[]; }
+}
+async function mrStats(code){
+  if(_mrStats[code]) return _mrStats[code];
+  const ss=sessNow(); if(!ss) return null;
+  try{
+    const r = await rpc('cm_link_stats', {p_code:ss.code, p_token:ss.token, p_from:code});
+    if(r && r.ok){ _mrStats[code]=r; return r; }
+  }catch(e){}
+  return null;
+}
+/* 연동을 수락하면 수강생실에 카드를 «자동 생성» */
+async function mrMakeStudent(lk){
+  const exists=_items.some(x=>x.type==='student' && (x.memo||'').indexOf(lk.from_code)>=0);
+  if(exists) return;
+  await itemsSave({ id:newId(), user_code:(sessNow()||{}).code||'', ws:'all', type:'student', grp:'',
+    title:(lk.name||lk.from_code).slice(0,20), text:(lk.intro||'').slice(0,60), views:'',
+    tags:[], memo:JSON.stringify({link:lk.from_code, ig:lk.ig||''}), created_at:new Date().toISOString() });
+  stRender();
+}
+
+function mrLinkCard(lk){
+  const st=lk.status;
+  const badge = st==='pending' ? '<span class="badge ac">새 신청</span>'
+              : st==='linked'  ? '<span class="badge ac">연동됨</span>'
+              : st==='unlinked'? '<span class="badge">해제됨</span>'
+              : '<span class="badge">거절</span>';
+  const s2=_mrStats[lk.from_code];
+  const nums = s2 ? '<div class="mrnum">'+
+      '<i><b>'+(s2.uploads_total||0)+'</b><s>총 업로드</s></i>'+
+      '<i><b>'+(s2.uploads_per_week||0)+'</b><s>주당 평균</s></i>'+
+      '<i><b>'+mrNum(s2.best_views)+'</b><s>가장 터진 것</s></i>'+
+      '<i><b>'+mrNum(s2.followers)+'</b><s>팔로워</s></i></div>' : '';
+  return '<div class="card" style="margin-bottom:10px">'+
+    '<h3>'+esc(lk.name||lk.from_code)+' '+badge+'</h3>'+
+    '<div class="mrmeta">'+esc(lk.from_code)+(lk.ig?' · '+esc(lk.ig):'')+' · '+mrWhen(lk.created_at)+'</div>'+
+    (lk.intro?'<p class="mrintro">"'+esc(lk.intro)+'"</p>':'')+
+    nums+
+    '<div class="msd-acts">'+
+      (st==='pending'
+        ? '<button type="button" class="go" data-mrok="'+esc(lk.from_code)+'">수락</button>'+
+          '<button type="button" data-mrno="'+esc(lk.from_code)+'">거절</button>'
+        : st==='linked'
+        ? '<button type="button" class="go" data-mrstat="'+esc(lk.from_code)+'">숫자 보기</button>'+
+          '<button type="button" class="dl" data-mroff="'+esc(lk.from_code)+'">연동 해제</button>'
+        : '<button type="button" data-mrok="'+esc(lk.from_code)+'">다시 연동</button>')+
+    '</div></div>';
+}
+function mrReqCard(rq){
+  const lk=_mrLinks.filter(x=>x.from_code===rq.from_code)[0]||{};
+  const items=Array.isArray(rq.items)?rq.items:[];
+  const open=_mrOpen===rq.id;
+  const badge = rq.status==='pending' ? '<span class="badge ac">답을 기다림</span>'
+              : rq.status==='accepted'? '<span class="badge ac">수락함</span>'
+              : rq.status==='done'    ? '<span class="badge">답변 완료</span>'
+              : '<span class="badge">반려</span>';
+  return '<div class="card" style="margin-bottom:10px">'+
+    '<h3>'+esc(lk.name||rq.from_code)+' '+badge+'</h3>'+
+    '<div class="mrmeta">'+mrWhen(rq.created_at)+' · 보낸 것 '+items.length+'개</div>'+
+    (rq.memo?'<p class="mrintro">"'+esc(rq.memo)+'"</p>':'')+
+    '<div class="mritems">'+(items.length? items.map(it=>
+      '<div class="mrit"><b>'+esc(it.title||'제목 없음')+'</b>'+
+      (it.kind?'<s>'+esc(it.kind)+'</s>':'')+'</div>').join('') : '<p class="msd-hint">보낸 컨텐츠가 없어요</p>')+'</div>'+
+    '<div class="msd-acts">'+
+      (rq.status==='pending'
+        ? '<button type="button" class="go" data-mrreqok="'+rq.id+'">수락</button>'+
+          '<button type="button" data-mrreqno="'+rq.id+'">다음에</button>'
+        : rq.status==='accepted'
+        ? '<button type="button" class="go" data-mrfb="'+rq.id+'">'+(open?'접기':'피드백 쓰기')+'</button>'
+        : '<button type="button" data-mrpeek="'+rq.id+'">보낸 것 보기</button>')+
+    '</div>'+
+    (open ? '<div class="msd-open" style="border-top:1px solid var(--line);margin-top:10px">'+
+      '<textarea class="msd-nm" id="mr-fb-body" rows="5" placeholder="피드백을 적어주세요 — 무엇이 좋았고 무엇을 바꾸면 되는지" style="height:auto;resize:vertical"></textarea>'+
+      '<div class="pklb">참고 영상 붙이기 <s>자료실에서 고르면 함께 갑니다</s></div>'+
+      '<div class="msd-pick">'+vidAll().filter(v=>String(v.text||'').trim()).slice(0,8).map(v=>
+        '<button type="button" class="p'+(_mrRefs.indexOf(v.id)>=0?' on':'')+'" data-mrref="'+v.id+'">'+esc(String(v.title).slice(0,16))+'</button>').join('')+
+        (vidAll().filter(v=>String(v.text||'').trim()).length?'':'<span class="msd-hint">«훔칠 것»을 적은 영상이 여기 뜹니다</span>')+'</div>'+
+      '<button type="button" class="cut-b go" data-mrsend="'+rq.id+'" style="width:100%;margin-top:10px">피드백 보내기</button>'+
+    '</div>' : '')+'</div>';
+}
+let _mrRefs=[];
+function mrSentCard(fb){
+  const lk=_mrLinks.filter(x=>x.from_code===fb.to_code)[0]||{};
+  return '<div class="card" style="margin-bottom:10px">'+
+    '<h3>'+esc(lk.name||fb.to_code)+' '+
+      (fb.read_at?'<span class="badge ac">읽음</span>':'<span class="badge">아직 안 읽음</span>')+
+      (fb.helpful?'<span class="badge ac">👏 도움됐대요</span>':'')+'</h3>'+
+    '<div class="mrmeta">'+mrWhen(fb.created_at)+'</div>'+
+    '<p class="mrintro">'+esc(String(fb.body||'').slice(0,160))+'</p></div>';
+}
+function mrRender(){
+  const w=$('#mr-body'); if(!w) return;
+  $$('#mrseg b').forEach(b=>b.classList.toggle('on', b.dataset.mrpane===_mrPane));
+  const seg=document.querySelector('#t2seg b[data-pane="sp2"]');
+  const waiting=_mrLinks.filter(x=>x.status==='pending').length + _mrReqs.filter(x=>x.status==='pending').length;
+  if(seg) seg.textContent='📥 신청함'+(waiting?' '+waiting:'');
+  if(_mrPane==='link'){
+    w.innerHTML = _mrLinks.length ? _mrLinks.map(mrLinkCard).join('')
+      : '<div class="msd-ghost"><div class="gt">아직 연동 신청이 없어요</div>'+
+        '<div class="gs">마스터즈 앱의 🏛 마스터 실에서 수강생이 «연동하기»를 누르면 여기 뜹니다</div></div>';
+  } else if(_mrPane==='req'){
+    w.innerHTML = _mrReqs.length ? _mrReqs.map(mrReqCard).join('')
+      : '<div class="msd-ghost"><div class="gt">아직 피드백 신청이 없어요</div>'+
+        '<div class="gs">연동된 수강생이 컨텐츠 3개와 메모를 보내면 여기 뜹니다</div></div>';
+  } else {
+    w.innerHTML = _mrSent.length ? _mrSent.map(mrSentCard).join('')
+      : '<div class="msd-ghost"><div class="gt">아직 보낸 답이 없어요</div><div class="gs">피드백을 보내면 읽음 여부가 여기 표시됩니다</div></div>';
+  }
+}
+
 /* 데이터가 바뀌면 화면 전부를 다시 그린다 — 한 곳에서 부르게 모아둔다 */
 function paintAll(){
   try{ musRender(); }catch(e){}
@@ -2161,6 +2298,7 @@ function paintAll(){
   try{ hwRender(); }catch(e){}
   try{ stuRender(); }catch(e){}
   try{ scoreRender(); }catch(e){}
+  try{ mrRender(); }catch(e){}
 }
 
 /* 음악 서랍 클릭 — 서랍 화면 전체에 한 번만 건다 */
@@ -2193,6 +2331,73 @@ document.addEventListener('click', async e=>{
   const vfa = hit('data-vfa'); if(vfa){ _vfAxis=vfa; vidRender(); return; }
   const vid = hit('data-vid');
   if(vid){ _anatId=vid; anatRender(); subStack.push(cur+''); document.body.classList.add('in-sub'); showScr('anat'); return; }
+  /* ── v18 · 🏛 마스터 실 ── */
+  const mrp = hit('data-mrpane');
+  if(mrp){ _mrPane=mrp; mrRender(); return; }
+  const mrok = hit('data-mrok');
+  if(mrok){
+    const ss=sessNow();
+    try{
+      const r=await rpc('cm_link_decide',{p_code:ss.code,p_token:ss.token,p_from:mrok,p_ok:true});
+      if(r&&r.ok===false){ toast(r.msg||'실패'); return; }
+      const lk=_mrLinks.filter(x=>x.from_code===mrok)[0];
+      if(lk){ lk.status='linked'; await mrMakeStudent(lk); }
+      await mrLoad(); mrRender(); stRender();
+      toast('🤝 연동했어요 — 수강생실에 카드가 생겼습니다');
+    }catch(e){ toast('서버에 못 닿았어요'); }
+    return;
+  }
+  const mrno = hit('data-mrno');
+  if(mrno){
+    const ss=sessNow();
+    try{ await rpc('cm_link_decide',{p_code:ss.code,p_token:ss.token,p_from:mrno,p_ok:false});
+      await mrLoad(); mrRender(); toast('신청을 정리했어요'); }catch(e){ toast('서버에 못 닿았어요'); }
+    return;
+  }
+  const mroff = hit('data-mroff');
+  if(mroff){
+    if(!await appConfirm('연동을 해제할까요? 새 신청·성적 열람은 끊기지만, 지금까지의 기록과 수강생 카드는 그대로 남습니다.',{okText:'해제',danger:true})) return;
+    const ss=sessNow();
+    try{ await rpc('cm_link_off',{p_code:ss.code,p_token:ss.token,p_from:mroff});
+      await mrLoad(); mrRender(); toast('연동을 해제했어요 — 자료는 남아 있습니다'); }catch(e){ toast('서버에 못 닿았어요'); }
+    return;
+  }
+  const mrstat = hit('data-mrstat');
+  if(mrstat){ await mrStats(mrstat); mrRender(); return; }
+  const mrreqok = hit('data-mrreqok');
+  if(mrreqok){
+    const ss=sessNow();
+    try{ await rpc('cm_req_decide',{p_code:ss.code,p_token:ss.token,p_id:mrreqok,p_ok:true,p_memo:null});
+      await mrLoad(); _mrOpen=mrreqok; _mrRefs=[]; mrRender(); toast('수락했어요 — 이제 피드백을 쓸 수 있어요'); }catch(e){ toast('서버에 못 닿았어요'); }
+    return;
+  }
+  const mrreqno = hit('data-mrreqno');
+  if(mrreqno){
+    const memo = window.prompt('한 줄만 남겨주세요 (수강생에게 보입니다)', '다음에 다시 보내주세요');
+    if(memo===null) return;
+    const ss=sessNow();
+    try{ await rpc('cm_req_decide',{p_code:ss.code,p_token:ss.token,p_id:mrreqno,p_ok:false,p_memo:memo});
+      await mrLoad(); mrRender(); toast('정리했어요'); }catch(e){ toast('서버에 못 닿았어요'); }
+    return;
+  }
+  const mrfb = hit('data-mrfb');
+  if(mrfb){ _mrOpen=(_mrOpen===mrfb)?'':mrfb; _mrRefs=[]; mrRender(); return; }
+  const mrref = hit('data-mrref');
+  if(mrref){ const i=_mrRefs.indexOf(mrref); if(i>=0) _mrRefs.splice(i,1); else _mrRefs.push(mrref); mrRender(); return; }
+  const mrsend = hit('data-mrsend');
+  if(mrsend){
+    const ta=$('#mr-fb-body'); const body=ta?ta.value.trim():'';
+    if(!body){ toast('피드백을 적어주세요'); return; }
+    const refs=_mrRefs.map(id=>{ const v=_items.filter(x=>x.id===id)[0]||{}; return {title:v.title,url:v.url,steal:v.text}; });
+    const ss=sessNow();
+    try{
+      const r=await rpc('cm_fb_send',{p_code:ss.code,p_token:ss.token,p_req:mrsend,p_body:body,p_refs:refs});
+      if(r&&r.ok===false){ toast(r.msg||'실패'); return; }
+      _mrOpen=''; _mrRefs=[]; await mrLoad(); mrRender();
+      toast('💬 피드백을 보냈어요');
+    }catch(e){ toast('서버에 못 닿았어요'); }
+    return;
+  }
   /* ── v9 · 수강생 · 처방전 · 숙제함 ── */
   if(hit('data-stadd')){ const i=$('#st-in'); if(i){ const v=i.value; i.value=''; await stAdd(v); } return; }
   const stc = hit('data-stc'); if(stc){ _stCohort=stc; stRender(); return; }
