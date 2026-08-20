@@ -88,6 +88,14 @@
   background:rgba(224,123,123,.16);border-bottom:1px solid rgba(224,123,123,.4);color:#E07B7B;
   font-size:11.5px;font-weight:700;padding:7px 12px;backdrop-filter:blur(8px)}
 body.off #offbar{display:block}
+/* v23 · 수강생실 홈의 «예시»는 예시라고 말한다 — 채워진 모습은 보여주되 채워진 척은 안 한다 */
+#t1-demo.is-demo{position:relative}
+#t1-demo.is-demo::before{content:'이렇게 쌓입니다 — 아직 등록된 수강생이 없어요';
+  display:block;margin:0 0 11px;padding:9px 13px;border-radius:12px;font-size:11.5px;font-weight:800;
+  color:var(--tx2);background:var(--glass);border:1px dashed var(--line2)}
+#t1-demo.is-demo>.big1,#t1-demo.is-demo>.card,#t1-demo.is-demo>.sgrid{opacity:.5}
+#t1-demo.is-demo>.slb{opacity:.5}
+
 /* v21 · 로그인이 풀린 것은 «못 올림»보다 급하다 — 누를 수 있는 문으로 보이게 */
 #offbar.dead{background:rgba(200,241,105,.14);border-bottom-color:rgba(200,241,105,.42);color:var(--prod);cursor:pointer}
 #offbar.dead #off-relog{margin-left:8px;padding:2px 10px;border-radius:999px;background:var(--prod);color:#050609;font-weight:900}
@@ -908,6 +916,9 @@ p,.tl-sub,.ds,.gs,.gs2,.msd-hint,.hi small,.list-row small{ text-wrap:pretty }
       <div class="hi"><span id="stu-date"></span><span id="stu-head"></span></div>
       <h1><em>오늘 손볼 사람이<br>정해져 있습니다</em></h1>
     </div>
+    <!-- v23 · 실제 명단이 있으면 여기가 채워지고, 아래 «예시»는 숨는다 -->
+    <div id="t1-real"></div>
+    <div id="t1-demo">
     <div class="big1">
       <div class="k">오늘 할 일</div>
       <h2>숙제 <em>3개</em>가 AI 검사를 마치고<br>사장님 한마디를 기다립니다</h2>
@@ -943,6 +954,7 @@ p,.tl-sub,.ds,.gs,.gs2,.msd-hint,.hi small,.list-row small{ text-wrap:pretty }
           <div class="pgb"><i style="width:33%"></i></div></div>
       </button>
     </div>
+    </div><!-- /t1-demo -->
   </section>
 
   <!-- t2: 수강생 명단 — [개인|방] 세그먼트 (v6) -->
@@ -1040,7 +1052,7 @@ p,.tl-sub,.ds,.gs,.gs2,.msd-hint,.hi small,.list-row small{ text-wrap:pretty }
 const APP_CFG = {
   name: '컨텐츠의 모든것',
   key: 'cme',
-  ver: 'v22',
+  ver: 'v23',
   tagline: '오늘 본 것이 휘발되지 않는다',
   demo: false,   // v7 · 실서버 배선 완료(2026-08-18)
   demoCode: 'EEEEEE', demoPin: '2222',
@@ -1213,15 +1225,26 @@ async function doLogin(){
   $('#lg-btn').disabled=true;
   try{
     let ok=false, session=null, adm=await checkAdmin(code,pin);
-    if(adm){
-      if(adm.ok){ ok=true; isAdmin=true; session={code, token:'admin', plan:'admin'}; }
-    }else if(APP_CFG.demo){
+    /* v23 · 🚨 전에는 관리자면 서버 로그인을 «건너뛰고» 가짜 토큰 'admin'을 썼다.
+             그 토큰은 uuid가 아니라 서버가 전부 거절 → 강사 계정으로 들어가면
+             자료가 서버에 안 올라가고(오프라인) 마스터 실 신청함도 영영 비어 있었다.
+             이제 관리자든 아니든 «서버 로그인을 먼저» 해서 진짜 토큰을 받는다. */
+    if(APP_CFG.demo){
       ok = (code===APP_CFG.demoCode.toUpperCase() && pin===APP_CFG.demoPin);
       if(ok) session={code, token:'demo', plan:'demo'};
     }else{
-      const res=await rpc(APP_CFG.rpcPrefix+'_login',{p_code:code,p_pin:pin});
-      const row=Array.isArray(res)?res[0]:res;
-      if(row&&row.ok){ ok=true; session={code, token:row.token, plan:row.plan}; }
+      try{
+        const res=await rpc(APP_CFG.rpcPrefix+'_login',{p_code:code,p_pin:pin});
+        const row=Array.isArray(res)?res[0]:res;
+        if(row&&row.ok){ ok=true; session={code, token:row.token, plan:row.plan}; }
+      }catch(e){}
+    }
+    if(adm && adm.ok){
+      isAdmin=true; ok=true;
+      /* 서버 비번과 관리자 비번이 다를 수 있다(관리자 비번은 아직 이 기기에만 저장된다).
+         그때도 관리자 화면은 열되, 토큰이 없으니 «서버에 못 붙었다»가 배너로 보인다. */
+      if(session) session.plan='admin';
+      else session={code, token:'admin', plan:'admin'};
     }
     if(ok){ lockClear();
       const keep=$('#lg-keep').checked;
@@ -2149,6 +2172,40 @@ function stRender(){
   const seg=document.querySelector('#t2seg b[data-pane="sp1"]'); if(seg) seg.textContent='👤 수강생 '+stAll().length;
   stHeadPaint();
 }
+/* v23 · 🚨 수강생실 홈이 통째로 예시였다 — 실제 0명인데 «김민지·3기», «박서준 12주 완주»,
+         «숙제 3개»가 마크업에 박혀 있었다. v21에서 헤드라인 숫자만 고쳤고 그 아래가 남아 있었다.
+         이제 실제 명단이 있으면 «진짜»를 그리고, 없으면 예시를 «예시»라고 밝힌 채로 둔다
+         (빈 화면 4법칙 ①채워진 모습 먼저 — 다만 채워진 척은 하지 않는다). */
+function stuHomeRender(){
+  const real=$('#t1-real'), demo=$('#t1-demo'); if(!real||!demo) return;
+  const list=stAll();
+  if(!list.length){
+    real.innerHTML='';
+    demo.style.display='';
+    demo.classList.add('is-demo');
+    return;
+  }
+  demo.style.display='none'; demo.classList.remove('is-demo');
+  const hw=_items.filter(x=>x.type==='hw' && !(x.tags||[]).includes('확인'));
+  const rxWait=list.filter(s=>!_items.some(x=>x.type==='rx' &&
+    (x.grp===s.id || String(x.title||'').indexOf(String(s.title||''))>=0)));
+  let h='';
+  h+='<div class="big1"><div class="k">오늘 할 일</div>'+
+     (hw.length ? '<h2>숙제 <em>'+hw.length+'개</em>가<br>사장님 한마디를 기다립니다</h2>'+
+                  '<button class="go1" data-go="t4">숙제함 열기 →</button>'
+                : '<h2>지금은 밀린 숙제가<br>하나도 없습니다</h2>'+
+                  '<button class="go1" data-go="t2">수강생 보기 →</button>')+'</div>';
+  if(rxWait.length){
+    h+='<div class="card"><h3>💊 처방 대기 <span class="badge ac">'+rxWait.length+'명</span></h3>'+
+       rxWait.slice(0,3).map(s=>'<div class="list-row" data-sub="stu" data-stuid="'+s.id+'" style="cursor:pointer">'+
+         '<span class="ico">'+esc(String(s.title||'?').slice(0,1))+'</span><div><b>'+esc(s.title||'이름 없음')+
+         (s.grp?' · '+esc(s.grp):'')+'</b><small>아직 처방전이 없습니다 — 금고에서 3~5편 골라주세요</small></div></div>').join('')+
+       '<button class="go" data-go="t3" style="margin-top:10px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:var(--conv);padding:8px 14px;border-radius:999px;background:var(--conv-g)">처방전 쓰기 ›</button></div>';
+  }
+  h+='<div class="slb"><h2>수강생</h2><span class="more" data-go="t2">전체 '+list.length+'명 →</span></div>'+
+     '<div class="sgrid">'+list.slice(0,6).map(stCard).join('')+'</div>';
+  real.innerHTML=h;
+}
 /* v21 · 🚨 수강생실 헤드라인은 «실제 명단»을 말한다.
    전에는 «12명»이 마크업에 박혀 있어, 0명이든 3명이든 12명이라고 우겼다(앱이 거짓말).
    0명일 때 «0명»이라 겁주지 않고, 할 일 하나를 준다(빈 화면 4법칙 ③④). */
@@ -2157,6 +2214,7 @@ function stHeadPaint(){
   const h=$('#stu-head'); if(h) h.innerHTML = n ? ' · 수강생 <em>'+n+'명</em> 자라는 중'
                                               : ' · <em>첫 수강생</em>을 등록해보세요';
   const m=$('#stu-more'); if(m) m.textContent = n ? '전체 '+n+'명 →' : '수강생실 →';
+  try{ stuHomeRender(); }catch(e){}
 }
 /* ── v13 · 👤 수강생 상세 — 그 사람 이름이 들어간 처방·숙제를 한자리에 ── */
 let _stuId='';
