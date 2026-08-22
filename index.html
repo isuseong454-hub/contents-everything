@@ -749,6 +749,13 @@ p,.tl-sub,.ds,.gs,.gs2,.msd-hint,.hi small,.list-row small{ text-wrap:pretty }
 .jsrc svg{width:14px;height:14px;display:block}
 .jsrc.yt{background:#E0574B}
 .jsrc.ig{background:linear-gradient(45deg,#FEDA75,#FA7E1E 22%,#D62976 52%,#962FBF 76%,#4F5BD5)}
+/* 📱 폰으로 보내기 — 금고에 있는 걸 «잠깐» 회색지대로 올린다 */
+.jbook .tophone{width:100%;margin-top:6px;font-family:inherit;font-size:10px;font-weight:800;
+  padding:5px 0;border-radius:8px;cursor:pointer;background:var(--glass);
+  border:1px solid var(--line);color:var(--tx3);transition:.16s var(--ease)}
+.jbook .tophone:active{transform:scale(.96)}
+.jbook .tophone.on{background:rgba(111,224,200,.13);border-color:rgba(111,224,200,.4);color:var(--conv)}
+.jbook.out .th{box-shadow:0 12px 28px rgba(0,0,0,.5), 0 0 0 1.5px rgba(111,224,200,.45)}
 /* ══ 🤖 덜컹이 — 고장난 분해봇. 평소엔 자고, 일감이 오면 덜컹거리다 결국 해낸다 ══
    ⚠️ 흔들림은 «불규칙»해야 고장으로 읽힌다. 규칙적이면 잘 도는 기계로 보인다.
    ⚠️ 평소 애니는 0개 — 발열 헌법 */
@@ -758,8 +765,12 @@ p,.tl-sub,.ds,.gs,.gs2,.msd-hint,.hi small,.list-row small{ text-wrap:pretty }
 .bot.ok{border-color:rgba(200,241,105,.3);background:rgba(200,241,105,.05)}
 .bot svg{width:74px;height:74px;flex:none;overflow:visible}
 .bot .bi{min-width:0;flex:1}
-.bot .bi b{font-size:13px;font-weight:800;letter-spacing:-.01em}
-.bot .bi b i{font-style:normal;font-size:9.5px;font-weight:700;color:var(--tx3);margin-left:6px}
+/* 이름표는 로봇 «바로 아래» — 애착은 이름에서 온다 */
+.bot .bfig{margin:0;flex:none;display:flex;flex-direction:column;align-items:center;gap:2px}
+.bot .bfig figcaption{text-align:center;line-height:1.25}
+.bot .bfig b{display:block;font-size:11.5px;font-weight:800;letter-spacing:-.01em}
+.bot .bfig s{display:block;text-decoration:none;font-size:9px;font-weight:700;color:var(--tx3)}
+.bot.on .bfig s{color:#C98A5B} .bot.ok .bfig s{color:var(--prod)}
 .bot .bi p{margin:3px 0 0;font-size:10.5px;color:var(--tx3);line-height:1.5}
 .bot.on .bi p{color:#C98A5B} .bot.ok .bi p{color:var(--prod)}
 .bot .ba{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
@@ -771,21 +782,72 @@ body.phone .bot .ba{display:none}          /* 폰엔 금고가 없다 — 눌러
 body.phone .bot .bi p.ph{display:block}
 .bot .bi p.ph{display:none;color:var(--tx3)}
 @keyframes botrattle{
-  0%{transform:rotate(0) translate(0,0)}      7%{transform:rotate(-3.4deg) translate(-1.6px,1px)}
-  12%{transform:rotate(2.2deg) translate(1.2px,-.6px)} 19%{transform:rotate(-1.2deg) translate(-.8px,1.4px)}
-  26%{transform:rotate(3.8deg) translate(1.8px,.4px)}  33%{transform:rotate(-.6deg) translate(-.4px,-1px)}
-  40%,52%{transform:rotate(1.4deg) translate(.6px,2px)}          /* 여기서 한 번 죽는다 */
-  60%{transform:rotate(-4.6deg) translate(-2.2px,-1px)} 68%{transform:rotate(3.4deg) translate(2px,1.2px)}
-  76%{transform:rotate(-2.6deg) translate(-1.4px,-.6px)} 85%{transform:rotate(1.8deg) translate(1px,.8px)}
-  93%{transform:rotate(-.8deg) translate(-.5px,.3px)}    100%{transform:rotate(0) translate(0,0)}
+  0%{transform:rotate(0) translate(0,0)}      7%{transform:rotate(-2.6deg) translate(-1.2px,.8px)}
+  14%{transform:rotate(1.8deg) translate(1px,-.4px)}   21%{transform:rotate(-1deg) translate(-.6px,1px)}
+  26%{transform:rotate(2.6deg) translate(1.2px,.4px)}  33%{transform:rotate(-1.4deg) translate(-.8px,-.6px)}
+  40%,50%{transform:rotate(1.4deg) translate(.6px,2px)}          /* 여기서 한 번 죽는다 */
+  58%{transform:rotate(-3.2deg) translate(-1.6px,-.8px)}
+  66%{transform:rotate(-8.2deg) translate(-3.8px,-1.2px)}        /* 안테나가 부러진 «직후» 크게 휘청 */
+  73%{transform:rotate(6deg) translate(3.2px,1.6px)}   80%{transform:rotate(-5deg) translate(-2.6px,-.8px)}
+  87%{transform:rotate(3.4deg) translate(1.8px,1.2px)} 94%{transform:rotate(-1.6deg) translate(-1px,.5px)}
+  100%{transform:rotate(0) translate(0,0)}
 }
+
 .bot .rob{transform-origin:0 30px}
 .bot.on .rob{animation:botrattle 3.4s ease-in-out infinite both}
 .bot .eyeL,.bot .eyeR{fill:#2a3040;transition:fill .3s}
-.bot.on .eyeL{animation:boteye 1.6s steps(1,end) infinite both}
-@keyframes boteye{ 0%,18%{fill:#2a3040} 20%,34%{fill:#C98A5B} 36%,52%{fill:#2a3040}
-  54%,72%{fill:#C98A5B} 74%,84%{fill:#2a3040} 86%,100%{fill:#C98A5B} }
+/* 눈 — 주황으로 네 번 지직대다 켜진 채 버틴다. 초록은 «물건이 나올 때»만(.ok) */
+.bot.on .eyeL,.bot.on .eyeR{animation:boteye 3.4s steps(1,end) infinite both}
+.bot.on .eyeR{animation-delay:.12s}          /* 오른쪽이 아주 살짝 늦다 */
+@keyframes boteye{
+  0%,6%{fill:#2a3040}    8%,11%{fill:#C98A5B}  13%,21%{fill:#2a3040}
+  23%,26%{fill:#C98A5B}  28%,33%{fill:#2a3040}
+  35%,41%{fill:#C98A5B}  43%,47%{fill:#2a3040}
+  49%,56%{fill:#C98A5B}  58%,61%{fill:#2a3040}
+  63%,100%{fill:#C98A5B} }
 .bot.ok .eyeL,.bot.ok .eyeR{fill:var(--prod)}
+/* 부품 낙하 — 깨어날 때 «딱 한 번», 그리고 «하나씩 차례로» 빠진다
+   ┌ 22% 나사가 툭        ┌ 62% 안테나가 뚝 → 곧바로 크게 휘청
+   └─────────────────────┴──────────────────────────────────  (한 바퀴 3.4초) */
+/* ⚠️ SVG는 회전 기준점이 화면 한가운데가 기본 — fill-box 로 부품 자신에 묶는다 */
+.bot .pOn,.bot .pFall{transform-box:fill-box;transform-origin:50% 50%}
+.bot.ok .pOn{opacity:0}
+/* ── ① 나사 : 먼저 덜덜 떨다 22%에 빠진다 ── */
+.bot.on .pOnB{animation:botponB 3.4s ease-in-out 1 both}
+@keyframes botponB{
+  0%{opacity:1;transform:translate(0,0) rotate(0)}
+  6%{transform:translate(.3px,0) rotate(2deg)}      10%{transform:translate(-.3px,.2px) rotate(-2.5deg)}
+  14%{transform:translate(.4px,-.2px) rotate(4deg)} 18%{transform:translate(-.5px,.3px) rotate(-4.5deg)}
+  21.4%{opacity:1;transform:translate(.4px,.5px) rotate(7deg)}
+  21.5%,100%{opacity:0;transform:translate(.4px,.5px) rotate(7deg)} }
+.bot .pHole{opacity:0}
+.bot.on .pHole{animation:botphole 3.4s steps(1,end) 1 both}
+@keyframes botphole{ 0%,21.4%{opacity:0} 21.5%,100%{opacity:1} }
+.bot.ok .pHole{opacity:1}
+.bot.on .pfB{animation:botfallB 3.4s 1 both}
+.bot.ok .pfB{opacity:1;transform:translate(5px,16px) rotate(150deg)}
+@keyframes botfallB{
+  0%,21.4%{opacity:0;transform:translate(0,0) rotate(0)} 21.5%{opacity:1;transform:translate(0,0) rotate(0)}
+  31%{transform:translate(3px,16px) rotate(74deg)}    35%{transform:translate(3.8px,11px) rotate(106deg)}
+  39%{transform:translate(4.4px,16px) rotate(130deg)} 42%{transform:translate(4.7px,14px) rotate(141deg)}
+  46%,100%{opacity:1;transform:translate(5px,16px) rotate(150deg)} }
+/* ── ② 안테나 : 한참 버티다 62%에 부러진다 ── */
+.bot.on .pOnA{animation:botponA 3.4s ease-in-out 1 both}
+@keyframes botponA{
+  0%,42%{opacity:1;transform:translate(0,0) rotate(0)}
+  46%{transform:translate(.3px,0) rotate(3deg)}      50%{transform:translate(-.3px,.2px) rotate(-4deg)}
+  54%{transform:translate(.4px,-.2px) rotate(6deg)}  58%{transform:translate(-.5px,.3px) rotate(-7deg)}
+  61.4%{opacity:1;transform:translate(.5px,.6px) rotate(11deg)}
+  61.5%,100%{opacity:0;transform:translate(.5px,.6px) rotate(11deg)} }
+.bot.on .pfA{animation:botfallA 3.4s 1 both}
+/* 결과물 종이 위에 겹치면 안 된다 — 왼쪽 바닥으로 비켜 떨어진다 */
+.bot.ok .pfA{opacity:1;transform:translate(-19.5px,76px) rotate(196deg)}
+@keyframes botfallA{
+  0%,61.4%{opacity:0;transform:translate(0,0) rotate(0)} 61.5%{opacity:1;transform:translate(0,0) rotate(0)}
+  76%{transform:translate(-11.7px,76px) rotate(140deg)} 82%{transform:translate(-15px,67px) rotate(168deg)}
+  88%{transform:translate(-18px,76px) rotate(186deg)}   92%{transform:translate(-19px,72px) rotate(192deg)}
+  96%,100%{opacity:1;transform:translate(-19.5px,76px) rotate(196deg)} }
+.bot .pFall{opacity:0}
 .bot .zzz{fill:var(--tx3);font:800 10px/1 system-ui;transition:opacity .3s}
 .bot.on .zzz,.bot.ok .zzz{opacity:0}
 .bot .sheet{opacity:0}
@@ -1327,7 +1389,7 @@ body.vault #tb-gz{display:inline-block}
 const APP_CFG = {
   name: '컨텐츠의 모든것',
   key: 'cme',
-  ver: 'v26',
+  ver: 'v27',
   tagline: '오늘 본 것이 휘발되지 않는다',
   demo: false,   // v7 · 실서버 배선 완료(2026-08-18)
   demoCode: 'EEEEEE', demoPin: '2222',
@@ -1993,22 +2055,38 @@ async function jOrderBot(v){
 }
 /* ══ 덜컹이 — 담기 방 위에 앉아 있다. 이름이 있으면 정이 붙는다 ══ */
 var BOT_NAME = '덜컹이';                    /* 이름은 여기 한 곳만 고치면 된다 */
-var BOT_TITLE = '고장난 분해봇';
+var BOT_TITLE = '고장난 로봇';
 function botSVG(){
   return '<svg viewBox="0 0 96 96" aria-hidden="true"><g transform="translate(48,44)"><g class="rob">'+
     '<text class="zzz" x="24" y="-26">z z</text>'+
-    '<path d="M-2 -26 l-4 -9 l7 -3" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.8" stroke-linecap="round"/>'+
+    /* 안테나 — 밑동은 남고 위쪽이 부러져 떨어진다 */
+    '<path d="M-2 -26 l-2.6 -5.85" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.8" stroke-linecap="round"/>'+
+    '<g transform="translate(-4.6,-31.85)"><g class="pOn pOnA">'+
+      '<path d="M0 0 l-1.4 -3.15 l7 -3" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.8" stroke-linecap="round"/>'+
+    '</g></g>'+
     '<g transform="rotate(-4)">'+
       '<rect x="-22" y="-25" width="44" height="33" rx="11" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/>'+
-      '<circle class="eyeL" cx="-8" cy="-11" r="3.4"/><circle class="eyeR" cx="8" cy="-11" r="2.6"/>'+
+      '<circle class="eyeL" cx="-8" cy="-11" r="3.4"/><circle class="eyeR" cx="8" cy="-11" r="3.4"/>'+
       '<path d="M3 -20 l4 5 l-2 4" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1"/>'+
       '<rect x="-5" y="-2" width="9" height="2.4" rx="1.2" fill="rgba(255,255,255,.22)" transform="rotate(-5)"/>'+
     '</g>'+
     '<rect x="-16" y="10" width="32" height="21" rx="7" fill="rgba(255,255,255,.045)" stroke="rgba(255,255,255,.16)" stroke-width="1.4"/>'+
-    '<circle cx="-11" cy="16" r="1.5" fill="rgba(255,255,255,.22)"/><circle cx="11" cy="26" r="1.3" fill="rgba(255,255,255,.22)"/>'+
+    '<circle cx="-11" cy="16" r="1.5" fill="rgba(255,255,255,.22)"/>'+
+    /* 나사 — 있던 자리에서 빠지고, 그 자리엔 구멍이 남는다 */
+    '<g class="pHole"><circle cx="11" cy="26" r="1.7" fill="rgba(0,0,0,.45)" stroke="rgba(255,255,255,.13)" stroke-width=".8"/></g>'+
+    '<g transform="translate(11,26)"><g class="pOn pOnB">'+
+      '<circle cx="0" cy="0" r="1.5" fill="rgba(255,255,255,.3)"/>'+
+      '<line x1="-.9" y1="0" x2=".9" y2="0" stroke="rgba(0,0,0,.4)" stroke-width=".6"/></g></g>'+
     '<g class="sheet"><rect x="-12" y="33" width="24" height="17" rx="4" fill="rgba(200,241,105,.15)" stroke="var(--prod)" stroke-width="1.2"/>'+
     '<line x1="-7" y1="39" x2="7" y2="39" stroke="var(--prod)" stroke-width="1.3" stroke-linecap="round"/></g>'+
-  '</g></g></svg>';
+  '</g></g>'+
+  /* ⚠️ 여기부터는 .rob «밖» — 떨어진 부품이 몸을 따라 흔들리면 안 된다 */
+  '<g transform="translate(59,70)"><g class="pFall pfB">'+
+    '<circle cx="0" cy="0" r="1.5" fill="rgba(255,255,255,.3)"/>'+
+    '<line x1="-.9" y1="0" x2=".9" y2="0" stroke="rgba(0,0,0,.4)" stroke-width=".6"/></g></g>'+
+  '<g transform="translate(43.4,12.15)"><g class="pFall pfA">'+
+    '<path d="M0 0 l-1.4 -3.15 l7 -3" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.8" stroke-linecap="round"/></g></g>'+
+  '</svg>';
 }
 function jNoScript(){ return vidAll().filter(function(v){ return !String(vmeta(v).script||'').trim(); }); }
 function jNoBot(){ return vidAll().filter(function(v){ var m=vmeta(v);
@@ -2034,8 +2112,9 @@ function jPaint1(){
   else { line='자는 중 — 링크를 담으면 깨어납니다'; mood=''; }
 
   host.innerHTML =
-    '<div class="bot'+(mood?' '+mood:'')+'">'+botSVG()+
-      '<div class="bi"><b>'+BOT_NAME+'<i>'+BOT_TITLE+'</i></b>'+
+    '<div class="bot'+(mood?' '+mood:'')+'">'+
+      '<figure class="bfig">'+botSVG()+'<figcaption><b>'+BOT_NAME+'</b><s>'+BOT_TITLE+'</s></figcaption></figure>'+
+      '<div class="bi">'+
       '<p class="bstate">'+esc(line||'끄응… 덜컹덜컹')+'</p>'+
       '<p class="ph">원고 가져오기·분해는 <b>맥북에서</b> 됩니다</p>'+
       ((ns.length||nb.length) ? '<div class="ba">'+
@@ -2204,9 +2283,12 @@ function jPaint4(){
     var arr=groups[k];
     return '<div class="jshelfhd"><b>'+esc(k)+'</b><s>'+arr.length+'</s></div>'+
       '<div class="jbooks'+(arr.length>1?' multi':'')+'">'+arr.map(function(v){
-        var j=jJ(v);
-        return '<article class="jbook" data-jopen="'+v.id+'">'+jThumb(v)+
-          '<p class="steal">'+(j.msg?'<i>훔칠 것</i>'+esc(j.msg):'<span style="color:var(--tx3)">훔칠 것이 비어 있음</span>')+'</p></article>';
+        var j=jJ(v), out=isOut(v.id);
+        return '<article class="jbook'+(out?' out':'')+'" data-jopen="'+v.id+'">'+jThumb(v)+
+          '<p class="steal">'+(j.msg?'<i>훔칠 것</i>'+esc(j.msg):'<span style="color:var(--tx3)">훔칠 것이 비어 있음</span>')+'</p>'+
+          (VAULT_ON ? '<button class="tophone'+(out?' on':'')+'" data-jphone="'+v.id+'">'+
+            (out?'📱 폰에 있음 — 거두기':'📱 폰으로 보내기')+'</button>' : '')+
+          '</article>';
       }).join('')+(arr.length<3?'<div class="jslot">이 갈래에<br>더 쌓을 자리</div>':'')+'</div>';
   }).join('') +
   (empty.length? '<div class="jrest"><p>아직 빈 갈래</p><div class="row">'+
@@ -3730,6 +3812,12 @@ document.addEventListener('click', async e=>{
   if(h=hit('data-jpage')){ const gv=vidAll().filter(function(x){return x.id===h;})[0];
     if(gv) await jMove(gv,'page'); return; }
   if(h=hit('data-jaxis')){ jAxis=h; jPaint4(); return; }
+  /* 📱 폰으로 보내기 / 거두기 — 회색지대 배관을 그대로 쓴다 */
+  if(h=hit('data-jphone')){
+    t.disabled=true;
+    if(isOut(h)){ const n=await gzReclaim([h]); toast(n?'🗄 금고로 거뒀어요 — 폰에서 사라집니다':'못 거뒀어요'); }
+    else{ const ok=await gzPush([h]); toast(ok?'📱 폰으로 보냈어요 — 30일 뒤 자동으로 거둡니다':'못 보냈어요 — 로그인을 확인해주세요'); }
+    jPaint4(); gzMark(); return; }
   /* 🤖 분해봇 */
   if(h=hit('data-jfetch')){ const fv=vidAll().filter(function(x){return x.id===h;})[0];
     if(fv){ t.disabled=true; t.textContent='가져오는 중…'; await jFetchScript(fv); } return; }

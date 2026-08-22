@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>덜컹이 — 일어서는 6안</title>
+<style>
+:root{
+  --tx1:#EDF0F6; --tx2:#8B93A3; --tx3:#5A6272;
+  --glass:rgba(255,255,255,.035); --line:rgba(255,255,255,.075); --line2:rgba(255,255,255,.15);
+  --prod:#C8F169; --glow:#C8F169; --rust:#C98A5B;
+  --ease:cubic-bezier(.22,.61,.36,1); --sp:cubic-bezier(.32,1.34,.42,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;color:var(--tx1);font:100%/1.5 -apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{background:radial-gradient(120% 70% at 50% 0%, #0d1017, #070910 54%, #050609);min-height:100vh;padding:20px 16px 80px}
+.wrap{max-width:1240px;margin:0 auto}
+h1{font-size:clamp(20px,3vw,24px);line-height:1.1;letter-spacing:-.02em;margin:0 0 6px}
+.lead{color:var(--tx2);font-size:12.5px;line-height:1.65;margin:0 0 6px;max-width:76ch;text-wrap:pretty}
+.lead b{color:var(--prod)}
+.rules{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px}
+.rules s{text-decoration:none;font-size:10.5px;font-weight:700;padding:5px 10px;border-radius:8px;
+  background:rgba(200,241,105,.07);border:1px solid rgba(200,241,105,.22);color:var(--prod)}
+.allbar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.allbar button{font-family:inherit;font-size:12.5px;font-weight:800;padding:10px 16px;border-radius:11px;cursor:pointer;
+  background:var(--prod);border:none;color:#06080c;transition:transform .1s ease-out}
+.allbar button:active{transform:scale(.97)}
+.allbar button.ghost{background:var(--glass);border:1px solid var(--line2);color:var(--tx2)}
+
+.grid{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:720px){ .grid{grid-template-columns:repeat(2,1fr)} }
+@media(min-width:1080px){ .grid{grid-template-columns:repeat(3,1fr)} }
+.card{border:1px solid var(--line);border-radius:20px;overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,255,255,.022),transparent 40%)}
+.chd{padding:13px 15px 11px}
+.chd b{font-size:13px;font-weight:800;display:block;letter-spacing:-.01em}
+.chd s{text-decoration:none;font-size:10.5px;color:var(--tx3);line-height:1.5;display:block;margin-top:3px}
+.stage{position:relative;height:250px}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}
+.foot{display:flex;gap:6px;padding:0 15px 14px;align-items:center}
+.foot button{font-family:inherit;font-size:11px;font-weight:800;padding:7px 13px;border-radius:9px;cursor:pointer;
+  background:var(--glass);border:1px solid var(--line);color:var(--tx2);transition:transform .1s ease-out}
+.foot button:active{transform:scale(.96)}
+.foot button[disabled]{opacity:.4;cursor:default}
+.foot .st{flex:1;font-size:10.5px;font-weight:700;color:var(--tx3);text-align:right;transition:color .3s}
+.card.run .foot .st{color:var(--rust)} .card.done .foot .st{color:var(--prod)}
+
+.shadow{fill:rgba(0,0,0,.5);transition:.7s var(--ease)}
+.card.run .shadow,.card.done .shadow{transform:scaleX(.8);opacity:.72}
+/* 안광 — 눈에서 빛이 나간다 */
+.beam{opacity:0;transition:opacity .35s var(--ease)}
+.card.run .beam,.card.done .beam{opacity:1}
+.card.run .beam{animation:beamf 1.5s steps(1,end) infinite both}
+@keyframes beamf{ 0%,46%{opacity:.9} 48%,56%{opacity:.2} 58%,100%{opacity:.9} }
+.eye{fill:#242a34;transition:fill .35s}
+.card.run .eye,.card.done .eye{fill:var(--glow)}
+.card.run .eye,.card.done .eye{filter:drop-shadow(0 0 5px var(--glow))}
+.zzz{fill:var(--tx3);font:800 10px/1 system-ui;transition:opacity .35s}
+.card.run .zzz,.card.done .zzz{opacity:0}
+.sheet{opacity:0}
+.card.done .sheet{animation:sh .55s var(--sp) 1 both}
+@keyframes sh{ 0%{opacity:0;transform:translateY(-9px) rotate(-8deg)} 60%{transform:translateY(2px) rotate(3deg)} 100%{opacity:1;transform:none} }
+
+/* ══════════════════════════════════════════════════════════
+   다리 = 엉덩이 → 허벅지 → 무릎 → 종아리 → 발.
+   «일어선다»는 무릎이 펴지는 것이다. 몸통만 늘이면 부푸는 것이지 서는 게 아니다.
+   ══════════════════════════════════════════════════════════ */
+.thigh{transform-box:view-box}
+.shin{transform-box:view-box}
+/* 잠든 자세 — 안마다 다르게 «접혀» 있다 */
+#A .hip{transform:translateY(20px)}   #A .thL{transform:rotate(-64deg)} #A .shL{transform:rotate(78deg)}
+#A .thR{transform:rotate(64deg)}      #A .shR{transform:rotate(-78deg)} #A .head{transform:rotate(20deg)}
+#B .hip{transform:translateY(23px)}   #B .thL{transform:rotate(-84deg)} #B .shL{transform:rotate(86deg)}
+#B .thR{transform:rotate(84deg)}      #B .shR{transform:rotate(-86deg)} #B .head{transform:rotate(36deg)}
+#C .man{transform:rotate(-16deg) translateX(-10px)} #C .thL{transform:rotate(-8deg)} #C .head{transform:rotate(12deg)}
+#D .hip{transform:translateY(14px)}   #D .thL{transform:rotate(-52deg)} #D .shL{transform:rotate(62deg)}
+#D .thR{transform:rotate(52deg)}      #D .shR{transform:rotate(-62deg)} #D .top{transform:rotate(72deg)}
+#E .man{transform:translateY(-36px)}  #E .thL{transform:rotate(-14deg)} #E .shL{transform:rotate(22deg)}
+#E .thR{transform:rotate(12deg)}      #E .shR{transform:rotate(-20deg)} #E .head{transform:rotate(16deg)}
+#F .man{transform:rotate(-80deg)}     #F .thL{transform:rotate(-26deg)} #F .shL{transform:rotate(34deg)}
+#F .thR{transform:rotate(24deg)}      #F .shR{transform:rotate(-32deg)}
+/* 다 일어서면 곧게 선다 */
+.card.done .hip,.card.done .man,.card.done .head,.card.done .top,
+.card.done .thL,.card.done .shL,.card.done .thR,.card.done .shR{transform:none!important}
+
+/* ── A · 쭈그렸다 일어선다 ── */
+.card.run #A .hip{animation:hipA 2.8s var(--ease) 1 forwards}
+@keyframes hipA{ 0%{transform:translateY(20px)} 14%{transform:translateY(13px)} 20%{transform:translateY(19px)}
+  40%{transform:translateY(6px)} 48%{transform:translateY(10px)} 66%{transform:translateY(1px)}
+  74%{transform:translateY(3px)} 100%{transform:translateY(0)} }
+.card.run #A .thL{animation:thA 2.8s var(--ease) 1 forwards}
+.card.run #A .thR{animation:thAr 2.8s var(--ease) 1 forwards}
+.card.run #A .shL{animation:shA 2.8s var(--ease) 1 forwards}
+.card.run #A .shR{animation:shAr 2.8s var(--ease) 1 forwards}
+@keyframes thA{ 0%{transform:rotate(-64deg)} 14%{transform:rotate(-48deg)} 20%{transform:rotate(-61deg)}
+  40%{transform:rotate(-26deg)} 48%{transform:rotate(-36deg)} 66%{transform:rotate(-5deg)}
+  74%{transform:rotate(-10deg)} 100%{transform:rotate(0)} }
+@keyframes thAr{ 0%{transform:rotate(64deg)} 14%{transform:rotate(48deg)} 20%{transform:rotate(61deg)}
+  40%{transform:rotate(26deg)} 48%{transform:rotate(36deg)} 66%{transform:rotate(5deg)}
+  74%{transform:rotate(10deg)} 100%{transform:rotate(0)} }
+@keyframes shA{ 0%{transform:rotate(78deg)} 14%{transform:rotate(60deg)} 20%{transform:rotate(75deg)}
+  40%{transform:rotate(32deg)} 48%{transform:rotate(44deg)} 66%{transform:rotate(6deg)}
+  74%{transform:rotate(12deg)} 100%{transform:rotate(0)} }
+@keyframes shAr{ 0%{transform:rotate(-78deg)} 14%{transform:rotate(-60deg)} 20%{transform:rotate(-75deg)}
+  40%{transform:rotate(-32deg)} 48%{transform:rotate(-44deg)} 66%{transform:rotate(-6deg)}
+  74%{transform:rotate(-12deg)} 100%{transform:rotate(0)} }
+.card.run #A .head{animation:hdA 2.8s var(--ease) 1 forwards}
+@keyframes hdA{ 0%,18%{transform:rotate(20deg)} 44%{transform:rotate(9deg)} 52%{transform:rotate(14deg)}
+  70%{transform:rotate(-3deg)} 100%{transform:rotate(0)} }
+
+/* ── B · 주저앉았다 고개부터 든다 ── */
+.card.run #B .head{animation:hdB 2.6s var(--ease) 1 forwards}
+@keyframes hdB{ 0%,16%{transform:rotate(36deg)} 26%{transform:rotate(26deg)} 34%{transform:rotate(33deg)}
+  52%{transform:rotate(-5deg)} 62%{transform:rotate(3deg)} 100%{transform:rotate(0)} }
+.card.run #B .hip{animation:hipB 2.6s var(--ease) 1 forwards}
+@keyframes hipB{ 0%,40%{transform:translateY(23px)} 58%{transform:translateY(8px)}
+  68%{transform:translateY(13px)} 84%{transform:translateY(2px)} 100%{transform:translateY(0)} }
+.card.run #B .thL{animation:thB 2.6s var(--ease) 1 forwards}
+.card.run #B .thR{animation:thBr 2.6s var(--ease) 1 forwards}
+.card.run #B .shL{animation:shB 2.6s var(--ease) 1 forwards}
+.card.run #B .shR{animation:shBr 2.6s var(--ease) 1 forwards}
+@keyframes thB{ 0%,40%{transform:rotate(-84deg)} 58%{transform:rotate(-34deg)} 68%{transform:rotate(-46deg)} 100%{transform:rotate(0)} }
+@keyframes thBr{ 0%,40%{transform:rotate(84deg)} 58%{transform:rotate(34deg)} 68%{transform:rotate(46deg)} 100%{transform:rotate(0)} }
+@keyframes shB{ 0%,40%{transform:rotate(86deg)} 58%{transform:rotate(40deg)} 68%{transform:rotate(52deg)} 100%{transform:rotate(0)} }
+@keyframes shBr{ 0%,40%{transform:rotate(-86deg)} 58%{transform:rotate(-40deg)} 68%{transform:rotate(-52deg)} 100%{transform:rotate(0)} }
+
+/* ── C · 벽에 기댔다 곧추선다 ── */
+.card.run #C .man{animation:manC 2.8s var(--ease) 1 forwards}
+@keyframes manC{ 0%,14%{transform:rotate(-16deg) translateX(-10px)} 24%{transform:rotate(-11deg) translateX(-7px)}
+  32%{transform:rotate(-15deg) translateX(-9px)} 52%{transform:rotate(-4deg) translateX(-3px)}
+  62%{transform:rotate(-8deg) translateX(-5px)} 78%{transform:rotate(1.5deg) translateX(0)}
+  88%{transform:rotate(-1.5deg)} 100%{transform:rotate(0) translateX(0)} }
+.card.run #C .thL{animation:thC 2.8s var(--ease) 1 forwards}
+@keyframes thC{ 0%,30%{transform:rotate(-8deg)} 60%{transform:rotate(-3deg)} 100%{transform:rotate(0)} }
+.card.run #C .head{animation:hdC 2.8s var(--ease) 1 forwards}
+@keyframes hdC{ 0%,30%{transform:rotate(12deg)} 62%{transform:rotate(-3deg)} 100%{transform:rotate(0)} }
+#C .wall{stroke:rgba(255,255,255,.14);stroke-width:2;transition:opacity .5s}
+.card.run #C .wall,.card.done #C .wall{opacity:.35}
+
+/* ── D · 접혔다 펴진다 ── */
+.card.run #D .top{animation:topD 3s var(--ease) 1 forwards}
+@keyframes topD{ 0%,12%{transform:rotate(72deg)} 24%{transform:rotate(56deg)} 32%{transform:rotate(64deg)}
+  50%{transform:rotate(26deg)} 60%{transform:rotate(36deg)} 76%{transform:rotate(4deg)}
+  86%{transform:rotate(-4deg)} 100%{transform:rotate(0)} }
+.card.run #D .hip{animation:hipD 3s var(--ease) 1 forwards}
+@keyframes hipD{ 0%,44%{transform:translateY(14px)} 66%{transform:translateY(5px)} 100%{transform:translateY(0)} }
+.card.run #D .thL{animation:thD 3s var(--ease) 1 forwards}
+.card.run #D .thR{animation:thDr 3s var(--ease) 1 forwards}
+.card.run #D .shL{animation:shD 3s var(--ease) 1 forwards}
+.card.run #D .shR{animation:shDr 3s var(--ease) 1 forwards}
+@keyframes thD{ 0%,44%{transform:rotate(-52deg)} 66%{transform:rotate(-20deg)} 100%{transform:rotate(0)} }
+@keyframes thDr{ 0%,44%{transform:rotate(52deg)} 66%{transform:rotate(20deg)} 100%{transform:rotate(0)} }
+@keyframes shD{ 0%,44%{transform:rotate(62deg)} 66%{transform:rotate(24deg)} 100%{transform:rotate(0)} }
+@keyframes shDr{ 0%,44%{transform:rotate(-62deg)} 66%{transform:rotate(-24deg)} 100%{transform:rotate(0)} }
+
+/* ── E · 매달렸다 착지한다 (다리가 «착지 충격»에 굽었다 펴진다) ── */
+.card.run #E .man{animation:manE 2.7s var(--ease) 1 forwards}
+@keyframes manE{ 0%,16%{transform:translateY(-36px)} 26%{transform:translateY(-30px)}
+  40%{transform:translateY(3px)} 50%{transform:translateY(-5px)} 62%{transform:translateY(1px)} 100%{transform:translateY(0)} }
+.card.run #E .thL{animation:thE 2.7s var(--ease) 1 forwards}
+.card.run #E .thR{animation:thEr 2.7s var(--ease) 1 forwards}
+.card.run #E .shL{animation:shE 2.7s var(--ease) 1 forwards}
+.card.run #E .shR{animation:shEr 2.7s var(--ease) 1 forwards}
+@keyframes thE{ 0%,30%{transform:rotate(-14deg)} 42%{transform:rotate(-40deg)} 56%{transform:rotate(-8deg)} 100%{transform:rotate(0)} }
+@keyframes thEr{ 0%,30%{transform:rotate(12deg)} 42%{transform:rotate(38deg)} 56%{transform:rotate(7deg)} 100%{transform:rotate(0)} }
+@keyframes shE{ 0%,30%{transform:rotate(22deg)} 42%{transform:rotate(48deg)} 56%{transform:rotate(10deg)} 100%{transform:rotate(0)} }
+@keyframes shEr{ 0%,30%{transform:rotate(-20deg)} 42%{transform:rotate(-46deg)} 56%{transform:rotate(-9deg)} 100%{transform:rotate(0)} }
+.card.run #E .hook,.card.done #E .hook{opacity:.22}
+#E .hook{transition:opacity .4s}
+
+/* ── F · 누웠다 일어난다 ── */
+.card.run #F .man{animation:manF 3.2s var(--ease) 1 forwards}
+@keyframes manF{ 0%,14%{transform:rotate(-80deg)} 26%{transform:rotate(-66deg)} 34%{transform:rotate(-74deg)}
+  54%{transform:rotate(-30deg)} 64%{transform:rotate(-40deg)} 80%{transform:rotate(-4deg)}
+  90%{transform:rotate(3deg)} 100%{transform:rotate(0)} }
+.card.run #F .thL{animation:thF 3.2s var(--ease) 1 forwards}
+.card.run #F .thR{animation:thFr 3.2s var(--ease) 1 forwards}
+.card.run #F .shL{animation:shF 3.2s var(--ease) 1 forwards}
+.card.run #F .shR{animation:shFr 3.2s var(--ease) 1 forwards}
+@keyframes thF{ 0%,50%{transform:rotate(-26deg)} 74%{transform:rotate(-10deg)} 100%{transform:rotate(0)} }
+@keyframes thFr{ 0%,50%{transform:rotate(24deg)} 74%{transform:rotate(9deg)} 100%{transform:rotate(0)} }
+@keyframes shF{ 0%,50%{transform:rotate(34deg)} 74%{transform:rotate(13deg)} 100%{transform:rotate(0)} }
+@keyframes shFr{ 0%,50%{transform:rotate(-32deg)} 74%{transform:rotate(-12deg)} 100%{transform:rotate(0)} }
+
+@media(prefers-reduced-motion:reduce){ *{animation-duration:.01ms!important;transition-duration:.01ms!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>덜컹이 — 일어서는 6안</h1>
+  <p class="lead"><b>다리를 제대로 붙였습니다.</b> 엉덩이 → 허벅지 → <b>무릎</b> → 종아리 → 발.
+     «일어선다»는 몸통이 늘어나는 게 아니라 <b>무릎이 펴지는 것</b>이니까요.
+     여섯 다 <b>제각각 접혀 늘어져 있다가 → 덜그럭 무릎을 펴고 → 눈에서 안광</b>이 납니다.</p>
+  <div class="rules">
+    <s>무릎·발목 관절</s><s>펴다가 한 번 «주저앉는다»</s><s>사람의 형상</s>
+    <s>눈에서 빛이 나간다</s><s>주변 장식 0</s><s>평소 애니 0</s>
+  </div>
+
+  <div class="allbar">
+    <button data-all="1">전부 깨우기</button>
+    <button class="ghost" data-reset="1">다시 재우기</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+/* 다리 한 짝 — 허벅지(회전) 안에 종아리(회전) 안에 발. 관절이 겹쳐 있어야 접힌다 */
+function leg(side){
+  var x = side<0 ? -8 : 8, T = side<0 ? 'thL' : 'thR', S = side<0 ? 'shL' : 'shR';
+  return '<g transform="translate('+x+',22)"><g class="thigh '+T+'">'+
+    '<rect x="-4" y="0" width="8" height="19" rx="4" fill="rgba(255,255,255,.14)"/>'+
+    '<circle cx="0" cy="19" r="3.6" fill="rgba(255,255,255,.2)"/>'+      /* 무릎 */
+    '<g transform="translate(0,19)"><g class="shin '+S+'">'+
+      '<rect x="-3.4" y="0" width="6.8" height="18" rx="3.4" fill="rgba(255,255,255,.12)"/>'+
+      '<rect x="-6" y="16" width="12" height="4.6" rx="2.3" fill="rgba(255,255,255,.18)"/>'+  /* 발 */
+    '</g></g></g></g>';
+}
+function figure(op){
+  op = op || {};
+  var head = '<g class="head">'+
+    '<rect x="-17" y="-36" width="34" height="27" rx="9" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/>'+
+    '<g class="beam"><path d="M-7 -24 L-31 -33 L-31 -15 Z" fill="rgba(200,241,105,.15)"/>'+
+    '<path d="M7 -24 L31 -33 L31 -15 Z" fill="rgba(200,241,105,.15)"/></g>'+
+    '<circle class="eye" cx="-7" cy="-24" r="3.2"/><circle class="eye" cx="7" cy="-24" r="2.4"/>'+
+    (op.crack ? '<path d="M4 -33 l3 4 l-2 3" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="1"/>' : '')+
+    '<rect x="-5" y="-14" width="10" height="4" rx="2" fill="rgba(255,255,255,.1)"/></g>';   /* 목 */
+  var torso = '<rect x="-14" y="-10" width="28" height="32" rx="9" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.17)" stroke-width="1.4"/>';
+  var arms = '<rect x="-25" y="-5" width="11" height="4.6" rx="2.3" fill="rgba(255,255,255,.16)" transform="rotate('+(op.armL||-10)+' -20 -3)"/>'+
+             '<rect x="14" y="-5" width="11" height="4.6" rx="2.3" fill="rgba(255,255,255,.16)" transform="rotate('+(op.armR||12)+' 20 -3)"/>';
+  var sheet = '<g class="sheet"><rect x="-13" y="64" width="26" height="19" rx="4.5" fill="rgba(200,241,105,.15)" stroke="var(--prod)" stroke-width="1.3"/>'+
+    '<line x1="-8" y1="71" x2="8" y2="71" stroke="var(--prod)" stroke-width="1.4" stroke-linecap="round"/></g>';
+  return {head:head, torso:torso, arms:arms, sheet:sheet};
+}
+/* 몸 한 벌 = 다리(고정 발) + 엉덩이 아래로 상체가 얹힌다 */
+function body(op, wrapTop){
+  var f = figure(op);
+  var top = f.torso + f.arms + f.head;
+  return leg(-1) + leg(1) +
+    '<g class="hip">'+ (wrapTop ? '<g class="top">'+top+'</g>' : top) +'</g>'+ f.sheet;
+}
+function stage(id, inner){
+  return '<svg viewBox="0 0 240 250" id="'+id+'">'+
+    '<ellipse class="shadow" cx="120" cy="212" rx="38" ry="6.5"/>'+ inner +'</svg>';
+}
+
+var ANS=[
+  {id:'A', nm:'A · 쭈그렸다 일어선다', sub:'무릎을 깊게 접고 웅크려 있다가 «펴진다». 중간에 한 번 도로 주저앉는다',
+   svg:function(){ return stage('A','<g transform="translate(120,146)"><g class="man">'+
+     '<text class="zzz" x="26" y="-40">z z</text>'+ body({crack:1}) +'</g></g>'); }},
+  {id:'B', nm:'B · 주저앉았다 고개부터', sub:'무릎이 90도로 꺾여 퍼져 있다. 고개가 «탁» 들리고 나서야 다리가 펴진다',
+   svg:function(){ return stage('B','<g transform="translate(120,146)"><g class="man">'+
+     '<text class="zzz" x="28" y="-36">z z</text>'+ body({}) +'</g></g>'); }},
+  {id:'C', nm:'C · 벽에 기댔다 곧추선다', sub:'다리는 선 채로 몸이 옆으로 기울어 벽에 얹혀 있다. «버티고 있었구나» 싶은',
+   svg:function(){ return stage('C','<line class="wall" x1="62" y1="74" x2="62" y2="212"/>'+
+     '<g transform="translate(128,146)"><g class="man">'+
+     '<text class="zzz" x="26" y="-38">z z</text>'+ body({crack:1, armL:-30}) +'</g></g>'); }},
+  {id:'D', nm:'D · 접혔다 펴진다', sub:'허리가 반으로 꺾이고 무릎도 굽었다. 관절이 «위에서부터» 하나씩 펴진다',
+   svg:function(){ return stage('D','<g transform="translate(120,146)"><g class="man">'+
+     '<text class="zzz" x="28" y="-34">z z</text>'+ body({}, true) +'</g></g>'); }},
+  {id:'E', nm:'E · 매달렸다 착지한다', sub:'고리에 걸려 다리가 축 늘어져 있다가 «툭». 착지 충격에 무릎이 굽었다 펴진다',
+   svg:function(){ return stage('E','<g class="hook"><line x1="120" y1="20" x2="120" y2="72" stroke="rgba(255,255,255,.22)" stroke-width="1.6"/>'+
+     '<circle cx="120" cy="18" r="4" fill="none" stroke="rgba(255,255,255,.26)" stroke-width="1.6"/></g>'+
+     '<g transform="translate(120,146)"><g class="man">'+
+     '<text class="zzz" x="28" y="-40">z z</text>'+ body({armL:-42, armR:40}) +'</g></g>'); }},
+  {id:'F', nm:'F · 누웠다 일어난다', sub:'바닥에 완전히 누워 있다. 발을 축으로 몸을 세운다 — 제일 «죽었다 살아나는»',
+   svg:function(){ return stage('F','<g transform="translate(120,146)"><g class="man">'+
+     '<text class="zzz" x="28" y="-40">z z</text>'+ body({crack:1}) +'</g></g>'); }}
+];
+
+document.getElementById('grid').innerHTML = ANS.map(function(a){
+  return '<section class="card" data-an="'+a.id+'">'+
+    '<div class="chd"><b>'+a.nm+'</b><s>'+a.sub+'</s></div>'+
+    '<div class="stage">'+a.svg()+'</div>'+
+    '<div class="foot"><button data-run="'+a.id+'">깨우기</button>'+
+    '<span class="st">힘 빠져 있음</span></div></section>';
+}).join('');
+
+var T={};
+function reset(id){
+  var c=document.querySelector('[data-an="'+id+'"]'); if(!c) return;
+  clearTimeout(T[id]); clearTimeout(T[id+'b']);
+  c.classList.remove('run','done');
+  c.querySelector('.st').textContent='힘 빠져 있음';
+  c.querySelector('[data-run]').disabled=false;
+}
+function run(id){
+  var c=document.querySelector('[data-an="'+id+'"]'); if(!c) return;
+  reset(id); void c.offsetWidth;
+  c.querySelector('[data-run]').disabled=true;
+  c.classList.add('run');
+  c.querySelector('.st').textContent='끄응… 무릎을 펴는 중';
+  T[id]=setTimeout(function(){ c.querySelector('.st').textContent='덜그럭 — 읽는 중'; }, 1900);
+  T[id+'b']=setTimeout(function(){
+    c.classList.remove('run'); c.classList.add('done');
+    c.querySelector('.st').textContent='…해냈습니다';
+    c.querySelector('[data-run]').disabled=false;
+  }, 3600);
+}
+document.addEventListener('click', function(e){
+  var r=e.target.closest('[data-run]');
+  if(r){ run(r.dataset.run); return; }
+  if(e.target.closest('[data-all]')){ ANS.forEach(function(x){ run(x.id); }); return; }
+  if(e.target.closest('[data-reset]')){ ANS.forEach(function(x){ reset(x.id); }); return; }
+});
+</script>
+</body>
+</html>

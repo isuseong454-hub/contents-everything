@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>덜컹이 — 진짜 쓰는 것처럼 4안</title>
+<style>
+:root{
+  --tx1:#EDF0F6; --tx2:#8B93A3; --tx3:#5A6272;
+  --glass:rgba(255,255,255,.035); --line:rgba(255,255,255,.075); --line2:rgba(255,255,255,.15);
+  --prod:#C8F169; --glow:#C8F169; --rust:#C98A5B; --yt:#E0574B; --ig:#D62976;
+  --ease:cubic-bezier(.22,.61,.36,1); --sp:cubic-bezier(.32,1.34,.42,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;color:var(--tx1);font:100%/1.5 -apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{background:radial-gradient(120% 70% at 50% 0%, #0d1017, #070910 54%, #050609);min-height:100vh;padding:20px 16px 80px}
+.wrap{max-width:1180px;margin:0 auto}
+h1{font-size:clamp(20px,3vw,24px);line-height:1.1;letter-spacing:-.02em;margin:0 0 6px}
+.lead{color:var(--tx2);font-size:12.5px;line-height:1.65;margin:0 0 14px;max-width:78ch;text-wrap:pretty}
+.lead b{color:var(--prod)}
+
+/* 진짜 앱처럼 — 링크 칸이 위에 있고, 넣으면 아래 넷이 «동시에» 반응한다 */
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.sring{display:flex;flex:1 1 340px;min-width:260px;border-radius:13px;padding:1.5px;
+  background:linear-gradient(120deg,#6FE0C8,#8EC7F6 40%,#B9A9F6 68%,#C8F169);filter:saturate(.85) brightness(.86)}
+.sring:focus-within{filter:saturate(1.05) brightness(1.06)}
+.sring input{flex:1;min-width:0;font-family:inherit;font-size:13px;color:var(--tx1);
+  background:#080a0f;border:none;border-radius:12px;padding:12px 14px}
+.sring input:focus{outline:none}
+.sring button{font-family:inherit;font-size:12.5px;font-weight:800;padding:0 16px;border:none;cursor:pointer;
+  background:#080a0f;color:var(--prod);border-radius:12px;margin-left:1px}
+.ex{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.ex button{font-family:inherit;font-size:11px;font-weight:800;padding:7px 12px;border-radius:9px;cursor:pointer;
+  background:var(--glass);border:1px solid var(--line);color:var(--tx2)}
+.ex button.yt{color:#FF7A6E;border-color:rgba(224,87,75,.34)}
+.ex button.ig{color:#F06FB8;border-color:rgba(214,41,118,.34)}
+.ex button.ghost{color:var(--tx3)}
+.ex s{text-decoration:none;font-size:10.5px;color:var(--tx3);align-self:center}
+
+.grid{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:760px){ .grid{grid-template-columns:repeat(2,1fr)} }
+.card{border:1px solid var(--line);border-radius:20px;overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,255,255,.022),transparent 40%)}
+.chd{padding:13px 15px 10px}
+.chd b{font-size:13px;font-weight:800;display:block;letter-spacing:-.01em}
+.chd s{text-decoration:none;font-size:10.5px;color:var(--tx3);line-height:1.5;display:block;margin-top:3px}
+.stage{position:relative;height:270px}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}
+.foot{display:flex;gap:8px;padding:0 15px 14px;align-items:center}
+.foot .st{flex:1;font-size:10.5px;font-weight:700;color:var(--tx3);transition:color .3s}
+.card.run .foot .st{color:var(--rust)} .card.done .foot .st{color:var(--prod)}
+.foot .res{font-size:10px;font-weight:800;color:var(--prod);opacity:0;transition:opacity .4s}
+.card.done .foot .res{opacity:1}
+
+.shadow{fill:rgba(0,0,0,.5);transition:.7s var(--ease)}
+.card.run .shadow,.card.done .shadow{transform:scaleX(.8);opacity:.72}
+/* 안광 */
+.beam{opacity:0;transition:opacity .35s var(--ease)}
+.card.run .beam,.card.done .beam{opacity:1}
+.card.run .beam{animation:beamf 1.5s steps(1,end) infinite both}
+@keyframes beamf{ 0%,46%{opacity:.9} 48%,56%{opacity:.2} 58%,100%{opacity:.9} }
+.eye{fill:#242a34;transition:fill .35s}
+.card.run .eye,.card.done .eye{fill:var(--glow);filter:drop-shadow(0 0 5px var(--glow))}
+.card.done .eye{fill:var(--glow);filter:drop-shadow(0 0 4px var(--glow))}
+.zzz{fill:var(--tx3);font:800 10px/1 system-ui;transition:opacity .35s}
+.card.run .zzz,.card.done .zzz{opacity:0}
+/* 결과물 — 로봇 손에서 나온다 */
+.sheet{opacity:0}
+.card.done .sheet{animation:sh .55s var(--sp) 1 both}
+@keyframes sh{ 0%{opacity:0;transform:translateY(-9px) rotate(-8deg)} 60%{transform:translateY(2px) rotate(3deg)} 100%{opacity:1;transform:none} }
+/* 일감 조각 — 유튜브/인스타 색이 그대로 실려 온다 */
+.job{opacity:0}
+.jobbg{fill:rgba(255,255,255,.1)}
+svg.yt .jobbg{fill:rgba(224,87,75,.75)} svg.ig .jobbg{fill:rgba(214,41,118,.75)}
+svg.yt .joblbl{fill:#fff} svg.ig .joblbl{fill:#fff}
+.joblbl{font:800 8px/1 system-ui;fill:var(--tx2)}
+
+/* ── 다리 관절 : 잠든 자세 ── */
+#P .hip{transform:translateY(21px)} #P .thL{transform:rotate(-66deg)} #P .shL{transform:rotate(80deg)}
+#P .thR{transform:rotate(66deg)}    #P .shR{transform:rotate(-80deg)} #P .head{transform:rotate(22deg)}
+#Q .hip{transform:translateY(19px)} #Q .thL{transform:rotate(-58deg)} #Q .shL{transform:rotate(70deg)}
+#Q .thR{transform:rotate(58deg)}    #Q .shR{transform:rotate(-70deg)} #Q .head{transform:rotate(26deg)}
+#R .hip{transform:translateY(23px)} #R .thL{transform:rotate(-78deg)} #R .shL{transform:rotate(84deg)}
+#R .thR{transform:rotate(78deg)}    #R .shR{transform:rotate(-84deg)} #R .head{transform:rotate(30deg)}
+#S .hip{transform:translateY(20px)} #S .thL{transform:rotate(-62deg)} #S .shL{transform:rotate(74deg)}
+#S .thR{transform:rotate(62deg)}    #S .shR{transform:rotate(-74deg)} #S .head{transform:rotate(24deg)}
+.card.done .hip,.card.done .head,.card.done .thL,.card.done .shL,
+.card.done .thR,.card.done .shR,.card.done .arm{transform:none!important}
+
+/* 공통 «일어서기» — 중간에 한 번 주저앉는다 */
+@keyframes hipUp{ 0%{transform:translateY(var(--h))} 16%{transform:translateY(calc(var(--h)*.62))}
+  23%{transform:translateY(calc(var(--h)*.95))} 44%{transform:translateY(calc(var(--h)*.3))}
+  53%{transform:translateY(calc(var(--h)*.5))} 72%{transform:translateY(1px)}
+  80%{transform:translateY(3px)} 100%{transform:translateY(0)} }
+@keyframes thUp{ 0%{transform:rotate(var(--a))} 16%{transform:rotate(calc(var(--a)*.62))}
+  23%{transform:rotate(calc(var(--a)*.95))} 44%{transform:rotate(calc(var(--a)*.3))}
+  53%{transform:rotate(calc(var(--a)*.5))} 72%{transform:rotate(0deg)} 100%{transform:rotate(0)} }
+@keyframes hdUp{ 0%,20%{transform:rotate(var(--a))} 46%{transform:rotate(calc(var(--a)*.42))}
+  54%{transform:rotate(calc(var(--a)*.7))} 74%{transform:rotate(-3deg)} 100%{transform:rotate(0)} }
+
+/* ── P · 발치에 떨어진 걸 줍는다 ── */
+#P .job{--fall:0}
+.card.run #P .job{animation:jobFallP 1.1s var(--ease) 1 both}
+@keyframes jobFallP{ 0%{opacity:0;transform:translateY(-70px) rotate(-14deg)}
+  60%{opacity:1;transform:translateY(6px) rotate(6deg)} 80%{transform:translateY(-3px) rotate(-2deg)}
+  100%{opacity:1;transform:translateY(0) rotate(0)} }
+.card.done #P .job{opacity:0;transition:opacity .3s}
+.card.run #P .hip{--h:21px;animation:hipUp 3s var(--ease) .9s 1 forwards}
+.card.run #P .thL{--a:-66deg;animation:thUp 3s var(--ease) .9s 1 forwards}
+.card.run #P .thR{--a:66deg;animation:thUp 3s var(--ease) .9s 1 forwards}
+.card.run #P .shL{--a:80deg;animation:thUp 3s var(--ease) .9s 1 forwards}
+.card.run #P .shR{--a:-80deg;animation:thUp 3s var(--ease) .9s 1 forwards}
+.card.run #P .head{--a:22deg;animation:hdUp 3s var(--ease) .9s 1 forwards}
+.card.run #P .armR{animation:pickP 3s var(--ease) .9s 1 forwards;transform-origin:20px -3px}
+@keyframes pickP{ 0%,30%{transform:rotate(52deg)} 48%{transform:rotate(30deg)} 70%{transform:rotate(6deg)} 100%{transform:rotate(0)} }
+
+/* ── Q · 전선이 꽂히면 전원이 들어온다 ── */
+.card.run #Q .cord{animation:cordQ .9s var(--ease) 1 both}
+#Q .cord{stroke-dasharray:150;stroke-dashoffset:150;opacity:0}
+@keyframes cordQ{ 0%{opacity:0;stroke-dashoffset:150} 20%{opacity:1} 100%{opacity:1;stroke-dashoffset:0} }
+.card.done #Q .cord{opacity:.5;stroke-dashoffset:0}
+#Q .plug{opacity:0}
+.card.run #Q .plug,.card.done #Q .plug{opacity:1;animation:plugQ .5s var(--sp) .7s 1 both}
+@keyframes plugQ{ from{transform:translateX(14px);opacity:0} to{transform:translateX(0);opacity:1} }
+.card.run #Q .hip{--h:19px;animation:hipUp 2.7s var(--ease) 1s 1 forwards}
+.card.run #Q .thL{--a:-58deg;animation:thUp 2.7s var(--ease) 1s 1 forwards}
+.card.run #Q .thR{--a:58deg;animation:thUp 2.7s var(--ease) 1s 1 forwards}
+.card.run #Q .shL{--a:70deg;animation:thUp 2.7s var(--ease) 1s 1 forwards}
+.card.run #Q .shR{--a:-70deg;animation:thUp 2.7s var(--ease) 1s 1 forwards}
+.card.run #Q .head{--a:26deg;animation:hdUp 2.7s var(--ease) 1s 1 forwards}
+
+/* ── R · 컨베이어가 발치까지 실어 온다 ── */
+#R .belt{stroke:rgba(255,255,255,.14);stroke-width:2.4;stroke-dasharray:6 7}
+.card.run #R .belt{stroke:rgba(201,138,91,.5);animation:beltR 1s linear 3 both}
+@keyframes beltR{ to{stroke-dashoffset:-26} }
+.card.run #R .job{animation:jobRideR 2.1s var(--ease) 1 both}
+@keyframes jobRideR{ 0%{opacity:0;transform:translateX(-84px)} 14%{opacity:1}
+  76%{opacity:1;transform:translateX(0)} 100%{opacity:1;transform:translateX(0)} }
+.card.done #R .job{opacity:0;transition:opacity .3s}
+.card.run #R .hip{--h:23px;animation:hipUp 2.6s var(--ease) 1.6s 1 forwards}
+.card.run #R .thL{--a:-78deg;animation:thUp 2.6s var(--ease) 1.6s 1 forwards}
+.card.run #R .thR{--a:78deg;animation:thUp 2.6s var(--ease) 1.6s 1 forwards}
+.card.run #R .shL{--a:84deg;animation:thUp 2.6s var(--ease) 1.6s 1 forwards}
+.card.run #R .shR{--a:-84deg;animation:thUp 2.6s var(--ease) 1.6s 1 forwards}
+.card.run #R .head{--a:30deg;animation:hdUp 2.6s var(--ease) 1.6s 1 forwards}
+
+/* ── S · 위에서 툭 쳐서 깨운다 ── */
+#S .tap{opacity:0}
+.card.run #S .tap{animation:tapS 1.2s var(--ease) 1 both}
+@keyframes tapS{ 0%{opacity:0;transform:translateY(-40px)} 45%{opacity:1;transform:translateY(0)}
+  62%{transform:translateY(-8px)} 78%{transform:translateY(-2px)} 100%{opacity:0;transform:translateY(-30px)} }
+.card.run #S .man{animation:jumpS .5s var(--sp) .5s 1 both}
+@keyframes jumpS{ 0%{transform:translateY(0)} 40%{transform:translateY(-5px)} 100%{transform:translateY(0)} }
+.card.run #S .hip{--h:20px;animation:hipUp 2.6s var(--ease) .7s 1 forwards}
+.card.run #S .thL{--a:-62deg;animation:thUp 2.6s var(--ease) .7s 1 forwards}
+.card.run #S .thR{--a:62deg;animation:thUp 2.6s var(--ease) .7s 1 forwards}
+.card.run #S .shL{--a:74deg;animation:thUp 2.6s var(--ease) .7s 1 forwards}
+.card.run #S .shR{--a:-74deg;animation:thUp 2.6s var(--ease) .7s 1 forwards}
+.card.run #S .head{--a:24deg;animation:hdUp 2.6s var(--ease) .7s 1 forwards}
+
+@media(prefers-reduced-motion:reduce){ *{animation-duration:.01ms!important;transition-duration:.01ms!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>덜컹이 — 진짜 쓰는 것처럼 4안</h1>
+  <p class="lead">위 칸에 링크를 넣으면 <b>넷이 동시에</b> 반응합니다. 축은 <b>「일감이 어떻게 덜컹이에게 닿나」</b> —
+     떨어뜨리거나, 꽂거나, 실어 오거나, 두드려 깨우거나. 다리 관절과 안광은 그대로입니다.</p>
+
+  <div class="bar">
+    <label class="sring"><input id="link" placeholder="유튜브·인스타 링크를 붙여넣으세요">
+      <button data-go="1">담기</button></label>
+  </div>
+  <div class="ex">
+    <button class="yt" data-ex="yt">▶ 유튜브 예시로 넣기</button>
+    <button class="ig" data-ex="ig">◉ 인스타 예시로 넣기</button>
+    <button class="ghost" data-reset="1">다시 재우기</button>
+    <s>인스타는 «소리부터»라 더 오래 걸립니다</s>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+function leg(side){
+  var x = side<0 ? -10 : 10, T = side<0 ? 'thL' : 'thR', S = side<0 ? 'shL' : 'shR';
+  return '<g transform="translate('+x+',22)"><g class="'+T+'">'+
+    '<rect x="-4" y="0" width="8" height="19" rx="4" fill="rgba(255,255,255,.14)"/>'+
+    '<circle cx="0" cy="19" r="3.6" fill="rgba(255,255,255,.2)"/>'+
+    '<g transform="translate(0,19)"><g class="'+S+'">'+
+      '<rect x="-3.4" y="0" width="6.8" height="18" rx="3.4" fill="rgba(255,255,255,.12)"/>'+
+      '<rect x="-6" y="16" width="12" height="4.6" rx="2.3" fill="rgba(255,255,255,.18)"/>'+
+    '</g></g></g></g>';
+}
+function bodyG(op){
+  op=op||{};
+  var head='<g class="head">'+
+    '<rect x="-17" y="-36" width="34" height="27" rx="9" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/>'+
+    '<g class="beam"><path d="M-7 -24 L-31 -33 L-31 -15 Z" fill="rgba(200,241,105,.15)"/>'+
+    '<path d="M7 -24 L31 -33 L31 -15 Z" fill="rgba(200,241,105,.15)"/></g>'+
+    '<circle class="eye" cx="-7" cy="-24" r="3.2"/><circle class="eye" cx="7" cy="-24" r="2.4"/>'+
+    '<path d="M4 -33 l3 4 l-2 3" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="1"/>'+
+    '<rect x="-5" y="-14" width="10" height="4" rx="2" fill="rgba(255,255,255,.1)"/></g>';
+  var torso='<rect x="-14" y="-10" width="28" height="32" rx="9" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.17)" stroke-width="1.4"/>';
+  var arms='<rect class="arm armL" x="-25" y="-5" width="11" height="4.6" rx="2.3" fill="rgba(255,255,255,.16)" transform="rotate(-10 -20 -3)"/>'+
+           '<g class="arm armR" style="transform-origin:20px -3px"><rect x="14" y="-5" width="11" height="4.6" rx="2.3" fill="rgba(255,255,255,.16)"/></g>';
+  var sheet='<g class="sheet"><rect x="18" y="2" width="24" height="18" rx="4" fill="rgba(200,241,105,.16)" stroke="var(--prod)" stroke-width="1.3"/>'+
+    '<line x1="22" y1="9" x2="38" y2="9" stroke="var(--prod)" stroke-width="1.3" stroke-linecap="round"/>'+
+    '<line x1="22" y1="14" x2="33" y2="14" stroke="var(--prod)" stroke-width="1.3" stroke-linecap="round"/></g>';
+  /* 몸통을 먼저, 다리를 «그 앞에» — 웅크렸을 때 무릎이 보여야 한다 */
+  return '<g class="hip">'+torso+arms+head+sheet+'</g>'+leg(-1)+leg(1);
+}
+/* 일감 조각 — 링크가 «물건»이 되어 온다 */
+function jobPiece(){
+  return '<g class="job"><rect class="jobbg" x="-17" y="-11" width="34" height="22" rx="5"/>'+
+    '<text class="joblbl" y="3" text-anchor="middle">링크</text></g>';
+}
+function stage(id, inner){
+  return '<svg viewBox="0 0 260 270" id="'+id+'">'+
+    '<ellipse class="shadow" cx="130" cy="232" rx="38" ry="6.5"/>'+ inner +'</svg>';
+}
+
+var ANS=[
+  {id:'P', nm:'P · 발치에 떨어지면 줍는다',
+   sub:'링크가 종이처럼 툭 떨어진다. 웅크린 채 팔을 뻗어 줍고, 그제야 무릎을 편다',
+   svg:function(){ return stage('P','<g transform="translate(130,166)"><g class="man">'+
+     '<text class="zzz" x="26" y="-40">z z</text>'+ bodyG() +'</g>'+
+     '<g transform="translate(34,44)">'+jobPiece()+'</g></g>'); }},
+  {id:'Q', nm:'Q · 전선을 꽂으면 켜진다',
+   sub:'링크가 전선이 되어 등에 꽂힌다. 전원이 들어오며 관절이 하나씩 살아난다',
+   svg:function(){ return stage('Q','<path class="cord" d="M244 44 Q244 120 190 150 T156 168" fill="none" stroke="var(--rust)" stroke-width="2.4" stroke-linecap="round"/>'+
+     '<g transform="translate(130,166)"><g class="man">'+
+     '<text class="zzz" x="26" y="-40">z z</text>'+ bodyG() +'</g>'+
+     '<g class="plug" transform="translate(20,2)"><rect x="-6" y="-5" width="12" height="10" rx="2.5" fill="rgba(201,138,91,.7)"/></g>'+
+     '</g>'); }},
+  {id:'R', nm:'R · 컨베이어가 실어 온다',
+   sub:'발치 벨트를 타고 일감이 굴러온다. 앞에 닿으면 그때 일어선다 — 가장 «공정»다운',
+   svg:function(){ return stage('R','<line class="belt" x1="18" y1="212" x2="242" y2="212"/>'+
+     '<g transform="translate(130,166)"><g class="man">'+
+     '<text class="zzz" x="26" y="-40">z z</text>'+ bodyG() +'</g>'+
+     '<g transform="translate(-38,44)">'+jobPiece()+'</g></g>'); }},
+  {id:'S', nm:'S · 어깨를 툭 치면 깬다',
+   sub:'알림이 위에서 내려와 어깨를 톡. 흠칫 놀라 일어선다 — 제일 사람 같은',
+   svg:function(){ return stage('S','<g transform="translate(130,166)">'+
+     '<g class="tap" transform="translate(2,-52)">'+jobPiece()+'</g>'+
+     '<g class="man"><text class="zzz" x="26" y="-40">z z</text>'+ bodyG() +'</g>'+
+     '</g>'); }}
+];
+
+var DUR = {yt:3400, ig:5200};
+document.getElementById('grid').innerHTML = ANS.map(function(a){
+  return '<section class="card" data-an="'+a.id+'">'+
+    '<div class="chd"><b>'+a.nm+'</b><s>'+a.sub+'</s></div>'+
+    '<div class="stage">'+a.svg()+'</div>'+
+    '<div class="foot"><span class="st">힘 빠져 있음 — 일감이 오면 깨어납니다</span>'+
+    '<span class="res">구성 6칸</span></div></section>';
+}).join('');
+
+var T={};
+function reset(id){
+  var c=document.querySelector('[data-an="'+id+'"]'); if(!c) return;
+  clearTimeout(T[id]); clearTimeout(T[id+'b']);
+  c.classList.remove('run','done');
+  c.querySelector('.stage svg').classList.remove('yt','ig');
+  c.querySelector('.st').textContent='힘 빠져 있음 — 일감이 오면 깨어납니다';
+}
+function run(id, kind){
+  var c=document.querySelector('[data-an="'+id+'"]'); if(!c) return;
+  reset(id); void c.offsetWidth;
+  var ig = kind==='ig', dur = DUR[kind];
+  c.querySelector('.stage svg').classList.add(kind);
+  c.classList.add('run');
+  c.querySelector('.st').textContent = (ig?'◉':'▶')+' 일감이 왔다 — 끄응… 일어서는 중';
+  T[id]=setTimeout(function(){
+    c.querySelector('.st').textContent = ig ? '덜그럭 — 소리부터 글자로…' : '덜그럭 — 자막 읽는 중…';
+  }, Math.round(dur*.45));
+  T[id+'b']=setTimeout(function(){
+    c.classList.remove('run'); c.classList.add('done');
+    c.querySelector('.st').textContent='…해냈습니다';
+    c.querySelector('.res').textContent = ig ? '받아쓰기 412자 · 구성 5칸' : '원고 217자 · 구성 6칸';
+  }, dur);
+}
+function runAll(kind){ ANS.forEach(function(a){ run(a.id, kind); }); }
+document.addEventListener('click', function(e){
+  var ex=e.target.closest('[data-ex]');
+  if(ex){ var k=ex.dataset.ex;
+    document.getElementById('link').value = k==='yt'
+      ? 'https://www.youtube.com/watch?v=jNQXAC9IVRw' : 'https://www.instagram.com/reel/ABC123/';
+    runAll(k); return; }
+  if(e.target.closest('[data-go]')){
+    var v=document.getElementById('link').value.trim();
+    if(!v){ document.getElementById('link').focus(); return; }
+    runAll(/insta/i.test(v) ? 'ig' : 'yt'); return; }
+  if(e.target.closest('[data-reset]')){ ANS.forEach(function(a){ reset(a.id); }); return; }
+});
+document.getElementById('link').addEventListener('keydown', function(e){
+  if(e.key==='Enter'){ var v=this.value.trim(); if(v) runAll(/insta/i.test(v)?'ig':'yt'); }
+});
+</script>
+</body>
+</html>

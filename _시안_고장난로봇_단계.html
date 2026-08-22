@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>고장난 로봇 — 얼마나 더</title>
+<style>
+:root{
+  --tx1:#EDF0F6; --tx2:#8B93A3; --tx3:#5A6272;
+  --glass:rgba(255,255,255,.035); --line:rgba(255,255,255,.075); --line2:rgba(255,255,255,.15);
+  --prod:#C8F169; --rust:#C98A5B; --off:#2a3040;
+  --ease:cubic-bezier(.22,.61,.36,1); --sp:cubic-bezier(.32,1.4,.36,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;color:var(--tx1);font:100%/1.5 -apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{background:radial-gradient(120% 70% at 50% 0%, #0d1017, #070910 54%, #050609);min-height:100vh;padding:20px 16px 80px}
+.wrap{max-width:1060px;margin:0 auto}
+h1{font-size:clamp(20px,3vw,24px);line-height:1.1;letter-spacing:-.02em;margin:0 0 6px}
+.lead{color:var(--tx2);font-size:12.5px;line-height:1.65;margin:0 0 16px;max-width:76ch;text-wrap:pretty}
+.lead b{color:var(--prod)}
+.bar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:16px;position:sticky;top:0;z-index:9;
+  background:linear-gradient(180deg,#070910 62%,transparent);padding:6px 0 10px}
+.bar button{font-family:inherit;font-size:12.5px;font-weight:800;padding:10px 16px;border-radius:11px;cursor:pointer;
+  background:var(--prod);border:none;color:#06080c;transition:transform .1s ease-out}
+.bar button:active{transform:scale(.97)}
+.bar button.ghost{background:var(--glass);border:1px solid var(--line2);color:var(--tx2)}
+.bar s{text-decoration:none;font-size:11px;color:var(--tx3)}
+
+.grid{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:700px){ .grid{grid-template-columns:repeat(2,1fr)} }
+@media(min-width:1000px){ .grid{grid-template-columns:repeat(3,1fr)} }
+.card{border:1px solid var(--line);border-radius:20px;overflow:hidden;position:relative;
+  background:linear-gradient(180deg,rgba(255,255,255,.022),transparent 40%)}
+.card.now{border-color:rgba(200,241,105,.3)}
+.tag{position:absolute;right:12px;top:12px;z-index:3;font-size:9px;font-weight:800;padding:3px 8px;border-radius:7px;
+  background:rgba(255,255,255,.07);color:var(--tx3);border:1px solid var(--line)}
+.card.now .tag{background:rgba(200,241,105,.14);color:var(--prod);border-color:rgba(200,241,105,.34)}
+.chd{padding:13px 15px 8px}
+.chd b{font-size:13.5px;font-weight:800;display:block;letter-spacing:-.01em}
+.chd s{text-decoration:none;font-size:10.5px;color:var(--tx3);line-height:1.5;display:block;margin-top:3px}
+.stage{position:relative;height:246px}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}
+.foot{display:flex;gap:8px;padding:0 15px 11px;align-items:center}
+.foot button{font-family:inherit;font-size:11px;font-weight:800;padding:7px 13px;border-radius:9px;cursor:pointer;
+  background:var(--glass);border:1px solid var(--line);color:var(--tx2)}
+.foot .st{flex:1;font-size:10.5px;font-weight:700;color:var(--tx3);text-align:right;transition:color .3s}
+.card.run .foot .st{color:var(--rust)} .card.done .foot .st{color:var(--prod)}
+.spec{padding:0 15px 14px}
+.spec div{display:flex;gap:8px;font-size:10.5px;line-height:1.7;color:var(--tx3);border-top:1px solid var(--line);padding-top:6px}
+.spec div:first-child{border-top:0}
+.spec b{flex:none;width:56px;color:var(--tx2);font-weight:800}
+.real{display:flex;gap:11px;align-items:center;padding:0 15px 15px}
+.real .box{width:74px;height:74px;flex:none;border-radius:12px;background:rgba(255,255,255,.03);
+  border:1px dashed var(--line2);display:grid;place-items:center;overflow:hidden}
+.real .box svg{width:74px;height:74px}
+.real p{margin:0;font-size:10.5px;color:var(--tx3);line-height:1.55}
+.real p b{color:var(--tx2)}
+.nm{text-align:center;margin:-6px 0 0;font-size:10.5px;color:var(--tx3);line-height:1.3}
+.nm b{display:block;font-size:11.5px;color:var(--tx1);font-weight:800}
+.card.run .nm span{color:var(--rust)} .card.done .nm span{color:var(--prod)}
+
+.shadow{fill:rgba(0,0,0,.5);transition:.6s var(--ease)}
+.card.run .shadow,.card.done .shadow{transform:scaleX(.88);opacity:.72}
+.zzz{fill:var(--tx3);font:800 11px/1 system-ui;transition:opacity .3s}
+.card.run .zzz,.card.done .zzz{opacity:0}
+.sheet{opacity:0}
+.card.done .sheet{animation:sh .55s var(--sp) 1 both}
+@keyframes sh{ from{opacity:0;transform:translateY(-8px) scaleY(.4)} to{opacity:1;transform:none} }
+/* 5단계만 결과물이 삐뚤게 나온다 */
+.card.done #L5 .sheet{animation:sh5 .55s var(--sp) 1 both}
+@keyframes sh5{ from{opacity:0;transform:translateY(-8px) rotate(-16deg) scaleY(.4)}
+  to{opacity:1;transform:rotate(-11deg)} }
+
+/* ══ 몸 흔들림 — 단계가 오를수록 커진다 ══ */
+.rob{transform-origin:0 30px}
+.card.run .rob{animation:rat 3.4s ease-in-out infinite both}
+@keyframes rat{
+  0%{transform:rotate(0) translate(0,0)}      7%{transform:rotate(-3.4deg) translate(-1.6px,1px)}
+  12%{transform:rotate(2.2deg) translate(1.2px,-.6px)} 19%{transform:rotate(-1.2deg) translate(-.8px,1.4px)}
+  26%{transform:rotate(3.8deg) translate(1.8px,.4px)}  33%{transform:rotate(-.6deg) translate(-.4px,-1px)}
+  40%,52%{transform:rotate(1.4deg) translate(.6px,2px)}
+  60%{transform:rotate(-4.6deg) translate(-2.2px,-1px)} 68%{transform:rotate(3.4deg) translate(2px,1.2px)}
+  76%{transform:rotate(-2.6deg) translate(-1.4px,-.6px)} 85%{transform:rotate(1.8deg) translate(1px,.8px)}
+  93%{transform:rotate(-.8deg) translate(-.5px,.3px)}   100%{transform:rotate(0) translate(0,0)}
+}
+.card.run #L4 .rob,.card.run #L5 .rob{animation:ratBig 3.4s ease-in-out infinite both}
+@keyframes ratBig{
+  0%{transform:rotate(0) translate(0,0)}      6%{transform:rotate(-5.4deg) translate(-2.6px,1.4px)}
+  13%{transform:rotate(3.8deg) translate(2px,-1px)}    20%{transform:rotate(-2deg) translate(-1.4px,2px)}
+  27%{transform:rotate(6deg) translate(2.8px,.8px)}    34%{transform:rotate(-1deg) translate(-.6px,-1.4px)}
+  41%,53%{transform:rotate(2deg) translate(.8px,2.6px)}
+  58%{transform:rotate(-9.5deg) translate(-4px,-1.4px)}  /* 여기서 한 번 크게 기운다 */
+  64%{transform:rotate(-7deg) translate(-3px,-.6px)}
+  70%{transform:rotate(4.6deg) translate(3px,1.8px)}   78%{transform:rotate(-3.4deg) translate(-2px,-.8px)}
+  86%{transform:rotate(2.4deg) translate(1.4px,1.2px)} 94%{transform:rotate(-1deg) translate(-.6px,.4px)}
+  100%{transform:rotate(0) translate(0,0)}
+}
+/* ══ 눈 — C안: 주황으로 네 번 지직 → 켜진 채 버틴다. 초록은 물건 나올 때만 ══ */
+.eyeL,.eyeR{fill:var(--off);transition:fill .3s}
+.card.run .eyeL,.card.run .eyeR{animation:ign 3.4s steps(1,end) infinite both}
+.card.run .eyeR{animation-delay:.12s}
+@keyframes ign{
+  0%,6%{fill:var(--off)}   8%,11%{fill:var(--rust)}  13%,21%{fill:var(--off)}
+  23%,26%{fill:var(--rust)} 28%,33%{fill:var(--off)}
+  35%,41%{fill:var(--rust)} 43%,47%{fill:var(--off)}
+  49%,56%{fill:var(--rust)} 58%,61%{fill:var(--off)}
+  63%,100%{fill:var(--rust)} }
+.card.done .eyeL,.card.done .eyeR{fill:var(--prod)}
+
+/* ── 대롱거리는 안테나 (3단계부터) ── */
+.ant{transform-box:fill-box;transform-origin:50% 100%}
+.card.run #L3 .ant,.card.run #L4 .ant,.card.run #L5 .ant{animation:antSwing .9s ease-in-out infinite both}
+@keyframes antSwing{ 0%,100%{transform:rotate(-14deg)} 50%{transform:rotate(16deg)} }
+
+/* ── 떨어지는 나사 (2단계부터) ── */
+.drop{opacity:0}
+.card.run .drop{animation:dropB 3.4s cubic-bezier(.5,0,.9,.4) infinite both}
+@keyframes dropB{ 0%,24%{opacity:0;transform:translate(0,0)} 25%{opacity:1;transform:translate(0,0)}
+  46%{opacity:1;transform:translate(3px,21px)} 100%{opacity:1;transform:translate(5px,21px)} }
+.card.done .drop{opacity:1;transform:translate(5px,21px)}
+
+/* ── 스파크 (3단계부터) ── */
+.spark{opacity:0;stroke:#FFD79A;stroke-width:1.6;stroke-linecap:round}
+.card.run .spark{animation:spk 3.4s steps(1,end) infinite both}
+@keyframes spk{ 0%,11%{opacity:0} 12%,14%{opacity:1} 15%,35%{opacity:0} 36%,38%{opacity:1}
+  39%,57%{opacity:0} 58%,61%{opacity:1} 62%,100%{opacity:0} }
+
+/* ── 김 (4단계부터) ── */
+.stm{opacity:0;fill:rgba(255,255,255,.3)}
+.card.run .stm{animation:stmR 2.2s ease-out infinite both}
+.card.run .stm.b{animation-delay:.7s} .card.run .stm.c{animation-delay:1.4s}
+@keyframes stmR{ 0%{opacity:0;transform:translate(0,0) scale(.5)} 20%{opacity:.55}
+  100%{opacity:0;transform:translate(-3px,-22px) scale(1.5)} }
+
+/* ── 머리가 몸에서 뜬다 (5단계) ── */
+.card.run #L5 .hd{animation:hdLoose 3.4s ease-in-out infinite both}
+@keyframes hdLoose{ 0%,100%{transform:translate(0,0) rotate(0)}
+  22%{transform:translate(1.4px,-2.4px) rotate(3deg)}  40%{transform:translate(-1px,-1px) rotate(-2deg)}
+  58%{transform:translate(2px,-4px) rotate(5.5deg)}    72%{transform:translate(-1.6px,-1.4px) rotate(-3deg)}
+  88%{transform:translate(.8px,-1px) rotate(1.5deg)} }
+
+@media(prefers-reduced-motion:reduce){ *{animation-duration:.01ms!important;transition-duration:.01ms!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>고장난 로봇 — 얼마나 더 고장날 수 있나</h1>
+  <p class="lead"><b>C안(눈)은 다섯 개 모두 그대로입니다.</b> 주황으로 네 번 지직대다 켜진 채 버티고,
+     <b>물건이 나오는 순간에만 초록</b>으로 바뀝니다. 다리도 없습니다.
+     바뀌는 건 <b>«몸이 얼마나 망가져 보이는가»</b> 하나뿐이고, 1단계가 지금 앱에 들어간 것입니다.</p>
+
+  <div class="bar">
+    <button data-all="1">전부 깨우기</button>
+    <button class="ghost" data-reset="1">전부 재우기</button>
+    <s>깨어 있는 동안은 계속 돌아갑니다 — 다시 재우면 멈춥니다</s>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+var W='rgba(255,255,255,';
+/* lv 1~5 : 숫자가 클수록 더 망가진다. 다리는 없다 */
+function body(lv){
+  var s='';
+  /* 안테나 — 3단계부터 대롱거린다 */
+  s += (lv>=3)
+    ? '<g transform="translate(-2,-26)"><g class="ant"><path d="M0 0 l-4 -9 l7 -3" fill="none" stroke="'+W+'.3)" stroke-width="1.8" stroke-linecap="round"/></g></g>'
+    : '<path d="M-2 -26 l-4 -9 l7 -3" fill="none" stroke="'+W+'.3)" stroke-width="1.8" stroke-linecap="round"/>';
+
+  /* 머리 */
+  var head =
+    '<rect x="-22" y="-25" width="44" height="33" rx="11" fill="'+W+'.06)" stroke="'+W+'.2)" stroke-width="1.5"/>'+
+    '<circle class="eyeL" cx="-8" cy="-11" r="3.4"/><circle class="eyeR" cx="8" cy="-11" r="3.4"/>'+
+    '<path d="M3 -20 l4 5 l-2 4" fill="none" stroke="'+W+'.14)" stroke-width="1"/>'+
+    (lv>=4 ? '<path d="M-14 -22 l-2 6 l3 3" fill="none" stroke="'+W+'.14)" stroke-width="1"/>' : '')+
+    (lv>=5 ? '<path d="M14 4 l3 -6 l2 5" fill="none" stroke="'+W+'.13)" stroke-width="1"/>' : '')+
+    '<rect x="-5" y="-2" width="9" height="2.4" rx="1.2" fill="'+W+'.22)" transform="rotate(-5)"/>';
+  s += '<g class="hd"><g transform="rotate(-4)">'+head+'</g></g>';
+
+  /* 목 이음새 스파크 — 3단계부터 */
+  if(lv>=3) s += '<g transform="translate(-13,8)"><g class="spark">'+
+      '<line x1="0" y1="0" x2="-4" y2="-3"/><line x1="0" y1="0" x2="-3" y2="3"/></g></g>';
+
+  /* 몸통 */
+  s += '<rect x="-16" y="10" width="32" height="21" rx="7" fill="'+W+'.045)" stroke="'+W+'.16)" stroke-width="1.4"/>';
+
+  /* 가슴 패널이 열리고 배선이 삐져나온다 — 3단계부터 */
+  if(lv>=3){
+    s += '<path d="M-9 13 l11 0 l0 9 l-11 0 z" fill="rgba(0,0,0,.3)" stroke="'+W+'.17)" stroke-width="1"/>'+
+         '<path d="M2 13 l6 -3 l0 12 l-6 -3" fill="'+W+'.04)" stroke="'+W+'.15)" stroke-width="1" stroke-linejoin="round"/>'+
+         '<path d="M-7 17 q4 4 8 1" fill="none" stroke="'+W+'.26)" stroke-width="1.1" stroke-linecap="round"/>'+
+         '<path d="M-6 20 q5 3 9 -2" fill="none" stroke="rgba(201,138,91,.5)" stroke-width="1.1" stroke-linecap="round"/>';
+  }
+
+  /* 나사 — 단계가 오를수록 빈 구멍이 늘어난다 */
+  var hole = function(x,y,r){ return '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="rgba(0,0,0,.4)" stroke="'+W+'.13)" stroke-width=".8"/>'; };
+  var bolt = function(x,y,r){ return '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+W+'.22)"/>'; };
+  s += (lv>=5 ? hole(-11,16,1.5) : bolt(-11,16,1.5));
+  s += (lv>=4 ? hole(11,26,1.3)  : bolt(11,26,1.3));
+
+  /* 떨어지는 나사 — 2단계부터. 작동하면 툭 떨어져 바닥에 남는다 */
+  if(lv>=2) s += '<g transform="translate(13,13)"><g class="drop"><circle cx="0" cy="0" r="1.5" fill="'+W+'.3)"/></g></g>';
+  if(lv>=5) s += '<circle cx="-19" cy="34" r="1.4" fill="'+W+'.2)"/><circle cx="-15" cy="35" r="1.1" fill="'+W+'.16)"/>';
+
+  /* 김 — 4단계부터 머리 위로 */
+  if(lv>=4) s += '<g transform="translate(6,-30)"><circle class="stm" r="2.4"/></g>'+
+                 '<g transform="translate(11,-28)"><circle class="stm b" r="1.9"/></g>'+
+                 '<g transform="translate(2,-27)"><circle class="stm c" r="1.6"/></g>';
+  return s;
+}
+function stage(id, lv){
+  return '<svg viewBox="0 0 240 232" id="'+id+'">'+
+    '<ellipse class="shadow" cx="120" cy="196" rx="38" ry="6.5"/>'+
+    '<g transform="translate(120,132) scale(1.75)"><g class="rob">'+
+      '<text class="zzz" x="24" y="-26">z z</text>'+ body(lv)+
+      '<g class="sheet"><rect x="-12" y="33" width="24" height="17" rx="4" fill="rgba(200,241,105,.15)" stroke="var(--prod)" stroke-width="1.2"/>'+
+      '<line x1="-7" y1="39" x2="7" y2="39" stroke="var(--prod)" stroke-width="1.3" stroke-linecap="round"/></g>'+
+    '</g></g></svg>';
+}
+function mini(id, lv){
+  return '<svg viewBox="0 0 96 96"><g transform="translate(48,46)"><g class="rob">'+ body(lv) +'</g></g></svg>';
+}
+
+var ANS=[
+ {id:'L1', lv:1, cls:'now', tag:'지금 앱에 있는 것', nm:'1단계 — 낡았다',
+  sub:'꺾인 안테나 · 얼굴의 금 · 삐뚜름한 목 · 나사 둘',
+  spec:[['새로 생긴 것','없음 — 기준'],['시끄러움','조용하다'],['첫인상','오래 썼구나']],
+  real:'지금 담기 방에 앉아 있는 그대로'},
+
+ {id:'L2', lv:2, tag:'2단계', nm:'2단계 — 나사가 빠진다',
+  sub:'일하는 동안 나사 하나가 툭 떨어져 바닥에 남는다',
+  spec:[['새로 생긴 것','떨어지는 나사 하나'],['시끄러움','거의 조용 — 딱 한 번 «툭»'],
+        ['첫인상','아 이거 진짜 고장났네']],
+  real:'74px에서도 나사 떨어지는 게 보입니다'},
+
+ {id:'L3', lv:3, tag:'3단계', nm:'3단계 — 뚜껑이 열리고 불꽃',
+  sub:'가슴 패널이 열려 배선이 나오고, 목에서 세 번 스파크. 안테나는 대롱대롱',
+  spec:[['새로 생긴 것','열린 패널 · 배선 둘 · 스파크 · 흔들리는 안테나'],
+        ['시끄러움','보통 — 몸 위에서만 일어난다'],['첫인상','수리해주고 싶다']],
+  real:'작은 칸에선 패널이 «얼룩»으로 보일 수 있습니다'},
+
+ {id:'L4', lv:4, tag:'4단계', nm:'4단계 — 김이 난다',
+  sub:'머리 위로 김이 오르고, 금이 하나 더. 중간에 한 번 크게 휘청한다',
+  spec:[['새로 생긴 것','김 세 줄기 · 금 하나 더 · 빈 나사 구멍 · 큰 휘청'],
+        ['시끄러움','세다 — 눈이 로봇에 붙는다'],['첫인상','과열됐다, 곧 멈추겠는데']],
+  real:'김은 74px에서 흐릿한 점으로 보입니다'},
+
+ {id:'L5', lv:5, tag:'5단계 · 한계', nm:'5단계 — 폐기 직전',
+  sub:'머리가 몸에서 떠서 따로 덜컹거리고, 바닥엔 나사가 굴러다닌다. 결과물도 삐뚤게 나온다',
+  spec:[['새로 생긴 것','뜨는 머리 · 금 셋 · 빈 구멍 둘 · 바닥의 나사 · 비뚤어진 결과물'],
+        ['시끄러움','최대 — 이 이상은 «망가진 인형»이 아니라 «부서진 기계»'],
+        ['첫인상','안쓰럽다']],
+  real:'머리가 뜨는 게 작은 칸에서 제일 잘 읽힙니다'}
+];
+
+document.getElementById('grid').innerHTML = ANS.map(function(a){
+  return '<section class="card '+(a.cls||'')+'" data-an="'+a.id+'">'+
+    '<span class="tag">'+a.tag+'</span>'+
+    '<div class="chd"><b>'+a.nm+'</b><s>'+a.sub+'</s></div>'+
+    '<div class="stage">'+stage(a.id, a.lv)+'</div>'+
+    '<p class="nm"><b>덜컹이</b><span>고장난 로봇</span></p>'+
+    '<div class="foot"><button data-run="'+a.id+'">깨우기</button><span class="st">자는 중</span></div>'+
+    '<div class="spec">'+a.spec.map(function(r){
+      return '<div><b>'+r[0]+'</b><span>'+r[1]+'</span></div>'; }).join('')+'</div>'+
+    '<div class="real"><div class="box">'+mini(a.id,a.lv)+'</div><p><b>실제 크기</b><br>'+a.real+'</p></div>'+
+    '</section>';
+}).join('');
+
+var T={};
+function reset(id){
+  var c=document.querySelector('[data-an="'+id+'"]'); if(!c) return;
+  clearTimeout(T[id]); c.classList.remove('run','done');
+  c.querySelector('.st').textContent='자는 중';
+}
+function run(id){
+  var c=document.querySelector('[data-an="'+id+'"]'); if(!c) return;
+  reset(id); void c.offsetWidth;
+  c.classList.add('run');
+  c.querySelector('.st').textContent='끄응… 덜컹덜컹';
+  T[id]=setTimeout(function(){
+    c.classList.remove('run'); c.classList.add('done');
+    c.querySelector('.st').textContent='…해냈습니다';
+  }, 6900);   /* 두 바퀴 돌고 물건이 나온다 */
+}
+document.addEventListener('click', function(e){
+  var r=e.target.closest('[data-run]');
+  if(r){ run(r.dataset.run); return; }
+  if(e.target.closest('[data-all]')){ ANS.forEach(function(a){ run(a.id); }); return; }
+  if(e.target.closest('[data-reset]')){ ANS.forEach(function(a){ reset(a.id); }); return; }
+});
+</script>
+</body>
+</html>

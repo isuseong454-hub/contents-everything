@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>덜컹이 — 원본 대조</title>
+<style>
+:root{
+  --tx1:#EDF0F6; --tx2:#8B93A3; --tx3:#5A6272;
+  --glass:rgba(255,255,255,.035); --line:rgba(255,255,255,.075); --line2:rgba(255,255,255,.15);
+  --prod:#C8F169; --glow:#C8F169; --rust:#C98A5B;
+  --ease:cubic-bezier(.22,.61,.36,1); --sp:cubic-bezier(.32,1.4,.36,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;color:var(--tx1);font:100%/1.5 -apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{background:radial-gradient(120% 70% at 50% 0%, #0d1017, #070910 54%, #050609);min-height:100vh;padding:20px 16px 80px}
+.wrap{max-width:1000px;margin:0 auto}
+h1{font-size:clamp(20px,3vw,24px);line-height:1.1;letter-spacing:-.02em;margin:0 0 6px}
+.lead{color:var(--tx2);font-size:12.5px;line-height:1.65;margin:0 0 16px;max-width:74ch;text-wrap:pretty}
+.lead b{color:var(--prod)}
+.bar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.bar button{font-family:inherit;font-size:12.5px;font-weight:800;padding:10px 16px;border-radius:11px;cursor:pointer;
+  background:var(--prod);border:none;color:#06080c;transition:transform .1s ease-out}
+.bar button:active{transform:scale(.97)}
+.bar button.ghost{background:var(--glass);border:1px solid var(--line2);color:var(--tx2)}
+.bar s{text-decoration:none;font-size:11px;color:var(--tx3)}
+
+.grid{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:720px){ .grid{grid-template-columns:repeat(2,1fr)} }
+.card{border:1px solid var(--line);border-radius:20px;overflow:hidden;position:relative;
+  background:linear-gradient(180deg,rgba(255,255,255,.022),transparent 40%)}
+.card.live{border-color:rgba(200,241,105,.3)}
+.tag{position:absolute;right:12px;top:12px;z-index:3;font-size:9px;font-weight:800;padding:3px 8px;border-radius:7px;
+  background:rgba(255,255,255,.07);color:var(--tx3);border:1px solid var(--line)}
+.card.live .tag{background:rgba(200,241,105,.14);color:var(--prod);border-color:rgba(200,241,105,.34)}
+.chd{padding:13px 15px 10px}
+.chd b{font-size:13.5px;font-weight:800;display:block;letter-spacing:-.01em}
+.chd s{text-decoration:none;font-size:10.5px;color:var(--tx3);line-height:1.5;display:block;margin-top:3px}
+.stage{position:relative;height:250px}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}
+.foot{display:flex;gap:8px;padding:0 15px 12px;align-items:center}
+.foot button{font-family:inherit;font-size:11px;font-weight:800;padding:7px 13px;border-radius:9px;cursor:pointer;
+  background:var(--glass);border:1px solid var(--line);color:var(--tx2)}
+.foot .st{flex:1;font-size:10.5px;font-weight:700;color:var(--tx3);text-align:right;transition:color .3s}
+.card.run .foot .st{color:var(--rust)} .card.done .foot .st{color:var(--prod)}
+.spec{padding:0 15px 15px}
+.spec div{display:flex;gap:8px;font-size:10.5px;line-height:1.7;color:var(--tx3);border-top:1px solid var(--line);padding-top:6px}
+.spec div:first-child{border-top:0}
+.spec b{flex:none;width:60px;color:var(--tx2);font-weight:800}
+/* 실제 크기 — 앱에서는 이만큼으로 보인다 */
+.real{display:flex;gap:12px;align-items:center;padding:11px 15px 15px}
+.real .box{width:74px;height:74px;flex:none;border-radius:12px;background:rgba(255,255,255,.03);
+  border:1px dashed var(--line2);display:grid;place-items:center;overflow:hidden}
+.real .box svg{width:74px;height:74px}
+.real p{margin:0;font-size:10.5px;color:var(--tx3);line-height:1.55}
+.real p b{color:var(--tx2)}
+
+.shadow{fill:rgba(0,0,0,.5);transition:.6s var(--ease)}
+.card.run .shadow,.card.done .shadow{transform:scaleX(.86);opacity:.72}
+.zzz{fill:var(--tx3);font:800 11px/1 system-ui;transition:opacity .3s}
+.card.run .zzz,.card.done .zzz{opacity:0}
+.sheet{opacity:0}
+.card.done .sheet{animation:sh .55s var(--sp) 1 both}
+@keyframes sh{ from{opacity:0;transform:translateY(-8px) scaleY(.4)} to{opacity:1;transform:none} }
+
+/* ══ 원본 C — 규칙적으로 갸웃, 눈 둘이 함께 켜진다 ══ */
+#O .rob{transform-origin:0 40px}
+.card.run #O .rob{animation:tiltO .6s ease-in-out 4 both}
+@keyframes tiltO{ 0%,100%{transform:rotate(0)} 30%{transform:rotate(-2.6deg)} 70%{transform:rotate(2.6deg)} }
+#O .eye{fill:#2a3040;transition:fill .3s}
+.card.run #O .eye,.card.done #O .eye{fill:var(--prod)}
+
+/* ══ 지금 앱의 덜컹이 — 불규칙, 한쪽 눈만, 꺾인 안테나·금·나사 ══ */
+#N .rob{transform-origin:0 30px}
+.card.run #N .rob{animation:rattleN 3.4s ease-in-out 1 both}
+@keyframes rattleN{
+  0%{transform:rotate(0) translate(0,0)}      7%{transform:rotate(-3.4deg) translate(-1.6px,1px)}
+  12%{transform:rotate(2.2deg) translate(1.2px,-.6px)} 19%{transform:rotate(-1.2deg) translate(-.8px,1.4px)}
+  26%{transform:rotate(3.8deg) translate(1.8px,.4px)}  33%{transform:rotate(-.6deg) translate(-.4px,-1px)}
+  40%,52%{transform:rotate(1.4deg) translate(.6px,2px)}
+  60%{transform:rotate(-4.6deg) translate(-2.2px,-1px)} 68%{transform:rotate(3.4deg) translate(2px,1.2px)}
+  76%{transform:rotate(-2.6deg) translate(-1.4px,-.6px)} 85%{transform:rotate(1.8deg) translate(1px,.8px)}
+  93%{transform:rotate(-.8deg) translate(-.5px,.3px)}   100%{transform:rotate(0) translate(0,0)}
+}
+#N .eyeL,#N .eyeR{fill:#2a3040;transition:fill .3s}
+.card.run #N .eyeL{animation:eyeN 1.6s steps(1,end) 3 both}
+@keyframes eyeN{ 0%,18%{fill:#2a3040} 20%,34%{fill:var(--rust)} 36%,52%{fill:#2a3040}
+  54%,72%{fill:var(--rust)} 74%,84%{fill:#2a3040} 86%,100%{fill:var(--rust)} }
+.card.done #N .eyeL,.card.done #N .eyeR{fill:var(--prod)}
+
+@media(prefers-reduced-motion:reduce){ *{animation-duration:.01ms!important;transition-duration:.01ms!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>덜컹이 — 원본 대조</h1>
+  <p class="lead"><b>다리는 뺐습니다.</b> 왼쪽이 처음 고르신 원본, 오른쪽이 <b>지금 앱에 들어가 있는 것</b>입니다.
+     둘 다 머리·몸통뿐이고, 차이는 <b>«고장의 표시»와 «흔들리는 방식»</b>뿐입니다.</p>
+
+  <div class="bar">
+    <button data-all="1">둘 다 깨우기</button>
+    <button class="ghost" data-reset="1">다시 재우기</button>
+    <s>아래에 «앱에서 실제로 보이는 크기»도 같이 뒀습니다</s>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+/* ── 원본 C : 처음 고르신 그것 ── */
+function robO(sc){
+  return '<g transform="translate(120,140) scale('+(sc||1.2)+')"><g class="rob">'+
+    '<text class="zzz" x="26" y="-44">z z</text>'+
+    '<rect x="-30" y="-38" width="60" height="46" rx="15" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.17)" stroke-width="1.6"/>'+
+    '<circle class="eye" cx="-11" cy="-17" r="4.2"/><circle class="eye" cx="11" cy="-17" r="4.2"/>'+
+    '<rect x="-7" y="-4" width="14" height="3.2" rx="1.6" fill="rgba(255,255,255,.28)"/>'+
+    '<rect x="-22" y="12" width="44" height="30" rx="10" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.15)" stroke-width="1.5"/>'+
+    '<g class="sheet"><rect x="-16" y="46" width="32" height="24" rx="5" fill="rgba(200,241,105,.15)" stroke="var(--prod)" stroke-width="1.4"/>'+
+    '<line x1="-10" y1="54" x2="10" y2="54" stroke="var(--prod)" stroke-width="1.5" stroke-linecap="round"/></g>'+
+  '</g></g>';
+}
+/* ── 지금 앱의 덜컹이 : index.html 의 botSVG 를 그대로 옮긴 것 ── */
+function robN(sc){
+  return '<g transform="translate(120,132) scale('+(sc||1.55)+')"><g class="rob">'+
+    '<text class="zzz" x="24" y="-26">z z</text>'+
+    '<path d="M-2 -26 l-4 -9 l7 -3" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.8" stroke-linecap="round"/>'+
+    '<g transform="rotate(-4)">'+
+      '<rect x="-22" y="-25" width="44" height="33" rx="11" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/>'+
+      '<circle class="eyeL" cx="-8" cy="-11" r="3.4"/><circle class="eyeR" cx="8" cy="-11" r="2.6"/>'+
+      '<path d="M3 -20 l4 5 l-2 4" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1"/>'+
+      '<rect x="-5" y="-2" width="9" height="2.4" rx="1.2" fill="rgba(255,255,255,.22)" transform="rotate(-5)"/>'+
+    '</g>'+
+    '<rect x="-16" y="10" width="32" height="21" rx="7" fill="rgba(255,255,255,.045)" stroke="rgba(255,255,255,.16)" stroke-width="1.4"/>'+
+    '<circle cx="-11" cy="16" r="1.5" fill="rgba(255,255,255,.22)"/><circle cx="11" cy="26" r="1.3" fill="rgba(255,255,255,.22)"/>'+
+    '<g class="sheet"><rect x="-12" y="33" width="24" height="17" rx="4" fill="rgba(200,241,105,.15)" stroke="var(--prod)" stroke-width="1.2"/>'+
+    '<line x1="-7" y1="39" x2="7" y2="39" stroke="var(--prod)" stroke-width="1.3" stroke-linecap="round"/></g>'+
+  '</g></g>';
+}
+function stage(id, inner){
+  return '<svg viewBox="0 0 240 250" id="'+id+'">'+
+    '<ellipse class="shadow" cx="120" cy="212" rx="42" ry="7"/>'+ inner +'</svg>';
+}
+/* 앱에서 실제로 보이는 크기(74px 칸) */
+function mini(which){
+  return '<svg viewBox="0 0 96 96">'+
+    (which==='O'
+      ? '<g transform="translate(48,52) scale(.72)"><g class="rob">'+
+        '<rect x="-30" y="-38" width="60" height="46" rx="15" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.17)" stroke-width="1.6"/>'+
+        '<circle class="eye" cx="-11" cy="-17" r="4.2"/><circle class="eye" cx="11" cy="-17" r="4.2"/>'+
+        '<rect x="-7" y="-4" width="14" height="3.2" rx="1.6" fill="rgba(255,255,255,.28)"/>'+
+        '<rect x="-22" y="12" width="44" height="30" rx="10" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.15)" stroke-width="1.5"/></g></g>'
+      : '<g transform="translate(48,46)"><g class="rob">'+
+        '<path d="M-2 -26 l-4 -9 l7 -3" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.8" stroke-linecap="round"/>'+
+        '<g transform="rotate(-4)"><rect x="-22" y="-25" width="44" height="33" rx="11" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/>'+
+        '<circle class="eyeL" cx="-8" cy="-11" r="3.4"/><circle class="eyeR" cx="8" cy="-11" r="2.6"/>'+
+        '<path d="M3 -20 l4 5 l-2 4" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1"/>'+
+        '<rect x="-5" y="-2" width="9" height="2.4" rx="1.2" fill="rgba(255,255,255,.22)" transform="rotate(-5)"/></g>'+
+        '<rect x="-16" y="10" width="32" height="21" rx="7" fill="rgba(255,255,255,.045)" stroke="rgba(255,255,255,.16)" stroke-width="1.4"/>'+
+        '<circle cx="-11" cy="16" r="1.5" fill="rgba(255,255,255,.22)"/><circle cx="11" cy="26" r="1.3" fill="rgba(255,255,255,.22)"/></g></g>')+
+    '</svg>';
+}
+
+var ANS=[
+  {id:'O', cls:'', tag:'처음 원본', nm:'원본 — 멀쩡한 로봇',
+   sub:'머리 하나 몸통 하나. 눈 둘이 같은 크기로 함께 켜진다',
+   svg:function(){ return stage('O', robO()); },
+   spec:[['흔들림','규칙적으로 갸웃갸웃 (좌 → 우 반복)'],['눈','둘 다 같은 크기 · 함께 켜짐'],
+         ['고장 표시','없음'],['첫인상','말끔하고 순하다']],
+   real:'앱 담기 방에서는 이 크기(74px)로 앉습니다'},
+  {id:'N', cls:'live', tag:'지금 앱에 있는 것', nm:'덜컹이 — 고장난 로봇',
+   sub:'같은 몸인데 «고장의 표시» 넷이 붙었다',
+   svg:function(){ return stage('N', robN()); },
+   spec:[['흔들림','불규칙 · 중간에 한 번 «죽었다» 되살아남'],['눈','왼쪽만 깜빡 · 오른쪽이 더 작다'],
+         ['고장 표시','꺾인 안테나 · 얼굴의 금 · 삐뚜름한 목 · 헐거운 나사 둘'],['첫인상','낡았지만 정겹다']],
+   real:'지금 앱에 들어가 있는 그 크기 그대로입니다'}
+];
+
+document.getElementById('grid').innerHTML = ANS.map(function(a){
+  return '<section class="card '+a.cls+'" data-an="'+a.id+'">'+
+    '<span class="tag">'+a.tag+'</span>'+
+    '<div class="chd"><b>'+a.nm+'</b><s>'+a.sub+'</s></div>'+
+    '<div class="stage">'+a.svg()+'</div>'+
+    '<div class="foot"><button data-run="'+a.id+'">깨우기</button>'+
+    '<span class="st">자는 중</span></div>'+
+    '<div class="spec">'+a.spec.map(function(r){
+      return '<div><b>'+r[0]+'</b><span>'+r[1]+'</span></div>'; }).join('')+'</div>'+
+    '<div class="real"><div class="box">'+mini(a.id)+'</div><p><b>실제 크기</b><br>'+a.real+'</p></div>'+
+    '</section>';
+}).join('');
+
+var T={};
+function reset(id){
+  var c=document.querySelector('[data-an="'+id+'"]'); if(!c) return;
+  clearTimeout(T[id]); c.classList.remove('run','done');
+  c.querySelector('.st').textContent='자는 중';
+}
+function run(id){
+  var c=document.querySelector('[data-an="'+id+'"]'); if(!c) return;
+  reset(id); void c.offsetWidth;
+  c.classList.add('run');
+  c.querySelector('.st').textContent = id==='N' ? '끄응… 덜컹덜컹' : '일하는 중';
+  T[id]=setTimeout(function(){
+    c.classList.remove('run'); c.classList.add('done');
+    c.querySelector('.st').textContent='…해냈습니다';
+  }, id==='N' ? 3400 : 2500);
+}
+document.addEventListener('click', function(e){
+  var r=e.target.closest('[data-run]');
+  if(r){ run(r.dataset.run); return; }
+  if(e.target.closest('[data-all]')){ ANS.forEach(function(a){ run(a.id); }); return; }
+  if(e.target.closest('[data-reset]')){ ANS.forEach(function(a){ reset(a.id); }); return; }
+});
+</script>
+</body>
+</html>

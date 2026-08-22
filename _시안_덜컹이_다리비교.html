@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>덜컹이 — 다리 비교</title>
+<style>
+:root{
+  --tx1:#EDF0F6; --tx2:#8B93A3; --tx3:#5A6272;
+  --glass:rgba(255,255,255,.035); --line:rgba(255,255,255,.075); --line2:rgba(255,255,255,.15);
+  --prod:#C8F169; --glow:#C8F169; --rust:#C98A5B; --yt:#E0574B; --ig:#D62976;
+  --ease:cubic-bezier(.22,.61,.36,1); --sp:cubic-bezier(.32,1.34,.42,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;color:var(--tx1);font:100%/1.5 -apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{background:radial-gradient(120% 70% at 50% 0%, #0d1017, #070910 54%, #050609);min-height:100vh;padding:20px 16px 80px}
+.wrap{max-width:1180px;margin:0 auto}
+h1{font-size:clamp(20px,3vw,24px);line-height:1.1;letter-spacing:-.02em;margin:0 0 6px}
+.lead{color:var(--tx2);font-size:12.5px;line-height:1.65;margin:0 0 14px;max-width:78ch;text-wrap:pretty}
+.lead b{color:var(--prod)} .lead u{text-decoration:none;color:#FF8C7E}
+.bar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.bar button{font-family:inherit;font-size:12.5px;font-weight:800;padding:10px 16px;border-radius:11px;cursor:pointer;
+  background:var(--prod);border:none;color:#06080c;transition:transform .1s ease-out}
+.bar button:active{transform:scale(.97)}
+.bar button.ghost{background:var(--glass);border:1px solid var(--line2);color:var(--tx2)}
+.bar s{text-decoration:none;font-size:11px;color:var(--tx3)}
+
+.grid{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:700px){ .grid{grid-template-columns:repeat(2,1fr)} }
+@media(min-width:1040px){ .grid{grid-template-columns:repeat(3,1fr)} }
+.card{border:1px solid var(--line);border-radius:20px;overflow:hidden;position:relative;
+  background:linear-gradient(180deg,rgba(255,255,255,.022),transparent 40%)}
+.card.good{border-color:rgba(200,241,105,.3)}
+.card.bad{border-color:rgba(224,87,75,.26)}
+.tag{position:absolute;right:12px;top:12px;z-index:3;font-size:9px;font-weight:800;padding:3px 8px;border-radius:7px;
+  background:rgba(255,255,255,.07);color:var(--tx3);border:1px solid var(--line)}
+.card.good .tag{background:rgba(200,241,105,.14);color:var(--prod);border-color:rgba(200,241,105,.34)}
+.card.bad .tag{background:rgba(224,87,75,.14);color:#FF8C7E;border-color:rgba(224,87,75,.32)}
+.chd{padding:13px 15px 10px}
+.chd b{font-size:13px;font-weight:800;display:block;letter-spacing:-.01em}
+.chd s{text-decoration:none;font-size:10.5px;color:var(--tx3);line-height:1.5;display:block;margin-top:3px}
+.stage{position:relative;height:238px}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}
+.foot{display:flex;gap:8px;padding:0 15px 14px;align-items:center}
+.foot button{font-family:inherit;font-size:11px;font-weight:800;padding:7px 13px;border-radius:9px;cursor:pointer;
+  background:var(--glass);border:1px solid var(--line);color:var(--tx2)}
+.foot .st{flex:1;font-size:10.5px;font-weight:700;color:var(--tx3);text-align:right;transition:color .3s}
+.card.run .foot .st{color:var(--rust)} .card.done .foot .st{color:var(--prod)}
+
+.shadow{fill:rgba(0,0,0,.5);transition:.7s var(--ease)}
+.card.run .shadow,.card.done .shadow{transform:scaleX(.84);opacity:.72}
+.beam{opacity:0;transition:opacity .35s var(--ease)}
+.card.run .beam,.card.done .beam{opacity:1}
+.card.run .beam{animation:beamf 1.5s steps(1,end) infinite both}
+@keyframes beamf{ 0%,46%{opacity:.9} 48%,56%{opacity:.2} 58%,100%{opacity:.9} }
+.eye{fill:#242a34;transition:fill .35s}
+.card.run .eye,.card.done .eye{fill:var(--glow);filter:drop-shadow(0 0 5px var(--glow))}
+.zzz{fill:var(--tx3);font:800 10px/1 system-ui;transition:opacity .35s}
+.card.run .zzz,.card.done .zzz{opacity:0}
+.sheet{opacity:0}
+.card.done .sheet{animation:sh .55s var(--sp) 1 both}
+@keyframes sh{ 0%{opacity:0;transform:translateY(-8px) rotate(-8deg)} 60%{transform:translateY(2px) rotate(3deg)} 100%{opacity:1;transform:none} }
+
+/* ── 잠든 자세 ── */
+/* 0 · 원본(다리 없음) — 몸이 낮게 눌려 있다 */
+#Z0 .man{transform:translateY(12px) scaleY(.9)} #Z0 .head{transform:rotate(20deg)}
+/* 1 · 인형 다리 — 다리가 «접혀 사라진다». 앉으면 몸이 바닥에 붙는다 */
+#Z1 .legs{transform:scaleY(.18)} #Z1 .man{transform:translateY(20px)} #Z1 .head{transform:rotate(20deg)}
+/* 2 · 발만 — 몸 아래 발이 옆으로 벌어져 퍼진다 */
+#Z2 .ftL{transform:translate(-7px,4px) rotate(-22deg)} #Z2 .ftR{transform:translate(7px,4px) rotate(22deg)}
+#Z2 .man{transform:translateY(17px)} #Z2 .head{transform:rotate(22deg)}
+/* 3 · 스프링 다리 — 눌려 있다 */
+#Z3 .spring{transform:scaleY(.3)} #Z3 .man{transform:translateY(19px)} #Z3 .head{transform:rotate(18deg)}
+/* 4 · 사람 다리(지금 것) */
+#Z4 .hip{transform:translateY(21px)} #Z4 .thL{transform:rotate(-66deg)} #Z4 .shL{transform:rotate(80deg)}
+#Z4 .thR{transform:rotate(66deg)}    #Z4 .shR{transform:rotate(-80deg)} #Z4 .head{transform:rotate(22deg)}
+.card.done .man,.card.done .head,.card.done .legs,.card.done .spring,
+.card.done .ftL,.card.done .ftR,.card.done .hip,
+.card.done .thL,.card.done .shL,.card.done .thR,.card.done .shR{transform:none!important}
+
+@keyframes bodyUp{ 0%{transform:translateY(var(--h))} 16%{transform:translateY(calc(var(--h)*.6))}
+  24%{transform:translateY(calc(var(--h)*.95))} 46%{transform:translateY(calc(var(--h)*.28))}
+  55%{transform:translateY(calc(var(--h)*.48))} 74%{transform:translateY(1px)}
+  82%{transform:translateY(3px)} 100%{transform:translateY(0)} }
+@keyframes legUp{ 0%{transform:scaleY(var(--s))} 16%{transform:scaleY(calc(var(--s) + (1 - var(--s))*.4))}
+  24%{transform:scaleY(var(--s))} 46%{transform:scaleY(calc(var(--s) + (1 - var(--s))*.72))}
+  55%{transform:scaleY(calc(var(--s) + (1 - var(--s))*.55))} 74%{transform:scaleY(1.05)}
+  82%{transform:scaleY(.98)} 100%{transform:scaleY(1)} }
+@keyframes hdUp{ 0%,20%{transform:rotate(var(--a))} 46%{transform:rotate(calc(var(--a)*.42))}
+  54%{transform:rotate(calc(var(--a)*.7))} 74%{transform:rotate(-3deg)} 100%{transform:rotate(0)} }
+@keyframes rotUp{ 0%{transform:rotate(var(--a))} 16%{transform:rotate(calc(var(--a)*.6))}
+  24%{transform:rotate(calc(var(--a)*.95))} 46%{transform:rotate(calc(var(--a)*.28))}
+  55%{transform:rotate(calc(var(--a)*.48))} 74%{transform:rotate(0deg)} 100%{transform:rotate(0)} }
+
+.card.run #Z0 .man{--h:12px;animation:bodyUp 2.6s var(--ease) 1 forwards}
+.card.run #Z0 .head{--a:20deg;animation:hdUp 2.6s var(--ease) 1 forwards}
+.card.run #Z1 .legs{--s:.18;animation:legUp 2.6s var(--ease) 1 forwards}
+.card.run #Z1 .man{--h:20px;animation:bodyUp 2.6s var(--ease) 1 forwards}
+.card.run #Z1 .head{--a:20deg;animation:hdUp 2.6s var(--ease) 1 forwards}
+.card.run #Z2 .man{--h:17px;animation:bodyUp 2.6s var(--ease) 1 forwards}
+.card.run #Z2 .head{--a:22deg;animation:hdUp 2.6s var(--ease) 1 forwards}
+.card.run #Z2 .ftL{animation:ftL 2.6s var(--ease) 1 forwards}
+.card.run #Z2 .ftR{animation:ftR 2.6s var(--ease) 1 forwards}
+@keyframes ftL{ 0%,24%{transform:translate(-7px,4px) rotate(-22deg)} 55%{transform:translate(-4px,2px) rotate(-11deg)}
+  100%{transform:translate(0,0) rotate(0)} }
+@keyframes ftR{ 0%,24%{transform:translate(7px,4px) rotate(22deg)} 55%{transform:translate(4px,2px) rotate(11deg)}
+  100%{transform:translate(0,0) rotate(0)} }
+.card.run #Z3 .spring{--s:.3;animation:legUp 2.6s var(--ease) 1 forwards}
+.card.run #Z3 .man{--h:19px;animation:bodyUp 2.6s var(--ease) 1 forwards}
+.card.run #Z3 .head{--a:18deg;animation:hdUp 2.6s var(--ease) 1 forwards}
+.card.run #Z4 .hip{--h:21px;animation:bodyUp 2.6s var(--ease) 1 forwards}
+.card.run #Z4 .thL{--a:-66deg;animation:rotUp 2.6s var(--ease) 1 forwards}
+.card.run #Z4 .thR{--a:66deg;animation:rotUp 2.6s var(--ease) 1 forwards}
+.card.run #Z4 .shL{--a:80deg;animation:rotUp 2.6s var(--ease) 1 forwards}
+.card.run #Z4 .shR{--a:-80deg;animation:rotUp 2.6s var(--ease) 1 forwards}
+.card.run #Z4 .head{--a:22deg;animation:hdUp 2.6s var(--ease) 1 forwards}
+
+.legs,.spring{transform-origin:center bottom}
+@media(prefers-reduced-motion:reduce){ *{animation-duration:.01ms!important;transition-duration:.01ms!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>덜컹이 — 다리 비교</h1>
+  <p class="lead">정겨움이 사라진 범인은 <u>다리 자체가 아니라 «비율»</u>이었습니다.
+     원본은 <b>2등신 인형</b>이었는데, 사람 다리를 붙이니 <u>4등신 인체 모형</u>이 됐습니다.
+     머리·몸통은 그대로 두고 <b>다리만</b> 다섯 가지로 바꿔봤습니다.</p>
+
+  <div class="bar">
+    <button data-all="1">전부 깨우기</button>
+    <button class="ghost" data-reset="1">다시 재우기</button>
+    <s>같은 머리·같은 몸통 — 다리만 다릅니다</s>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+/* 머리·몸통은 원본 그대로 — 절대 안 건드린다 */
+function headG(){
+  return '<g class="head">'+
+    '<rect x="-30" y="-38" width="60" height="46" rx="15" fill="rgba(255,255,255,.055)" stroke="rgba(255,255,255,.19)" stroke-width="1.6"/>'+
+    '<g class="beam"><path d="M-11 -17 L-46 -28 L-46 -6 Z" fill="rgba(200,241,105,.14)"/>'+
+    '<path d="M11 -17 L46 -28 L46 -6 Z" fill="rgba(200,241,105,.14)"/></g>'+
+    '<circle class="eye" cx="-11" cy="-17" r="4.4"/><circle class="eye" cx="11" cy="-17" r="3.4"/>'+
+    '<path d="M4 -30 l5 7 l-3 5" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.1"/>'+
+    '<rect x="-7" y="-4" width="12" height="3" rx="1.5" fill="rgba(255,255,255,.2)" transform="rotate(-5)"/></g>';
+}
+function torsoG(){
+  return '<rect x="-22" y="12" width="44" height="30" rx="10" fill="rgba(255,255,255,.045)" stroke="rgba(255,255,255,.15)" stroke-width="1.5"/>'+
+    '<circle cx="-15" cy="20" r="2" fill="rgba(255,255,255,.22)"/><circle cx="15" cy="34" r="1.7" fill="rgba(255,255,255,.22)"/>';
+}
+function sheetG(y){
+  return '<g class="sheet"><rect x="-16" y="'+y+'" width="32" height="23" rx="5" fill="rgba(200,241,105,.15)" stroke="var(--prod)" stroke-width="1.4"/>'+
+    '<line x1="-10" y1="'+(y+8)+'" x2="10" y2="'+(y+8)+'" stroke="var(--prod)" stroke-width="1.5" stroke-linecap="round"/></g>';
+}
+function stage(id, inner, sy){
+  return '<svg viewBox="0 0 240 238" id="'+id+'">'+
+    '<ellipse class="shadow" cx="120" cy="'+(sy||196)+'" rx="40" ry="7"/>'+ inner +'</svg>';
+}
+
+var ANS=[
+  {id:'Z0', cls:'', tag:'원본', nm:'0 · 다리 없음 (원본)',
+   sub:'몸이 낮게 눌렸다 솟는다. 정겹지만 «일어선다»가 약하다',
+   svg:function(){ return stage('Z0','<g transform="translate(120,140)"><g class="man">'+
+     '<text class="zzz" x="34" y="-42">z z</text>'+ headG() + torsoG() + sheetG(46) +'</g></g>'); }},
+
+  {id:'Z1', cls:'good', tag:'추천', nm:'1 · 인형 다리 (짧고 통통)',
+   sub:'2등신 그대로. 앉으면 다리가 «접혀 사라지고», 서면 짧게 뻗는다',
+   svg:function(){ return stage('Z1','<g transform="translate(120,132)"><g class="man">'+
+     '<text class="zzz" x="34" y="-42">z z</text>'+ headG() + torsoG() +
+     '<g class="legs">'+
+       '<rect x="-17" y="42" width="14" height="17" rx="7" fill="rgba(255,255,255,.15)"/>'+
+       '<rect x="3" y="42" width="14" height="17" rx="7" fill="rgba(255,255,255,.15)"/>'+
+     '</g>'+ sheetG(62) +'</g></g>', 202); }},
+
+  {id:'Z2', cls:'good', tag:'추천', nm:'2 · 발만 (다리 없이 발 두 짝)',
+   sub:'다리는 안 그리고 «발»만. 앉으면 옆으로 퍼지고, 서면 모인다. 제일 인형 같다',
+   svg:function(){ return stage('Z2','<g transform="translate(120,136)"><g class="man">'+
+     '<text class="zzz" x="34" y="-42">z z</text>'+ headG() + torsoG() +
+     '<g class="ftL"><ellipse cx="-11" cy="48" rx="10" ry="6.5" fill="rgba(255,255,255,.16)"/></g>'+
+     '<g class="ftR"><ellipse cx="11" cy="48" rx="10" ry="6.5" fill="rgba(255,255,255,.16)"/></g>'+
+     sheetG(60) +'</g></g>', 198); }},
+
+  {id:'Z3', cls:'', tag:'', nm:'3 · 스프링 다리',
+   sub:'용수철이 눌렸다 «통» 펴진다. 고장난 장난감 느낌이 제일 강하다',
+   svg:function(){ return stage('Z3','<g transform="translate(120,130)"><g class="man">'+
+     '<text class="zzz" x="34" y="-42">z z</text>'+ headG() + torsoG() +
+     '<g class="spring">'+
+       '<path d="M-10 42 q-7 5 0 9 q7 4 0 8 q-7 4 0 8" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="2.4" stroke-linecap="round"/>'+
+       '<path d="M10 42 q7 5 0 9 q-7 4 0 8 q7 4 0 8" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="2.4" stroke-linecap="round"/>'+
+       '<ellipse cx="-10" cy="70" rx="8" ry="4.5" fill="rgba(255,255,255,.17)"/>'+
+       '<ellipse cx="10" cy="70" rx="8" ry="4.5" fill="rgba(255,255,255,.17)"/>'+
+     '</g>'+ sheetG(76) +'</g></g>', 206); }},
+
+  {id:'Z4', cls:'bad', tag:'이게 문제', nm:'4 · 사람 다리 (지금 것)',
+   sub:'무릎·종아리·발을 다 그렸더니 4등신 인체 모형이 됐다. 동작은 정확한데 «정»이 안 간다',
+   svg:function(){
+     function leg(side){
+       var x=side<0?-10:10, T=side<0?'thL':'thR', S=side<0?'shL':'shR';
+       return '<g transform="translate('+x+',40)"><g class="'+T+'">'+
+         '<rect x="-4" y="0" width="8" height="19" rx="4" fill="rgba(255,255,255,.14)"/>'+
+         '<circle cx="0" cy="19" r="3.6" fill="rgba(255,255,255,.2)"/>'+
+         '<g transform="translate(0,19)"><g class="'+S+'">'+
+           '<rect x="-3.4" y="0" width="6.8" height="18" rx="3.4" fill="rgba(255,255,255,.12)"/>'+
+           '<rect x="-6" y="16" width="12" height="4.6" rx="2.3" fill="rgba(255,255,255,.18)"/>'+
+         '</g></g></g></g>';
+     }
+     return stage('Z4','<g transform="translate(120,116)">'+
+       '<g class="hip"><text class="zzz" x="34" y="-42">z z</text>'+ headG() + torsoG() + sheetG(46) +'</g>'+
+       leg(-1)+leg(1)+'</g>', 210); }}
+];
+
+document.getElementById('grid').innerHTML = ANS.map(function(a){
+  return '<section class="card '+a.cls+'" data-an="'+a.id+'">'+
+    (a.tag?'<span class="tag">'+a.tag+'</span>':'')+
+    '<div class="chd"><b>'+a.nm+'</b><s>'+a.sub+'</s></div>'+
+    '<div class="stage">'+a.svg()+'</div>'+
+    '<div class="foot"><button data-run="'+a.id+'">깨우기</button>'+
+    '<span class="st">힘 빠져 있음</span></div></section>';
+}).join('');
+
+var T={};
+function reset(id){
+  var c=document.querySelector('[data-an="'+id+'"]'); if(!c) return;
+  clearTimeout(T[id]); c.classList.remove('run','done');
+  c.querySelector('.st').textContent='힘 빠져 있음';
+}
+function run(id){
+  var c=document.querySelector('[data-an="'+id+'"]'); if(!c) return;
+  reset(id); void c.offsetWidth;
+  c.classList.add('run');
+  c.querySelector('.st').textContent='끄응… 일어서는 중';
+  T[id]=setTimeout(function(){
+    c.classList.remove('run'); c.classList.add('done');
+    c.querySelector('.st').textContent='…해냈습니다';
+  }, 2700);
+}
+document.addEventListener('click', function(e){
+  var r=e.target.closest('[data-run]');
+  if(r){ run(r.dataset.run); return; }
+  if(e.target.closest('[data-all]')){ ANS.forEach(function(a){ run(a.id); }); return; }
+  if(e.target.closest('[data-reset]')){ ANS.forEach(function(a){ reset(a.id); }); return; }
+});
+</script>
+</body>
+</html>

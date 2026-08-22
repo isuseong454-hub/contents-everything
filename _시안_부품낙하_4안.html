@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>덜컹이 — 부품이 떨어진다</title>
+<style>
+:root{
+  --tx1:#EDF0F6; --tx2:#8B93A3; --tx3:#5A6272;
+  --glass:rgba(255,255,255,.035); --line:rgba(255,255,255,.075); --line2:rgba(255,255,255,.15);
+  --prod:#C8F169; --rust:#C98A5B; --off:#2a3040;
+  --ease:cubic-bezier(.22,.61,.36,1); --sp:cubic-bezier(.32,1.4,.36,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;color:var(--tx1);font:100%/1.5 -apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{background:radial-gradient(120% 70% at 50% 0%, #0d1017, #070910 54%, #050609);min-height:100vh;padding:20px 16px 80px}
+.wrap{max-width:1060px;margin:0 auto}
+h1{font-size:clamp(20px,3vw,24px);line-height:1.1;letter-spacing:-.02em;margin:0 0 6px}
+.lead{color:var(--tx2);font-size:12.5px;line-height:1.65;margin:0 0 16px;max-width:76ch;text-wrap:pretty}
+.lead b{color:var(--prod)}
+.bar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:16px;position:sticky;top:0;z-index:9;
+  background:linear-gradient(180deg,#070910 62%,transparent);padding:6px 0 10px}
+.bar button{font-family:inherit;font-size:12.5px;font-weight:800;padding:10px 16px;border-radius:11px;cursor:pointer;
+  background:var(--prod);border:none;color:#06080c;transition:transform .1s ease-out}
+.bar button:active{transform:scale(.97)}
+.bar button.ghost{background:var(--glass);border:1px solid var(--line2);color:var(--tx2)}
+.bar s{text-decoration:none;font-size:11px;color:var(--tx3)}
+
+.grid{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:700px){ .grid{grid-template-columns:repeat(2,1fr)} }
+.card{border:1px solid var(--line);border-radius:20px;overflow:hidden;position:relative;
+  background:linear-gradient(180deg,rgba(255,255,255,.022),transparent 40%)}
+.tag{position:absolute;right:12px;top:12px;z-index:3;font-size:9px;font-weight:800;padding:3px 8px;border-radius:7px;
+  background:rgba(255,255,255,.07);color:var(--tx3);border:1px solid var(--line)}
+.chd{padding:13px 15px 8px}
+.chd b{font-size:13.5px;font-weight:800;display:block;letter-spacing:-.01em}
+.chd s{text-decoration:none;font-size:10.5px;color:var(--tx3);line-height:1.5;display:block;margin-top:3px}
+.stage{position:relative;height:250px}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}
+.nm{text-align:center;margin:-4px 0 0;font-size:10.5px;color:var(--tx3);line-height:1.3}
+.nm b{display:block;font-size:11.5px;color:var(--tx1);font-weight:800}
+.card.run .nm span{color:var(--rust)} .card.done .nm span{color:var(--prod)}
+.foot{display:flex;gap:8px;padding:9px 15px 11px;align-items:center}
+.foot button{font-family:inherit;font-size:11px;font-weight:800;padding:7px 13px;border-radius:9px;cursor:pointer;
+  background:var(--glass);border:1px solid var(--line);color:var(--tx2)}
+.foot .st{flex:1;font-size:10.5px;font-weight:700;color:var(--tx3);text-align:right;transition:color .3s}
+.card.run .foot .st{color:var(--rust)} .card.done .foot .st{color:var(--prod)}
+.spec{padding:0 15px 14px}
+.spec div{display:flex;gap:8px;font-size:10.5px;line-height:1.7;color:var(--tx3);border-top:1px solid var(--line);padding-top:6px}
+.spec div:first-child{border-top:0}
+.spec b{flex:none;width:60px;color:var(--tx2);font-weight:800}
+.real{display:flex;gap:11px;align-items:center;padding:0 15px 15px}
+.real .box{width:74px;height:74px;flex:none;border-radius:12px;background:rgba(255,255,255,.03);
+  border:1px dashed var(--line2);display:grid;place-items:center;overflow:hidden}
+.real .box svg{width:74px;height:74px}
+.real p{margin:0;font-size:10.5px;color:var(--tx3);line-height:1.55}
+.real p b{color:var(--tx2)}
+
+.shadow{fill:rgba(0,0,0,.5);transition:.6s var(--ease)}
+.card.run .shadow,.card.done .shadow{transform:scaleX(.88);opacity:.72}
+.zzz{fill:var(--tx3);font:800 11px/1 system-ui;transition:opacity .3s}
+.card.run .zzz,.card.done .zzz{opacity:0}
+.sheet{opacity:0}
+.card.done .sheet{animation:sh .55s var(--sp) 1 both}
+@keyframes sh{ from{opacity:0;transform:translateY(-8px) scaleY(.4)} to{opacity:1;transform:none} }
+
+/* ══ 몸 흔들림 ══ */
+.rob{transform-origin:0 30px}
+.card.run .rob{animation:rat 3.4s ease-in-out infinite both}
+@keyframes rat{
+  0%{transform:rotate(0) translate(0,0)}      7%{transform:rotate(-3.4deg) translate(-1.6px,1px)}
+  12%{transform:rotate(2.2deg) translate(1.2px,-.6px)} 19%{transform:rotate(-1.2deg) translate(-.8px,1.4px)}
+  26%{transform:rotate(3.8deg) translate(1.8px,.4px)}  33%{transform:rotate(-.6deg) translate(-.4px,-1px)}
+  40%,52%{transform:rotate(1.4deg) translate(.6px,2px)}
+  60%{transform:rotate(-4.6deg) translate(-2.2px,-1px)} 68%{transform:rotate(3.4deg) translate(2px,1.2px)}
+  76%{transform:rotate(-2.6deg) translate(-1.4px,-.6px)} 85%{transform:rotate(1.8deg) translate(1px,.8px)}
+  93%{transform:rotate(-.8deg) translate(-.5px,.3px)}   100%{transform:rotate(0) translate(0,0)}
+}
+/* D — 안테나가 떨어진 뒤로 중심을 잃는다 */
+.card.run #D .rob{animation:ratD 3.4s ease-in-out infinite both}
+@keyframes ratD{
+  0%{transform:rotate(0) translate(0,0)}      7%{transform:rotate(-2.6deg) translate(-1.2px,.8px)}
+  14%{transform:rotate(1.8deg) translate(1px,-.4px)}   21%{transform:rotate(-1deg) translate(-.6px,1px)}
+  28%{transform:rotate(2.6deg) translate(1.2px,.4px)}
+  38%{transform:rotate(-7.4deg) translate(-3.4px,-1px)}   /* 부러진 직후 크게 휘청 */
+  46%{transform:rotate(5.4deg) translate(3px,1.4px)}   54%{transform:rotate(-6deg) translate(-2.8px,-.6px)}
+  62%{transform:rotate(4.4deg) translate(2.4px,1.6px)} 72%{transform:rotate(-3.6deg) translate(-2px,-.8px)}
+  82%{transform:rotate(2.8deg) translate(1.6px,1px)}   91%{transform:rotate(-1.6deg) translate(-1px,.5px)}
+  100%{transform:rotate(0) translate(0,0)}
+}
+/* ══ 눈 — C안 그대로 ══ */
+.eyeL,.eyeR{fill:var(--off);transition:fill .3s}
+.card.run .eyeL,.card.run .eyeR{animation:ign 3.4s steps(1,end) infinite both}
+.card.run .eyeR{animation-delay:.12s}
+@keyframes ign{
+  0%,6%{fill:var(--off)}   8%,11%{fill:var(--rust)}  13%,21%{fill:var(--off)}
+  23%,26%{fill:var(--rust)} 28%,33%{fill:var(--off)}
+  35%,41%{fill:var(--rust)} 43%,47%{fill:var(--off)}
+  49%,56%{fill:var(--rust)} 58%,61%{fill:var(--off)}
+  63%,100%{fill:var(--rust)} }
+.card.done .eyeL,.card.done .eyeR{fill:var(--prod)}
+
+/* ══ 부품이 떨어진다 — 딱 한 번만 ══ */
+/* ⚠️ SVG는 회전 기준점이 «화면 한가운데»가 기본이다 — fill-box 로 «부품 자신»에 묶는다 */
+.pOn,.pFall,.dust{transform-box:fill-box;transform-origin:50% 50%}
+
+/* ① 붙어 있던 부품 : 덜덜 떨다가 빠진다 */
+.card.run .pOn{animation:pOn 3.4s ease-in-out 1 both}
+@keyframes pOn{
+  0%{opacity:1;transform:translate(0,0) rotate(0)}
+  10%{transform:translate(.4px,0) rotate(1.5deg)}   14%{transform:translate(-.4px,.2px) rotate(-2deg)}
+  18%{transform:translate(.5px,-.2px) rotate(3deg)} 22%{transform:translate(-.6px,.3px) rotate(-3.5deg)}
+  26%{transform:translate(.7px,.5px) rotate(5deg)}
+  29.4%{opacity:1;transform:translate(0,.8px) rotate(7deg)}
+  29.5%,100%{opacity:0;transform:translate(0,.8px) rotate(7deg)} }
+.card.done .pOn{opacity:0}
+/* ② 빠진 자리 : 구멍이 드러난다 */
+.pHole{opacity:0}
+.card.run .pHole{animation:pHole 3.4s steps(1,end) 1 both}
+@keyframes pHole{ 0%,29.4%{opacity:0} 29.5%,100%{opacity:1} }
+.card.done .pHole{opacity:1}
+/* ③ 떨어지는 부품 : 몸의 흔들림 «밖»에 있어야 진짜로 떨어져 보인다 */
+.pFall{opacity:0}
+.card.run .pFall{animation:none 3.4s 1 both}   /* 안별로 따로 준다 */
+.card.run #A .pFall{animation-name:fallA} .card.done #A .pFall{opacity:1;transform:translate(7px,17px) rotate(150deg)}
+.card.run #B .pFall{animation-name:fallB} .card.done #B .pFall{opacity:1;transform:translate(-11px,80px) rotate(104deg)}
+.card.run #C .pFall{animation-name:fallC} .card.done #C .pFall{opacity:1;transform:translate(-9px,32px) rotate(-72deg)}
+.card.run #D .pFall{animation-name:fallD} .card.done #D .pFall{opacity:1;transform:translate(-8px,120px) rotate(196deg)}
+@keyframes fallA{
+  0%,29.4%{opacity:0;transform:translate(0,0) rotate(0)} 29.5%{opacity:1;transform:translate(0,0) rotate(0)}
+  40%{transform:translate(4px,17px) rotate(70deg)}       46%{transform:translate(5px,11px) rotate(105deg)}
+  53%{transform:translate(6px,17px) rotate(128deg)}      58%{transform:translate(6.5px,14px) rotate(140deg)}
+  64%,100%{opacity:1;transform:translate(7px,17px) rotate(150deg)} }
+@keyframes fallB{
+  0%,29.4%{opacity:0;transform:translate(0,0) rotate(0)} 29.5%{opacity:1;transform:translate(0,0) rotate(0)}
+  48%{transform:translate(-7px,80px) rotate(64deg)}      55%{transform:translate(-9px,68px) rotate(84deg)}
+  63%{transform:translate(-10px,80px) rotate(96deg)}     68%{transform:translate(-10.5px,75px) rotate(100deg)}
+  74%,100%{opacity:1;transform:translate(-11px,80px) rotate(104deg)} }
+@keyframes fallC{
+  0%,29.4%{opacity:0;transform:translate(0,0) rotate(0)} 29.5%{opacity:1;transform:translate(0,0) rotate(0)}
+  36%{transform:translate(-3px,4px) rotate(-26deg)}      45%{transform:translate(-7px,32px) rotate(-58deg)}
+  51%{transform:translate(-8px,25px) rotate(-66deg)}     58%{transform:translate(-9px,32px) rotate(-70deg)}
+  63%,100%{opacity:1;transform:translate(-9px,32px) rotate(-72deg)} }
+@keyframes fallD{
+  0%,29.4%{opacity:0;transform:translate(0,0) rotate(0)} 29.5%{opacity:1;transform:translate(0,0) rotate(0)}
+  52%{transform:translate(-5px,120px) rotate(140deg)}    59%{transform:translate(-7px,104px) rotate(168deg)}
+  67%{transform:translate(-8px,120px) rotate(186deg)}    72%{transform:translate(-8.4px,114px) rotate(192deg)}
+  78%,100%{opacity:1;transform:translate(-8px,120px) rotate(196deg)} }
+/* ④ 바닥에 닿는 순간 «틱» — 먼지 한 점 */
+.dust{opacity:0}
+.card.run .dust{animation:dust 3.4s ease-out 1 both}
+@keyframes dust{ 0%,44%{opacity:0;transform:scale(.4)} 47%{opacity:.5;transform:scale(1)}
+  58%,100%{opacity:0;transform:scale(1.6)} }
+
+@media(prefers-reduced-motion:reduce){ *{animation-duration:.01ms!important;transition-duration:.01ms!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>덜컹이 — 부품이 떨어진다</h1>
+  <p class="lead">지적하신 대로 고쳤습니다. 네 개 모두 <b>부품이 원래 붙어 있던 자리에서 빠지고, 빠진 자리엔 구멍이 남습니다.</b>
+     떨어진 부품은 <b>몸의 흔들림 밖</b>에 있어서 혼자 굴러가고, 바닥에 닿을 때 먼지가 «틱» 뜁니다.
+     한 번 떨어지면 <b>다시 안 붙습니다</b>. 눈은 C안 그대로, 다리도 없습니다.</p>
+
+  <div class="bar">
+    <button data-all="1">전부 깨우기</button>
+    <button class="ghost" data-reset="1">전부 재우기 (부품 다시 붙이기)</button>
+    <s>«자는 중»일 때 부품이 제자리에 붙어 있는지 먼저 보세요</s>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+var W='rgba(255,255,255,';
+var HOLE='fill="rgba(0,0,0,.45)" stroke="'+W+'.13)" stroke-width=".8"';
+
+/* ── 몸 (부품 자리는 kind 별로 다르게) ── */
+function body(kind){
+  var s='';
+  /* 안테나 — D안은 여기가 떨어진다 */
+  if(kind==='D'){
+    s+='<path d="M-2 -26 l-1.6 -3.6" fill="none" stroke="'+W+'.3)" stroke-width="1.8" stroke-linecap="round"/>'+  /* 남는 밑동 */
+       '<g transform="translate(-3.6,-29.6)"><g class="pOn">'+
+         '<path d="M0 0 l-2.4 -5.4 l7 -3" fill="none" stroke="'+W+'.3)" stroke-width="1.8" stroke-linecap="round"/>'+
+       '</g></g>';
+  } else {
+    s+='<path d="M-2 -26 l-4 -9 l7 -3" fill="none" stroke="'+W+'.3)" stroke-width="1.8" stroke-linecap="round"/>';
+  }
+
+  /* 머리 */
+  s+='<g transform="rotate(-4)">'+
+     '<rect x="-22" y="-25" width="44" height="33" rx="11" fill="'+W+'.06)" stroke="'+W+'.2)" stroke-width="1.5"/>'+
+     '<circle class="eyeL" cx="-8" cy="-11" r="3.4"/><circle class="eyeR" cx="8" cy="-11" r="3.4"/>'+
+     '<path d="M3 -20 l4 5 l-2 4" fill="none" stroke="'+W+'.14)" stroke-width="1"/>'+
+     '<rect x="-5" y="-2" width="9" height="2.4" rx="1.2" fill="'+W+'.22)" transform="rotate(-5)"/>'+
+     /* B안 — 머리 옆 «귀 판»이 떨어진다 */
+     (kind==='B'
+       ? '<g class="pHole"><rect x="-26.5" y="-16" width="5" height="11" rx="2" '+HOLE+'/>'+
+         '<path d="M-24 -12 q-3 2 -1 5" fill="none" stroke="rgba(201,138,91,.5)" stroke-width=".9" stroke-linecap="round"/></g>'+
+         '<g transform="translate(-24,-10.5)"><g class="pOn">'+
+         '<rect x="-2.5" y="-5.5" width="5" height="11" rx="2" fill="'+W+'.08)" stroke="'+W+'.2)" stroke-width="1.1"/>'+
+         '<line x1="0" y1="-2.5" x2="0" y2="2.5" stroke="'+W+'.16)" stroke-width=".8"/></g></g>'
+       : '<rect x="-26.5" y="-16" width="5" height="11" rx="2" fill="'+W+'.08)" stroke="'+W+'.2)" stroke-width="1.1"/>')+
+     '</g>';
+
+  /* 몸통 */
+  s+='<rect x="-16" y="10" width="32" height="21" rx="7" fill="'+W+'.045)" stroke="'+W+'.16)" stroke-width="1.4"/>';
+
+  /* C안 — 가슴 뚜껑이 통째로 떨어진다 */
+  if(kind==='C'){
+    s+='<g class="pHole"><rect x="-9" y="13.5" width="12" height="10" rx="2" '+HOLE+'/>'+
+       '<path d="M-7 17 q4 4 8 1" fill="none" stroke="'+W+'.26)" stroke-width="1" stroke-linecap="round"/>'+
+       '<path d="M-6.5 20 q5 3 9 -2" fill="none" stroke="rgba(201,138,91,.5)" stroke-width="1" stroke-linecap="round"/></g>'+
+       '<g transform="translate(-3,18.5)"><g class="pOn">'+
+       '<rect x="-6" y="-5" width="12" height="10" rx="2" fill="'+W+'.09)" stroke="'+W+'.2)" stroke-width="1.1"/>'+
+       '<circle cx="-3.6" cy="-2.6" r=".8" fill="'+W+'.24)"/><circle cx="3.6" cy="2.6" r=".8" fill="'+W+'.24)"/></g></g>';
+  } else {
+    s+='<rect x="-9" y="13.5" width="12" height="10" rx="2" fill="'+W+'.09)" stroke="'+W+'.2)" stroke-width="1.1"/>'+
+       '<circle cx="-6.6" cy="15.9" r=".8" fill="'+W+'.24)"/><circle cx="-.6" cy="21.1" r=".8" fill="'+W+'.24)"/>';
+  }
+
+  /* A안 — 몸통 오른쪽 아래 나사가 빠진다 */
+  if(kind==='A'){
+    s+='<g class="pHole"><circle cx="11" cy="26" r="1.7" '+HOLE+'/></g>'+
+       '<g transform="translate(11,26)"><g class="pOn">'+
+       '<circle cx="0" cy="0" r="1.6" fill="'+W+'.3)"/><line x1="-1" y1="0" x2="1" y2="0" stroke="rgba(0,0,0,.4)" stroke-width=".6"/></g></g>';
+  } else {
+    s+='<circle cx="11" cy="26" r="1.6" fill="'+W+'.3)"/><line x1="10" y1="26" x2="12" y2="26" stroke="rgba(0,0,0,.4)" stroke-width=".6"/>';
+  }
+  s+='<circle cx="-11" cy="16" r="1.5" fill="'+W+'.22)"/>';
+  return s;
+}
+
+/* ── 떨어진 부품 (몸 밖 · 화면 좌표) ── */
+var FALL={
+  A:{x:139.3, y:177.5, land:[146,194.5],
+     svg:'<circle cx="0" cy="0" r="2.8" fill="'+W+'.3)"/><line x1="-1.7" y1="0" x2="1.7" y2="0" stroke="rgba(0,0,0,.4)" stroke-width="1"/>'},
+  B:{x:78.0, y:113.6, land:[67,193.6],
+     svg:'<rect x="-4.4" y="-9.6" width="8.8" height="19.2" rx="3.5" fill="'+W+'.08)" stroke="'+W+'.2)" stroke-width="1.3"/>'+
+         '<line x1="0" y1="-4.4" x2="0" y2="4.4" stroke="'+W+'.16)" stroke-width="1"/>'},
+  C:{x:114.8, y:164.4, land:[105.8,196.4],
+     svg:'<rect x="-10.5" y="-8.8" width="21" height="17.5" rx="3.5" fill="'+W+'.09)" stroke="'+W+'.2)" stroke-width="1.3"/>'+
+         '<circle cx="-6.3" cy="-4.6" r="1.4" fill="'+W+'.24)"/><circle cx="6.3" cy="4.6" r="1.4" fill="'+W+'.24)"/>'},
+  D:{x:115.7, y:80.2, land:[107.7,200.2],
+     svg:'<path d="M0 0 l-4.2 -9.4 l12.2 -5.2" fill="none" stroke="'+W+'.3)" stroke-width="2.4" stroke-linecap="round"/>'}
+};
+function stage(id){
+  var f=FALL[id];
+  return '<svg viewBox="0 0 240 236" id="'+id+'">'+
+    '<ellipse class="shadow" cx="120" cy="196" rx="38" ry="6.5"/>'+
+    '<g transform="translate(120,132) scale(1.75)"><g class="rob">'+
+      '<text class="zzz" x="24" y="-26">z z</text>'+ body(id)+
+      '<g class="sheet"><rect x="-12" y="33" width="24" height="17" rx="4" fill="rgba(200,241,105,.15)" stroke="var(--prod)" stroke-width="1.2"/>'+
+      '<line x1="-7" y1="39" x2="7" y2="39" stroke="var(--prod)" stroke-width="1.3" stroke-linecap="round"/></g>'+
+    '</g></g>'+
+    '<g transform="translate('+f.land[0]+','+(f.land[1]+3)+')"><ellipse class="dust" rx="6" ry="1.6" fill="'+W+'.16)"/></g>'+
+    '<g transform="translate('+f.x+','+f.y+')"><g class="pFall">'+f.svg+'</g></g>'+
+  '</svg>';
+}
+/* 실제 크기 74px — 자는 모습(부품 붙어 있는 상태) */
+function mini(id){
+  return '<svg viewBox="0 0 96 96"><g transform="translate(48,46)"><g class="rob">'+ body(id) +'</g></g></svg>';
+}
+
+var ANS=[
+ {id:'A', tag:'A안', nm:'A — 나사가 빠진다',
+  sub:'몸통 오른쪽 아래에 «있던» 나사가 덜덜 떨다 빠지고, 그 자리에 구멍이 남는다',
+  spec:[['떨어지는 것','나사 하나 (제일 작다)'],
+        ['남는 자국','까만 나사 구멍 하나'],
+        ['바닥','또르르 굴러가 옆에 눕는다'],
+        ['세기','제일 약함 — 조용하고 얌전하다']],
+  real:'자는 동안엔 나사가 제자리에 붙어 있습니다'},
+
+ {id:'B', tag:'B안', nm:'B — 머리 옆 판이 떨어진다',
+  sub:'귀처럼 붙어 있던 옆판이 떨어져 나가고, 안쪽 배선 한 가닥이 드러난다',
+  spec:[['떨어지는 것','머리 옆판 («귀»처럼 보인다)'],
+        ['남는 자국','까만 홈 + 주황 배선 한 가닥'],
+        ['바닥','머리 높이에서 한참 떨어져 «탁» 하고 눕는다'],
+        ['세기','중간 — 얼굴 옆이라 눈에 제일 잘 띈다']],
+  real:'옆판이 붙어 있어 머리가 조금 넓어 보입니다'},
+
+ {id:'C', tag:'C안', nm:'C — 가슴 뚜껑이 통째로',
+  sub:'가슴 뚜껑이 떨어지면서 안쪽 배선 두 가닥이 통째로 드러난다',
+  spec:[['떨어지는 것','가슴 뚜껑 (제일 크다)'],
+        ['남는 자국','열린 속 + 배선 둘 (하나는 주황)'],
+        ['바닥','비스듬히 기대 눕는다'],
+        ['세기','셈 — «속이 보인다»가 제일 강한 그림']],
+  real:'뚜껑에 나사 두 개가 박혀 있는 게 보입니다'},
+
+ {id:'D', tag:'D안', nm:'D — 안테나가 부러진다',
+  sub:'꺾여 있던 안테나가 아예 부러져 떨어지고, 그때부터 몸이 중심을 잃고 크게 휘청인다',
+  spec:[['떨어지는 것','안테나 (제일 길다)'],
+        ['남는 자국','짧은 밑동만 남는다'],
+        ['바닥','머리 위에서 끝까지 떨어져 데굴 구른다'],
+        ['세기','제일 셈 — 떨어진 뒤 흔들림 자체가 커진다']],
+  real:'지금 앱의 그 꺾인 안테나 그대로입니다'}
+];
+
+document.getElementById('grid').innerHTML = ANS.map(function(a){
+  return '<section class="card" data-an="'+a.id+'">'+
+    '<span class="tag">'+a.tag+'</span>'+
+    '<div class="chd"><b>'+a.nm+'</b><s>'+a.sub+'</s></div>'+
+    '<div class="stage">'+stage(a.id)+'</div>'+
+    '<p class="nm"><b>덜컹이</b><span>고장난 로봇</span></p>'+
+    '<div class="foot"><button data-run="'+a.id+'">깨우기</button><span class="st">자는 중 — 부품 붙어 있음</span></div>'+
+    '<div class="spec">'+a.spec.map(function(r){
+      return '<div><b>'+r[0]+'</b><span>'+r[1]+'</span></div>'; }).join('')+'</div>'+
+    '<div class="real"><div class="box">'+mini(a.id)+'</div><p><b>실제 크기</b><br>'+a.real+'</p></div>'+
+    '</section>';
+}).join('');
+
+var T={};
+function reset(id){
+  var c=document.querySelector('[data-an="'+id+'"]'); if(!c) return;
+  clearTimeout(T[id]); c.classList.remove('run','done');
+  c.querySelector('.st').textContent='자는 중 — 부품 붙어 있음';
+}
+function run(id){
+  var c=document.querySelector('[data-an="'+id+'"]'); if(!c) return;
+  reset(id); void c.offsetWidth;
+  c.classList.add('run');
+  c.querySelector('.st').textContent='끄응… 덜컹덜컹';
+  T[id]=setTimeout(function(){
+    c.classList.remove('run'); c.classList.add('done');
+    c.querySelector('.st').textContent='…해냈습니다 (부품은 안 돌아옵니다)';
+  }, 3500);
+}
+document.addEventListener('click', function(e){
+  var r=e.target.closest('[data-run]');
+  if(r){ run(r.dataset.run); return; }
+  if(e.target.closest('[data-all]')){ ANS.forEach(function(a){ run(a.id); }); return; }
+  if(e.target.closest('[data-reset]')){ ANS.forEach(function(a){ reset(a.id); }); return; }
+});
+</script>
+</body>
+</html>
