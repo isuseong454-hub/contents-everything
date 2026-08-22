@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>폰에서 담는 법 — 설정 5분</title>
+<style>
+:root{
+  --tx1:#EDF0F6; --tx2:#8B93A3; --tx3:#5A6272;
+  --glass:rgba(255,255,255,.035); --line:rgba(255,255,255,.075); --line2:rgba(255,255,255,.15);
+  --prod:#C8F169; --and:#7EC8F5;
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;color:var(--tx1);font:100%/1.5 -apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{background:radial-gradient(120% 70% at 50% 0%, #0d1017, #070910 54%, #050609);min-height:100vh;padding:22px 16px 90px}
+.wrap{max-width:480px;margin:0 auto}
+h1{font-size:22px;letter-spacing:-.02em;margin:0 0 6px}
+.lead{color:var(--tx2);font-size:13px;line-height:1.65;margin:0 0 16px}
+.lead b{color:var(--prod)}
+
+/* 아이폰 / 안드로이드 갈림 */
+.tabs{display:flex;gap:7px;margin-bottom:20px;position:sticky;top:0;z-index:9;
+  background:linear-gradient(180deg,#070910 70%,transparent);padding:8px 0 12px}
+.tabs button{flex:1;font-family:inherit;font-size:14px;font-weight:800;padding:13px 0;border-radius:13px;cursor:pointer;
+  background:var(--glass);border:1.5px solid var(--line2);color:var(--tx2)}
+.tabs button[aria-pressed="true"]{background:var(--prod);border-color:var(--prod);color:#06080c}
+.tabs button.and[aria-pressed="true"]{background:var(--and);border-color:var(--and)}
+.pane{display:none}
+.pane.on{display:block}
+
+/* 세로 사다리 — 한 계단 = 그림 하나 + 말 한 줄 */
+.lad{position:relative;padding-left:34px}
+.lad::before{content:"";position:absolute;left:13px;top:8px;bottom:8px;width:2.5px;border-radius:2px;
+  background:linear-gradient(180deg,var(--k,#C8F169),rgba(255,255,255,.06))}
+.st{position:relative;margin-bottom:26px}
+.st::before{content:attr(data-n);position:absolute;left:-34px;top:0;width:27px;height:27px;border-radius:50%;
+  background:var(--k,#C8F169);color:#06080c;font-size:12.5px;font-weight:900;display:grid;place-items:center}
+.st>b{display:block;font-size:15px;font-weight:800;letter-spacing:-.01em;line-height:1.4;padding-top:2px}
+.st>s{text-decoration:none;display:block;font-size:12px;color:var(--tx2);line-height:1.6;margin:3px 0 10px}
+.st>s em{font-style:normal;color:var(--prod);font-weight:800}
+.pane.and .st>s em{color:var(--and)}
+
+/* 그림(가짜 화면) */
+.shot{border:1.5px solid var(--line2);border-radius:16px;overflow:hidden;background:#101319;position:relative}
+.shot .bar1{padding:9px 13px;font-size:11px;font-weight:800;border-bottom:1px solid var(--line);color:var(--tx2);
+  display:flex;justify-content:space-between;align-items:center}
+.shot .row{display:flex;align-items:center;gap:10px;padding:12px 13px;font-size:13px;border-bottom:1px solid var(--line)}
+.shot .row:last-child{border-bottom:0}
+.shot .row i{font-style:normal;width:29px;height:29px;border-radius:8px;background:#242936;display:grid;place-items:center;font-size:14px;flex:none}
+.shot .row s{text-decoration:none;color:var(--tx3);font-size:11px;margin-left:auto}
+.shot .row.dim{color:var(--tx3)}
+.shot .tog{margin-left:auto;width:40px;height:24px;border-radius:13px;background:#31d158;position:relative;flex:none}
+.shot .tog::after{content:"";position:absolute;right:2.5px;top:2.5px;width:19px;height:19px;border-radius:50%;background:#fff}
+.shot .tog.off{background:#3a3f4d}.shot .tog.off::after{right:auto;left:2.5px}
+/* 누를 곳 — 동그라미 */
+.here{position:absolute;border:3px solid #FF5A76;border-radius:14px;pointer-events:none;
+  box-shadow:0 0 0 3px rgba(255,90,118,.25);animation:here 1.6s var(--ease) infinite}
+@keyframes here{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.045)} }
+.here::after{content:"여기";position:absolute;right:-6px;top:-22px;font-size:10.5px;font-weight:900;color:#FF5A76}
+/* 단축어 동작 카드 */
+.act{display:flex;gap:9px;align-items:flex-start;padding:11px 12px;border-bottom:1px solid var(--line)}
+.act:last-child{border-bottom:0}
+.act i{font-style:normal;width:27px;height:27px;border-radius:7px;display:grid;place-items:center;font-size:13px;flex:none}
+.act div{min-width:0;flex:1}
+.act b{font-size:12.5px;display:block}
+.act s{text-decoration:none;font-size:11px;color:var(--tx3);display:block;line-height:1.5;margin-top:1px}
+.act .v{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:7px;margin:3px 4px 0 0;
+  background:rgba(126,200,245,.14);border:1px solid rgba(126,200,245,.4);color:#7EC8F5}
+/* 복사 상자 */
+.copybox{margin-top:9px;border:1.5px dashed rgba(200,241,105,.5);border-radius:12px;padding:11px 12px;background:rgba(200,241,105,.05)}
+.copybox p{margin:0 0 8px;font-size:11.5px;word-break:break-all;line-height:1.6;color:var(--prod);font-weight:700}
+.copybox button{font-family:inherit;font-size:12px;font-weight:800;padding:9px 14px;border-radius:10px;cursor:pointer;
+  background:var(--prod);border:none;color:#06080c;width:100%}
+.done-note{border:1px solid rgba(200,241,105,.32);background:rgba(200,241,105,.06);border-radius:15px;
+  padding:13px 15px;font-size:12.5px;line-height:1.7;margin-top:4px}
+.done-note b{color:var(--prod)}
+.pane.and .done-note{border-color:rgba(126,200,245,.32);background:rgba(126,200,245,.06)}
+.pane.and .done-note b{color:var(--and)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📱 폰에서 담는 법</h1>
+  <p class="lead">인스타·유튜브를 보다가 좋은 걸 만나면 <b>공유 → 컨모에 담기</b>로 끝나게 만드는 설정입니다.
+     <b>한 번만</b> 하면 됩니다. 이 페이지를 폰으로 열고 옆에 두고 따라 하세요.</p>
+
+  <div class="tabs">
+    <button data-tab="ios" aria-pressed="true"> 아이폰 (5분)</button>
+    <button data-tab="and" class="and" aria-pressed="false">🤖 안드로이드 (30초)</button>
+  </div>
+
+  <!-- ═══════════ 아이폰 ═══════════ -->
+  <div class="pane on" id="p-ios" style="--k:#C8F169">
+    <div class="lad">
+
+      <div class="st" data-n="1">
+        <b>「단축어」 앱을 연다</b>
+        <s>아이폰에 원래 깔려 있는 애플 기본 앱입니다. 없으면 앱스토어에서 «단축어» 검색 — 무료.</s>
+        <div class="shot"><div class="row"><i>🟦</i>단축어 <s>Apple 기본 앱</s></div>
+          <span class="here" style="inset:6px 40% 6px 6px"></span></div>
+      </div>
+
+      <div class="st" data-n="2">
+        <b>오른쪽 위 ＋ 를 누른다</b>
+        <s>새 단축어 만들기.</s>
+        <div class="shot"><div class="bar1">모든 단축어 <b style="font-size:16px">＋</b></div>
+          <div class="row dim"><i>▦</i>내 단축어들...</div>
+          <span class="here" style="right:5px;top:3px;width:34px;height:28px"></span></div>
+      </div>
+
+      <div class="st" data-n="3">
+        <b>이름을 «컨모에 담기»로</b>
+        <s>위쪽 제목 자리를 눌러 바꿉니다. <em>이 이름이 나중에 공유 목록과 시리 명령어가 됩니다.</em></s>
+        <div class="shot"><div class="bar1"><b style="color:var(--prod)">컨모에 담기</b> ▾</div>
+          <div class="row dim"><i>＋</i>동작 추가</div></div>
+      </div>
+
+      <div class="st" data-n="4">
+        <b>ⓘ → «공유 시트에 표시» 켜기</b>
+        <s>아래 가운데의 <em>ⓘ</em>를 누르면 나옵니다. 이걸 켜야 인스타 공유 목록에 뜹니다.</s>
+        <div class="shot">
+          <div class="row">공유 시트에 표시<span class="tog"></span></div>
+          <div class="row dim">홈 화면에 추가<span class="tog off"></span></div>
+          <span class="here" style="inset:4px 4px 50% 4px"></span></div>
+      </div>
+
+      <div class="st" data-n="5">
+        <b>동작 4개를 순서대로 넣는다</b>
+        <s>아래 검색창에 이름을 치면 나옵니다. <em>순서가 중요합니다.</em></s>
+        <div class="shot">
+          <div class="act"><i style="background:#3E6ED8">🔗</i><div><b>① 입력에서 URL 가져오기</b><s>공유받은 것에서 링크만 뽑는다</s></div></div>
+          <div class="act"><i style="background:#8459C8">💬</i><div><b>② 입력 요청</b><s>질문: <u style="color:var(--tx2)">왜 좋았어? (그냥 확인 눌러도 됨)</u></s></div></div>
+          <div class="act"><i style="background:#4B5568">📄</i><div><b>③ 텍스트</b><s>아래 6번의 주소를 붙여넣고 변수를 꽂는다</s></div></div>
+          <div class="act"><i style="background:#D8763A">🌐</i><div><b>④ URL 열기</b><s>③의 텍스트를 연다</s></div></div>
+        </div>
+      </div>
+
+      <div class="st" data-n="6">
+        <b>③텍스트 칸에 이 주소를 넣는다</b>
+        <s>아래 버튼으로 복사 → ③텍스트 칸에 붙여넣기.</s>
+        <div class="copybox">
+          <p id="cptxt">https://isuseong454-hub.github.io/contents-everything/?quick=</p>
+          <button data-copy="1">📋 주소 복사</button>
+        </div>
+        <s style="margin-top:9px">그다음이 <em>제일 중요한 반 걸음</em> — 붙여넣은 주소 <em>맨 끝(= 뒤)</em>을 한 번 누르면
+           키보드 위에 변수들이 뜹니다. 거기서 <em>「URL」</em>을 누르면 파란 알약이 꽂힙니다.</s>
+        <div class="shot" style="margin-top:8px">
+          <div class="act"><i style="background:#4B5568">📄</i><div><b>텍스트</b>
+            <s>…contents-everything/?quick=<span class="v">URL</span></s>
+            <s style="margin-top:5px">더 완벽하게 하려면 뒤에 <u style="color:var(--tx2)">&note=</u>를 이어 쓰고 <span class="v">제공된 입력</span>(②의 답)을 꽂습니다 — 안 해도 담기는 됩니다</s>
+          </div></div>
+        </div>
+      </div>
+
+      <div class="st" data-n="7">
+        <b>완료. 이제 써본다</b>
+        <s>인스타 릴스에서: <em>비행기 ✈ → 「공유하기…」(기타) → 컨모에 담기</em>. 유튜브는 <em>공유 → 기타</em>.</s>
+        <div class="shot">
+          <div class="row"><i>💬</i>메시지</div>
+          <div class="row"><i style="background:rgba(200,241,105,.2)">⚡</i><b style="color:var(--prod)">컨모에 담기</b></div>
+          <div class="row dim"><i>🔗</i>링크 복사</div>
+          <span class="here" style="inset:37% 4px 26% 4px"></span></div>
+        <s style="margin-top:8px">처음 한 번, 공유 목록을 왼쪽으로 밀어 <em>«편집»</em>에서 컨모에 담기를 ＋하면 항상 맨 위에 뜹니다.</s>
+      </div>
+
+      <div class="st" data-n="8">
+        <b>마지막 한 번 — 사파리에서 컨모 로그인</b>
+        <s>공유하면 사파리로 컨모가 열립니다. <em>처음 한 번만</em> 로그인해 두세요(자동 로그인 ✓).
+           로그인 전에 담은 것도 안 사라집니다 — 로그인하는 순간 담깁니다.</s>
+      </div>
+
+      <div class="done-note">
+        <b>보너스 두 개 (설정은 위와 같은 단축어 하나로)</b><br>
+        · <b>뒷면 톡톡</b> — 설정 → 손쉬운 사용 → 터치 → 맨 아래 «뒷면 탭» → 이중 탭 → 컨모에 담기.
+          이러면 링크 복사 후 <b>폰 뒷면 두 번 톡톡</b>으로도 담깁니다.<br>
+        · <b>시리</b> — 그냥 «시리야, 컨모에 담기» 라고 말하면 됩니다. 설정 0.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ 안드로이드 ═══════════ -->
+  <div class="pane and" id="p-and" style="--k:#7EC8F5">
+    <div class="lad">
+      <div class="st" data-n="1">
+        <b>크롬으로 컨모를 연다</b>
+        <s>주소: <em>isuseong454-hub.github.io/contents-everything</em> — 로그인도 여기서 한 번(자동 로그인 ✓).</s>
+      </div>
+      <div class="st" data-n="2">
+        <b>⋮ 메뉴 → 「앱 설치」 (또는 «홈 화면에 추가»)</b>
+        <s>오른쪽 위 점 세 개.</s>
+        <div class="shot"><div class="bar1">컨텐츠의 모든것 <b>⋮</b></div>
+          <div class="row dim"><i>↻</i>새로고침</div>
+          <div class="row"><i>📲</i><b style="color:var(--and)">앱 설치</b></div>
+          <div class="row dim"><i>★</i>북마크</div>
+          <span class="here" style="inset:34% 4px 27% 4px"></span></div>
+      </div>
+      <div class="st" data-n="3">
+        <b>끝. 설정이 없습니다</b>
+        <s>이제 인스타·유튜브에서 <em>공유</em>를 누르면 앱 목록에 <em>「컨텐츠의 모든것」</em>이 카톡 옆에 그냥 뜹니다. 누르면 담깁니다.</s>
+        <div class="shot"><div class="bar1">공유</div>
+          <div class="row"><i>💬</i>카카오톡</div>
+          <div class="row"><i style="background:rgba(126,200,245,.2)">✦</i><b style="color:var(--and)">컨텐츠의 모든것</b></div>
+          <span class="here" style="inset:44% 4px 8% 4px"></span></div>
+      </div>
+      <div class="done-note">
+        <b>안드로이드가 이 부분은 더 편합니다</b> — 단축어도, 주소 복사도 필요 없습니다.
+        설치만 하면 공유 메뉴가 알아서 생깁니다. (예전에 설치해뒀다면 지웠다 다시 설치해야 생깁니다.)
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('click', function(e){
+  var t=e.target.closest('[data-tab]');
+  if(t){
+    document.querySelectorAll('[data-tab]').forEach(function(b){ b.setAttribute('aria-pressed', b===t); });
+    document.getElementById('p-ios').classList.toggle('on', t.dataset.tab==='ios');
+    document.getElementById('p-and').classList.toggle('on', t.dataset.tab==='and');
+    window.scrollTo({top:0}); return;
+  }
+  if(e.target.closest('[data-copy]')){
+    var txt=document.getElementById('cptxt').textContent;
+    (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){
+      e.target.textContent='✓ 복사됐어요 — 단축어의 ③텍스트에 붙여넣으세요';
+    }).catch(function(){ e.target.textContent='길게 눌러 직접 복사해주세요'; });
+  }
+});
+</script>
+</body>
+</html>
