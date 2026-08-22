@@ -854,6 +854,52 @@ body.phone .bot .bi p.ph{display:block}
 .bot.ok .sheet{animation:botsheet .6s var(--spring) 1 both}
 @keyframes botsheet{ 0%{opacity:0;transform:translateY(-9px) rotate(-9deg)}
   60%{transform:translateY(2px) rotate(4deg)} 100%{opacity:1;transform:none} }
+/* ═══ v27 · 담기 방의 주인공은 덜컹이 ═══ */
+/* 가운데 크게 세운다. 링크를 넣는 순간부터 «기다리는 시간»이 곧 덜컹이의 무대다 */
+.bot.big{flex-direction:column;align-items:center;text-align:center;gap:4px;padding:20px 14px 16px;margin-bottom:14px}
+.bot.big svg{width:184px;height:184px;margin:-10px 0}
+.bot.big .bfig{gap:0;margin-top:-6px}
+.bot.big .bfig b{font-size:14.5px}
+.bot.big .bfig s{font-size:10px}
+.bot.big .bi{flex:none;width:100%;max-width:340px}
+.bot.big .bi p{margin-top:6px;font-size:12.5px;line-height:1.5}
+.bot.big .ba{justify-content:center;margin-top:9px}
+@media(max-width:400px){ .bot.big svg{width:150px;height:150px} }
+
+/* 투입구 둘 — 유튜브 · 인스타 */
+.feeds{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px}
+@media(max-width:520px){ .feeds{grid-template-columns:1fr} }
+.feed{padding:11px 12px 12px;border-radius:14px;border:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(255,255,255,.028),rgba(255,255,255,.008))}
+.feed.yt{border-color:rgba(224,87,75,.26)}
+.feed.ig{border-color:rgba(214,41,118,.24)}
+.feed b{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:800;letter-spacing:-.01em}
+.feed b .jsrc{position:static;width:19px;height:19px;border-radius:6px}
+.feed b .jsrc svg{width:12.5px;height:12.5px}
+.feed s{display:block;text-decoration:none;font-size:10.5px;color:var(--tx3);line-height:1.5;margin:4px 0 8px}
+.feed .fin{display:flex;gap:6px}
+.feed .fin input{flex:1;min-width:0;background:var(--glass);border:1px solid var(--line2);border-radius:10px;
+  padding:9px 11px;color:var(--tx1);font:inherit;font-size:12.5px}
+.feed .fin input::placeholder{color:var(--tx3);font-size:11.5px}
+.feed.yt .fin input:focus{border-color:rgba(224,87,75,.55);outline:none}
+.feed.ig .fin input:focus{border-color:rgba(214,41,118,.5);outline:none}
+.feed .fin button{flex:none;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;
+  padding:0 13px;border-radius:10px;border:1px solid var(--line2);background:var(--glass);color:var(--tx1)}
+.feed.yt .fin button{background:rgba(224,87,75,.16);border-color:rgba(224,87,75,.4)}
+.feed.ig .fin button{background:rgba(214,41,118,.14);border-color:rgba(214,41,118,.38)}
+.feed .fin button:active{transform:scale(.95)}
+
+/* 담긴 것들은 작게 · 썸네일 위주로 아래 깔린다 */
+#jr1 .vgrid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:7px}
+#jr1 .vc2{border-radius:11px}
+#jr1 .vc2 .th{aspect-ratio:9/12}
+#jr1 .vc2 .th::after{border-width:7px 0 7px 12px}
+#jr1 .vc2 .vw{left:6px;bottom:5px;font-size:10px}
+#jr1 .vc2 .tt{padding:6px 7px 6px;font-size:10.5px;line-height:1.3;-webkit-line-clamp:2}
+#jr1 .vc2 small{display:none}
+#jr1 .vc2 .vbt{padding:0 5px 5px;gap:3px}
+#jr1 .vc2 .vbt i{font-size:10px;padding:3px 0}
+
 /* 🤖 분해봇 줄 — 지금 뭐가 밀렸는지 한 줄로 */
 .jbotbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px;padding:10px 12px;
   border-radius:13px;background:rgba(200,241,105,.06);border:1px solid rgba(200,241,105,.24)}
@@ -1150,11 +1196,26 @@ body.vault #tb-gz{display:inline-block}
     <nav class="jline" id="jline"></nav>
 
     <div class="jroom on" id="jr1">
+      <!-- v27 · 담기의 주인공은 덜컹이. 가운데 크게 세우고, 링크를 넣으면 «로딩»이 곧 덜컹이의 퍼포먼스가 된다 -->
       <div id="jbot1"></div>
-      <!-- v9 담기 배선 그대로 산다(vidRender가 여기에 그린다) -->
-      <div class="msd-paste">
-        <input id="vid-in" placeholder="🔗 영상 링크 붙여넣기 (유튜브는 제목·그림·원고 자동)" autocomplete="off">
-        <button type="button" data-vidadd="1">담기</button>
+      <!-- v9 담기 배선 그대로 산다(vidRender가 아래 #vid-list 에 그린다) -->
+      <div class="feeds">
+        <div class="feed yt">
+          <b><i class="jsrc yt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.4 7.6v8.8l7.4-4.4z" fill="#fff"/></svg></i>유튜브</b>
+          <s>링크만 넣으면 제목·그림·원고까지 가져옵니다</s>
+          <div class="fin">
+            <input id="vid-in" placeholder="youtube.com/… 또는 youtu.be/…" autocomplete="off">
+            <button type="button" data-vidadd="yt">담기</button>
+          </div>
+        </div>
+        <div class="feed ig">
+          <b><i class="jsrc ig"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.9" y="2.9" width="18.2" height="18.2" rx="5.4"/><circle cx="12" cy="12" r="4.4"/><circle cx="17.6" cy="6.4" r="1.3" fill="#fff" stroke="none"/></svg></i>인스타</b>
+          <s>덜컹이가 받아씁니다 · 조회수는 카드에서 직접</s>
+          <div class="fin">
+            <input id="vid-in-ig" placeholder="instagram.com/reel/…" autocomplete="off">
+            <button type="button" data-vidadd="ig">담기</button>
+          </div>
+        </div>
       </div>
       <div class="chips" id="vf-topic"></div>
       <div class="chips" id="vf-axis"></div>
@@ -1389,7 +1450,7 @@ body.vault #tb-gz{display:inline-block}
 const APP_CFG = {
   name: '컨텐츠의 모든것',
   key: 'cme',
-  ver: 'v27',
+  ver: 'v28',
   tagline: '오늘 본 것이 휘발되지 않는다',
   demo: false,   // v7 · 실서버 배선 완료(2026-08-18)
   demoCode: 'EEEEEE', demoPin: '2222',
@@ -2044,7 +2105,9 @@ async function jFetchScript(v, quiet){
     if(!quiet) toast('못 가져왔어요 — '+((r&&r.msg)||'알 수 없음'));
     jPaint();
     return false;
-  }catch(e){ delete _jBusy[v.id]; if(!quiet) toast('금고 서버에 못 닿았어요'); return false; }
+  }catch(e){ delete _jBusy[v.id];
+    botSay('','금고 서버에 못 닿았어요 — 맥북에서 열어 주세요');   /* 안 그러면 영원히 일하는 중이 된다 */
+    if(!quiet) toast('금고 서버에 못 닿았어요'); return false; }
 }
 async function jOrderBot(v){
   try{
@@ -2112,7 +2175,7 @@ function jPaint1(){
   else { line='자는 중 — 링크를 담으면 깨어납니다'; mood=''; }
 
   host.innerHTML =
-    '<div class="bot'+(mood?' '+mood:'')+'">'+
+    '<div class="bot big'+(mood?' '+mood:'')+'">'+
       '<figure class="bfig">'+botSVG()+'<figcaption><b>'+BOT_NAME+'</b><s>'+BOT_TITLE+'</s></figcaption></figure>'+
       '<div class="bi">'+
       '<p class="bstate">'+esc(line||'끄응… 덜컹덜컹')+'</p>'+
@@ -2643,7 +2706,11 @@ async function vidAdd(raw){
                url:p.url, title:(p.kind==='yt'?'유튜브 영상':'영상'), text:'', views:'', img_path:'',
                memo:JSON.stringify({yt:p.ytid, segs:{}, why:''}), tags:[], created_at:new Date().toISOString() };
   await itemsSave(it); vidRender();
-  toast('🎬 서재에 담았어요 — 카드를 누르면 해부할 수 있어요');
+  toast('🎬 담았어요 — 덜컹이가 원고를 가지러 갑니다');
+  /* v27 · «로딩»을 덜컹이의 퍼포먼스로 쓴다. 폰엔 금고가 없으니 부르지 않는다 */
+  if(!document.body.classList.contains('phone')){
+    setTimeout(function(){ try{ jFetchScript(it, true); }catch(e){} }, 400);
+  }
   if(p.kind==='yt' && p.ytid){
     try{
       const r = await fetch('https://www.youtube.com/oembed?format=json&url='+encodeURIComponent('https://www.youtube.com/watch?v='+p.ytid));
@@ -3677,7 +3744,8 @@ document.addEventListener('click', async e=>{
     toast(at>=0?'강의에서 뺐어요':'🎓 강의에 넣었어요'); return;
   }
   /* ── v9 · 영상 서재 ── */
-  if(hit('data-vidadd')){ const i=$('#vid-in'); if(i){ const v=i.value; i.value=''; await vidAdd(v); } return; }
+  const vadd = hit('data-vidadd');
+  if(vadd){ const i=$(vadd==='ig'?'#vid-in-ig':'#vid-in'); if(i){ const v=i.value; i.value=''; await vidAdd(v); } return; }
   const vft = hit('data-vft'); if(vft){ _vfTopic=vft; vidRender(); return; }
   const vfa = hit('data-vfa'); if(vfa){ _vfAxis=vfa; vidRender(); return; }
   const vid = hit('data-vid');

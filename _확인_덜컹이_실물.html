@@ -17,7 +17,7 @@ h1{font-size:20px;margin:0 0 6px;letter-spacing:-.02em}
 .bar button{font-family:inherit;font-size:12.5px;font-weight:800;padding:10px 16px;border-radius:11px;cursor:pointer;
   background:var(--prod);border:none;color:#06080c}
 .bar button.ghost{background:var(--glass);border:1px solid var(--line2);color:var(--tx2)}
-.big{transform:scale(2.6);transform-origin:left top;width:38.5%;margin-bottom:150px}
+.zoom{transform:scale(1.7);transform-origin:left top;width:58.8%;margin-bottom:120px}
 .note{font-size:11px;color:var(--tx3);line-height:1.6;border-top:1px solid var(--line);padding-top:10px;margin-top:6px}
 /* ↓↓↓ 여기부터는 index.html 에서 «그대로 뽑아온» 것 ↓↓↓ */
 .bot{display:flex;gap:12px;align-items:center;margin:0 0 12px;padding:11px 13px;border-radius:15px;
@@ -115,6 +115,51 @@ body.phone .bot .bi p.ph{display:block}
 .bot.ok .sheet{animation:botsheet .6s var(--spring) 1 both}
 @keyframes botsheet{ 0%{opacity:0;transform:translateY(-9px) rotate(-9deg)}
   60%{transform:translateY(2px) rotate(4deg)} 100%{opacity:1;transform:none} }
+/* ═══ v27 · 담기 방의 주인공은 덜컹이 ═══ */
+/* 가운데 크게 세운다. 링크를 넣는 순간부터 «기다리는 시간»이 곧 덜컹이의 무대다 */
+.bot.big{flex-direction:column;align-items:center;text-align:center;gap:4px;padding:20px 14px 16px;margin-bottom:14px}
+.bot.big svg{width:184px;height:184px;margin:-10px 0}
+.bot.big .bfig{gap:0;margin-top:-6px}
+.bot.big .bfig b{font-size:14.5px}
+.bot.big .bfig s{font-size:10px}
+.bot.big .bi{flex:none;width:100%;max-width:340px}
+.bot.big .bi p{margin-top:6px;font-size:12.5px;line-height:1.5}
+.bot.big .ba{justify-content:center;margin-top:9px}
+@media(max-width:400px){ .bot.big svg{width:150px;height:150px} }
+
+/* 투입구 둘 — 유튜브 · 인스타 */
+.feeds{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px}
+@media(max-width:520px){ .feeds{grid-template-columns:1fr} }
+.feed{padding:11px 12px 12px;border-radius:14px;border:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(255,255,255,.028),rgba(255,255,255,.008))}
+.feed.yt{border-color:rgba(224,87,75,.26)}
+.feed.ig{border-color:rgba(214,41,118,.24)}
+.feed b{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:800;letter-spacing:-.01em}
+.feed b .jsrc{position:static;width:19px;height:19px;border-radius:6px}
+.feed b .jsrc svg{width:12.5px;height:12.5px}
+.feed s{display:block;text-decoration:none;font-size:10.5px;color:var(--tx3);line-height:1.5;margin:4px 0 8px}
+.feed .fin{display:flex;gap:6px}
+.feed .fin input{flex:1;min-width:0;background:var(--glass);border:1px solid var(--line2);border-radius:10px;
+  padding:9px 11px;color:var(--tx1);font:inherit;font-size:12.5px}
+.feed .fin input::placeholder{color:var(--tx3);font-size:11.5px}
+.feed.yt .fin input:focus{border-color:rgba(224,87,75,.55);outline:none}
+.feed.ig .fin input:focus{border-color:rgba(214,41,118,.5);outline:none}
+.feed .fin button{flex:none;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;
+  padding:0 13px;border-radius:10px;border:1px solid var(--line2);background:var(--glass);color:var(--tx1)}
+.feed.yt .fin button{background:rgba(224,87,75,.16);border-color:rgba(224,87,75,.4)}
+.feed.ig .fin button{background:rgba(214,41,118,.14);border-color:rgba(214,41,118,.38)}
+.feed .fin button:active{transform:scale(.95)}
+
+/* 담긴 것들은 작게 · 썸네일 위주로 아래 깔린다 */
+#jr1 .vgrid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:7px}
+#jr1 .vc2{border-radius:11px}
+#jr1 .vc2 .th{aspect-ratio:9/12}
+#jr1 .vc2 .th::after{border-width:7px 0 7px 12px}
+#jr1 .vc2 .vw{left:6px;bottom:5px;font-size:10px}
+#jr1 .vc2 .tt{padding:6px 7px 6px;font-size:10.5px;line-height:1.3;-webkit-line-clamp:2}
+#jr1 .vc2 small{display:none}
+#jr1 .vc2 .vbt{padding:0 5px 5px;gap:3px}
+#jr1 .vc2 .vbt i{font-size:10px;padding:3px 0}
 </style></head>
 <body><div class="wrap">
   <h1>덜컹이 — 앱 실물 확인</h1>
@@ -127,10 +172,10 @@ body.phone .bot .bi p.ph{display:block}
     <button class="ghost" data-go="">재우기 (부품 다시 붙음)</button>
   </div>
 
-  <p class="note">아래는 <b>앱에서 보이는 실제 크기</b>입니다</p>
+  <p class="note">아래가 <b>담기 방에서 보이는 실제 크기</b>입니다</p>
   <div id="one"></div>
-  <p class="note">아래는 같은 것을 <b>2.6배로 키운 것</b> — 부품이 어디서 빠지는지 보려고</p>
-  <div class="big"><div id="two"></div></div>
+  <p class="note">아래는 같은 것을 <b>1.7배로 키운 것</b> — 부품이 어디서 빠지는지 보려고</p>
+  <div class="zoom"><div id="two"></div></div>
 </div>
 <script>
 var BOT_NAME='덜컹이', BOT_TITLE='고장난 로봇';
@@ -167,7 +212,7 @@ function botSVG(){
   '</svg>';
 }
 function paint(mood){
-  var h='<div class="bot'+(mood?' '+mood:'')+'">'+
+  var h='<div class="bot big'+(mood?' '+mood:'')+'">'+
     '<figure class="bfig">'+botSVG()+'<figcaption><b>'+BOT_NAME+'</b><s>'+BOT_TITLE+'</s></figcaption></figure>'+
     '<div class="bi"><p class="bstate">'+
       (mood==='on'?'끄응… 자막 읽는 중…':mood==='ok'?'…해냈습니다':'자는 중 — 링크를 담으면 깨어납니다')+
