@@ -1739,10 +1739,17 @@ $('#lg-btn').addEventListener('click',doLogin);
    설치된 PWA와 사파리는 저장소가 달라서, 로그인이 없어도 잃어버리면 안 된다. */
 function quickStash(){
   try{
-    var u=new URL(location.href);
-    if(!u.searchParams.has('quick')) return;
-    localStorage.setItem(K('quick'), JSON.stringify({
-      q:u.searchParams.get('quick')||'', note:u.searchParams.get('note')||'' }));
+    var u=new URL(location.href), q=null, note='';
+    if(u.searchParams.has('quick')){                     /* 아이폰 단축어 길 */
+      q=u.searchParams.get('quick')||''; note=u.searchParams.get('note')||'';
+    }else if(u.searchParams.has('url')||u.searchParams.has('text')){
+      /* 안드로이드 공유 메뉴 길(share_target) — 링크가 url 아니면 text 안에 실려 온다 */
+      var raw=(u.searchParams.get('url')||'')+' '+(u.searchParams.get('text')||'');
+      var m=raw.match(/https?:\/\/[^\s]+/);
+      if(m) q=m[0];
+    }
+    if(q===null) return;
+    localStorage.setItem(K('quick'), JSON.stringify({q:q, note:note}));
     history.replaceState(null,'',location.pathname);   /* 새로고침 이중 담기 방지 */
   }catch(e){}
 }
