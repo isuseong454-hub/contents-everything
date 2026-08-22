@@ -334,7 +334,8 @@ def _ig_script(url, job_id):
                 return '', {}
             return sc, {'title': (r.get('caption') or '')[:90],
                         'views': r.get('manual_views') or '',
-                        'thumb': r.get('thumb') or ''}
+                        'thumb': r.get('thumb') or '',
+                        'kws': re.findall(r'#([^\s#]{1,14})', r.get('caption') or '')[:20]}
         if stage == 'error':
             _jobs[job_id] = {'state': 'fail', 'msg': '분해봇: ' + str(st.get('error') or '실패')[:90]}
             return '', {}
@@ -354,6 +355,26 @@ def _run_script_job(job_id, item_id, url):
                 _jobs[job_id] = {'state': 'fail',
                                  'msg': '자막이 없는 영상이에요 — 받아쓰기가 필요합니다(분해봇)'}
                 return
+            # v29 · 태그도 같이 긁는다(videos=1점) — 앱의 «키워드 3칸» 후보가 여기서 찬다
+            try:
+                mm = re.search(r'(?:v=|youtu\.be/|/shorts/|/embed/)([A-Za-z0-9_-]{6,20})', url)
+                if mm:
+                    r2 = yt_call('videos', {'part': 'snippet,statistics', 'id': mm.group(1)}, 'vault')
+                    its = (r2.get('data') or {}).get('items') or [] if r2.get('ok') else []
+                    if its:
+                        sn = its[0].get('snippet') or {}
+                        tags = [t for t in (sn.get('tags') or []) if len(str(t)) <= 14][:20]
+                        if not tags:      # 태그를 안 다는 채널도 많다 — 설명의 #태그로 받친다
+                            tags = re.findall(r'#([^\s#]{1,14})', sn.get('description') or '')[:20]
+                        if tags:
+                            info['kws'] = tags
+                        stv = (its[0].get('statistics') or {}).get('viewCount')
+                        if stv and not info.get('views'):
+                            info['views'] = '{:,}회'.format(int(stv))
+                        if sn.get('title') and not info.get('title'):
+                            info['title'] = sn['title'][:90]
+            except Exception:
+                pass
         else:
             script, info = _ig_script(url, job_id)
             if not script:
@@ -380,6 +401,8 @@ def _run_script_job(job_id, item_id, url):
             meta = {}
         if str(hit.get('type')) == 'video' or raw in ('', '{}') or meta:
             meta['script'] = script
+            if info.get('kws'):
+                meta['kwcand'] = info['kws']     # 키워드 «후보» — 고르는 건 앱에서 3개만
             hit['memo'] = json.dumps(meta, ensure_ascii=False)
         else:
             hit['script'] = script      # 규칙을 모르는 종류는 최상위에 둔다

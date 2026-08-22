@@ -27,6 +27,10 @@
     'shelfBlock', 'lecReady', 'vidTopics', 'vidKinds', 'vidAxes',                         // 강의 자료실
     'mrRender', 'mrLinkCard', 'mrReqCard',                                                // 마스터 실
     'showScr', 'setMode', 'inWs', 'sheetOpen', 'sheetClose', 'toast', 'pasteGuess',
+    // v29 · 강화 — 하나만 잘려도 «담기→작업대→컨마»가 끊긴다
+    'jBotFill', 'jKwCand', 'jKwSlots', 'jBench', 'jPacket', 'jPaint5',   // 키워드 3칸 · 작업대
+    'jScout', 'jScoutAdd',                                               // 정찰
+    'quickStash', 'quickFlush',                                          // 폰 빠른 담기
   ];
   const missFn = FN.filter(f => src.indexOf('function ' + f) < 0);
   add('렌더 함수 생존', !missFn.length, missFn.length ? '사라짐: ' + missFn.join(', ') : FN.length + '개 모두 존재');
