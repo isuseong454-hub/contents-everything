@@ -210,6 +210,24 @@
     (uxOut ? '' : '.ux-out 없음 ') + (ux16 ? '' : '입력칸 안전망 없음 ') +
     (typeof uxRowOut === 'function' ? '' : 'uxRowOut 없음 ') || '삭제 FLIP·입력칸 안전망·글씨 마감 모두 존재');
 
+  /* ── v25 · 자료실 4공정 ── */
+  add('자료실 공정 띠 4칸', document.querySelectorAll('#jline button').length === 4,
+     document.querySelectorAll('#jline button').length + '칸');
+  add('자료실 방 4개', document.querySelectorAll('.jroom').length === 4,
+     document.querySelectorAll('.jroom').length + '개');
+  add('담기 배선이 살아 있다', !!document.querySelector('#jr1 #vid-list'),
+     '#vid-list가 담기 방(jr1) 안에 있어야 vidRender가 그린다');
+  add('4공정 함수 전부 존재',
+     ['jGo','jLine','jPaint2','jPaint3','jPaint4','ROLE_COL'].every(function(k){ return typeof window[k]==='function'; }),
+     '없는 것: ' + ['jGo','jLine','jPaint2','jPaint3','jPaint4','ROLE_COL']
+       .filter(function(k){ return typeof window[k]!=='function'; }).join(','));
+  add('역할 세부 = 분해봇 사전',
+     typeof ROLE_SUBS !== 'undefined' && (ROLE_SUBS['CTA']||[]).join(',') === '홍보,목적',
+     'CTA 세부: ' + (typeof ROLE_SUBS!=='undefined' ? (ROLE_SUBS['CTA']||[]).join(',') : '없음'));
+  add('판정 보기 = 분해봇 보기',
+     typeof J_TYPES !== 'undefined' && J_TYPES.join(',') === '문제해결,꿀팁,스토리,욕구충족',
+     '유형 보기가 프롬프트와 달라지면 봇 결과를 못 받아 적는다');
+
   /* ── 결과 ── */
   const bad = R.filter(r => !r.ok && r.level === 'err');
   const wr = R.filter(r => !r.ok && r.level === 'warn');

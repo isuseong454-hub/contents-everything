@@ -78,34 +78,48 @@ create or replace function cme_salt(p_code text, p_pin text) returns text
 language sql immutable set search_path=public, extensions as
 $$ select encode(digest(upper(trim(p_code))||':'||p_pin,'sha256'),'hex') $$;
 
--- 5) 내부: 비번 검증 + 실패 잠금(8회/5분) + 소금 승급. 실패 시 예외(no_code/locked/wrong)
-create or replace function cme_check_user(p_code text, p_pin text) returns cme_users
-language plpgsql security definer set search_path=public, extensions as $$
+-- 5) 내부: 비번 검증 + 실패 잠금(8회/5분) + 소금 승급. 상태 글자를 돌려준다(ok/no_code/locked/wrong)
+-- ⚠️ 검증기는 예외를 던지지 않는다. fail_count 를 올린 뒤 raise 하면
+--    부르는 쪽 begin…exception 이 그 증가분까지 되감아 «잠금이 영영 안 걸린다».
+--    (2026-08-21에 실제로 새고 있던 자리) 다시 raise 로 바꾸지 말 것.
+CREATE OR REPLACE FUNCTION public.cme_verify(p_code text, p_pin text)
+ RETURNS text
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'extensions'
+AS $function$
 declare u cme_users;
 begin
   select * into u from cme_users where upper(code)=upper(trim(p_code));
-  if u.code is null then raise exception 'no_code'; end if;
-  if u.locked_until is not null and u.locked_until>now() then raise exception 'locked'; end if;
+  if u.code is null then return 'no_code'; end if;
+  if u.locked_until is not null and u.locked_until>now() then return 'locked'; end if;
   if not ( u.pin = p_pin
         or u.pin = encode(digest(p_pin,'sha256'),'hex')
         or u.pin = cme_salt(u.code,p_pin) ) then
     update cme_users set fail_count=coalesce(fail_count,0)+1,
       locked_until=case when coalesce(fail_count,0)+1>=8 then now()+interval '5 minutes' else locked_until end
       where code=u.code;
-    raise exception 'wrong';
+    return 'wrong';
   end if;
   update cme_users set fail_count=0, locked_until=null,
     pin=cme_salt(u.code,p_pin), hash_ver=1 where code=u.code;
-  return u;
-end $$;
+  return 'ok';
+end $function$
+;
+drop function if exists cme_check_user(text,text);
 
 -- 6) 로그인 → 세션 토큰 발급 (만료+3일 유예)
-create or replace function cme_login(p_code text, p_pin text) returns jsonb
-language plpgsql security definer set search_path=public as $$
-declare u cme_users; tok uuid;
+CREATE OR REPLACE FUNCTION public.cme_login(p_code text, p_pin text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'extensions'
+AS $function$
+declare u cme_users; tok uuid; s text;
 begin
-  begin u:=cme_check_user(p_code,p_pin);
-  exception when others then return jsonb_build_object('ok',false,'msg',sqlerrm); end;
+  s := cme_verify(p_code,p_pin);
+  if s <> 'ok' then return jsonb_build_object('ok',false,'msg',s); end if;
+  select * into u from cme_users where upper(code)=upper(trim(p_code));
   if u.expires_at is not null and u.expires_at + interval '3 days' < now() then
     return jsonb_build_object('ok',false,'msg','expired');
   end if;
@@ -113,7 +127,8 @@ begin
   insert into cme_sessions(code) values(u.code) returning token into tok;
   return jsonb_build_object('ok',true,'token',tok,'name',coalesce(u.name,''),
     'expires_at',u.expires_at,'must_set_pin',coalesce(u.must_set_pin,false));
-end $$;
+end $function$
+;
 
 -- 7) 세션 확인 (자동 로그인)
 create or replace function cme_session(p_code text, p_token uuid) returns jsonb
@@ -231,14 +246,18 @@ begin
   return s;
 end $$;
 
-create or replace function cme_admin(p_id text, p_pw text, p_op text, p_args jsonb default '{}'::jsonb) returns jsonb
-language plpgsql security definer set search_path=public as $$
-declare a cme_users; r jsonb; v_code text; v_months int; v_pin text; v_exp timestamptz; i int; v_name text;
+CREATE OR REPLACE FUNCTION public.cme_admin(p_id text, p_pw text, p_op text, p_args jsonb DEFAULT '{}'::jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare v_st text; a cme_users; r jsonb; v_code text; v_months int; v_pin text; v_exp timestamptz; i int; v_name text;
 begin
   select * into a from cme_users where upper(code)=upper(trim(p_id)) and coalesce(is_admin,false)=true;
   if a.code is null then return jsonb_build_object('ok',false,'msg','auth'); end if;
-  begin perform cme_check_user(a.code, p_pw);
-  exception when others then return jsonb_build_object('ok',false,'msg',sqlerrm); end;
+  v_st := cme_verify(a.code, p_pw);
+  if v_st <> 'ok' then return jsonb_build_object('ok',false,'msg',v_st); end if;
 
   if p_op='ping' then
     r:=jsonb_build_object('ok',true);
@@ -299,7 +318,8 @@ begin
     r:=jsonb_build_object('ok',false,'msg','op');
   end if;
   return r;
-end $$;
+end $function$
+;
 
 -- 13) 권한 정리 — RPC만 열고 내부 도우미는 잠금
 grant execute on function
@@ -310,7 +330,7 @@ grant execute on function
 to anon, authenticated;
 
 revoke all on function cme_salt(text,text)        from public, anon, authenticated;
-revoke all on function cme_check_user(text,text)  from public, anon, authenticated;
+revoke all on function cme_verify(text,text)  from public, anon, authenticated;
 revoke all on function cme_sess_ok(text,uuid)     from public, anon, authenticated;
 revoke all on function cme_gen_code()             from public, anon, authenticated;
 

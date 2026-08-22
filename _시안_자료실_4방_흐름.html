@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>자료실 — 4공정 한 흐름</title>
+<style>
+:root{
+  --bg0:#050609; --bg1:#0a0d13;
+  --hook:#B9A9F6; --story:#8EC7F6; --conv:#6FE0C8; --prod:#C8F169; --danger:#E07B7B;
+  --tx1:#EDF0F6; --tx2:#8B93A3; --tx3:#5A6272;
+  --glass:rgba(255,255,255,.035); --line:rgba(255,255,255,.075); --line2:rgba(255,255,255,.15);
+  --r-lg:22px; --r-md:16px; --r-sm:12px;
+  --spring:cubic-bezier(.32,1.4,.36,1); --ease:cubic-bezier(.22,.61,.36,1);
+  --room:var(--conv);            /* 방마다 갈아끼우는 «그 방의 색» */
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;color:var(--tx1);font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{background:#050609;min-height:100vh;padding:18px 16px 90px;position:relative;overflow-x:hidden}
+/* 현장 공기 ① — 방마다 색이 다른 천장 조명. 방을 옮기면 조명이 바뀐다 */
+body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(118% 62% at 50% -6%, color-mix(in srgb, var(--room) 13%, transparent), transparent 62%),
+             radial-gradient(90% 50% at 50% 104%, rgba(255,255,255,.028), transparent 60%);
+  transition:background .7s var(--ease)}
+.wrap{max-width:1120px;margin:0 auto}
+h1{font-size:22px;letter-spacing:-.02em;margin:0 0 5px}
+.lead{color:var(--tx2);font-size:12.5px;line-height:1.6;margin:0 0 16px}
+.lead b{color:var(--room);font-weight:700;transition:color .5s var(--ease)}
+
+/* ── 공정 띠 = 방 이동 ── */
+.line{display:flex;align-items:stretch;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.line button{flex:1 1 150px;display:flex;flex-direction:column;gap:3px;text-align:left;cursor:pointer;
+  font-family:inherit;padding:10px 12px;border-radius:14px;background:var(--glass);
+  border:1px solid var(--line);color:var(--tx3);transition:.28s var(--ease);position:relative;overflow:hidden}
+.line button:active{transform:scale(.985)}
+.line button b{font-size:12px;font-weight:800;color:var(--tx2);transition:color .28s}
+.line button s{text-decoration:none;font-size:10px;color:var(--tx3);line-height:1.4}
+.line button i{position:absolute;right:10px;top:9px;font-style:normal;min-width:20px;height:20px;line-height:20px;
+  text-align:center;border-radius:7px;background:rgba(255,255,255,.07);font-size:10.5px;font-weight:800;
+  color:var(--tx2);transition:.34s var(--spring)}
+.line button[aria-pressed="true"]{border-color:color-mix(in srgb,var(--rc) 46%,transparent);
+  background:color-mix(in srgb,var(--rc) 9%,transparent);box-shadow:0 0 26px -8px var(--rc)}
+.line button[aria-pressed="true"] b{color:var(--rc)}
+.line button[aria-pressed="true"] i{background:var(--rc);color:#06080c}
+.line button i.pop{transform:scale(1.45)}
+.line .flow{position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--rc),transparent);
+  opacity:0;transition:opacity .4s}
+.line button[aria-pressed="true"] .flow{opacity:.55}
+
+.stage{border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,255,255,.022),transparent 38%);min-height:420px}
+.room{display:none}
+.room.on{display:block;animation:roomin .32s var(--ease) 1 both}
+@keyframes roomin{from{opacity:0;transform:translateY(10px) scale(.994)}to{opacity:1;transform:none}}
+.rhd{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.rhd h2{font-size:14.5px;margin:0;font-weight:800;letter-spacing:-.01em}
+.rhd s{text-decoration:none;font-size:11.5px;color:var(--tx3);line-height:1.5}
+.rhd .cnt{margin-left:auto;font-size:11px;color:var(--room);font-weight:800}
+
+/* ── 썸네일 카드 ── */
+.th{position:relative;border-radius:var(--r-md);overflow:hidden;background:#0e1119;border:1px solid var(--line);
+  box-shadow:0 14px 34px rgba(0,0,0,.5)}
+.th .im{aspect-ratio:9/13;display:flex;align-items:flex-end;padding:11px;background:var(--g);position:relative}
+.th .im::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 34%,rgba(3,4,7,.86))}
+.th .hk{position:relative;z-index:2;font-size:13px;font-weight:800;line-height:1.32;text-shadow:0 2px 12px rgba(0,0,0,.7)}
+.th .vw{position:absolute;left:9px;top:9px;z-index:2;font-size:10px;font-weight:800;background:rgba(4,6,10,.72);
+  border:1px solid var(--line);border-radius:7px;padding:2px 6px}
+/* 출처는 우상단 배지 «하나»로 끝낸다 — 띠·태그·라벨을 겹치면 카드가 지저분해진다 */
+.th .src{position:absolute;right:8px;top:8px;z-index:3;width:21px;height:21px;border-radius:7px;
+  display:grid;place-items:center;line-height:0;
+  box-shadow:0 2px 9px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.22)}
+.th .src svg{width:14px;height:14px;display:block}
+.th .src.yt{background:#E0574B}
+/* 인스타 실제 그라데이션 — 두 색만 쓰면 19px에서 유튜브와 똑같이 붉게 보인다 */
+.th .src.ig{background:linear-gradient(45deg,#FEDA75,#FA7E1E 22%,#D62976 52%,#962FBF 76%,#4F5BD5)}
+/* 현장 공기 ② — 다음 방으로 «날아간다» */
+.fly{animation:fly .5s var(--ease) 1 forwards}
+@keyframes fly{to{transform:translateX(230px) translateY(-52px) rotate(11deg) scale(.42);opacity:0}}
+
+/* ══════ ① 담기 ══════ */
+#r1 .doors{display:grid;grid-template-columns:1fr;gap:10px;padding:16px 16px 4px}
+@media(min-width:680px){ #r1 .doors{grid-template-columns:1fr 1fr} }
+.door{display:flex;align-items:center;gap:11px;padding:13px 14px;border-radius:var(--r-md);cursor:pointer;
+  font-family:inherit;text-align:left;background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.012));
+  border:1px solid var(--line);color:var(--tx1);transition:.24s var(--ease);position:relative;overflow:hidden}
+@media (hover:hover) and (pointer:fine){
+.door:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--dc) 42%,transparent);
+  box-shadow:0 18px 40px rgba(0,0,0,.5), 0 0 28px -12px var(--dc)}
+}
+.door:active{transform:translateY(0) scale(.99)}
+.door .ic{width:38px;height:38px;flex:none;border-radius:12px;display:grid;place-items:center;font-size:17px;
+  background:color-mix(in srgb,var(--dc) 15%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--dc) 30%,transparent)}
+.door b{display:block;font-size:13px;font-weight:800}
+.door s{text-decoration:none;font-size:10.5px;color:var(--tx3)}
+/* 힉스필드 C · 그라데이션 링 — 앱의 얼굴(대표 입력) */
+.sring{display:flex;border-radius:13px;padding:1.5px;margin:14px 16px 4px;
+  background:linear-gradient(120deg,var(--conv),var(--story) 40%,var(--hook) 68%,var(--prod));
+  filter:saturate(.85) brightness(.86);transition:filter .3s,box-shadow .3s}
+.sring:focus-within{filter:saturate(1.05) brightness(1.06);box-shadow:0 0 20px -4px rgba(111,224,200,.4)}
+.sring input{flex:1;min-width:0;font-family:inherit;font-size:13px;color:var(--tx1);
+  background:#080a0f;border:none;border-radius:12px;padding:12px 14px}
+.sring input:focus{outline:none}
+.sring button{font-family:inherit;font-size:12.5px;font-weight:800;padding:0 16px;border:none;cursor:pointer;
+  background:#080a0f;color:var(--conv);border-radius:12px;margin-left:1px}
+.hint{font-size:10.5px;color:var(--tx3);margin:6px 16px 0;line-height:1.5}
+.sect{padding:16px}
+.sect h3{font-size:11.5px;font-weight:800;color:var(--tx2);margin:0 0 3px}
+.sect h3 em{font-style:normal;color:var(--room)}
+.sect p.sh{font-size:10.5px;color:var(--tx3);margin:0 0 11px;line-height:1.5}
+/* 힉스필드 ② 기울인 무대 — 쭉 훑는 줄 */
+.stagerow{perspective:1200px;overflow-x:auto;padding:16px 4px 22px;scrollbar-width:none}
+.stagerow::-webkit-scrollbar{display:none}
+.stagerow .inner{display:flex;gap:13px;transform:rotateX(13deg) rotateZ(-.8deg);transform-style:preserve-3d;padding:0 2px}
+.stagerow .cell{width:150px;flex:none;transition:transform .42s var(--ease),box-shadow .42s}
+@media (hover:hover) and (pointer:fine){
+.stagerow .cell:hover{transform:translateZ(58px) rotateX(-13deg) translateY(-5px);z-index:5}
+.stagerow .cell:hover .th{box-shadow:0 38px 66px rgba(0,0,0,.7), 0 0 30px -8px var(--room)}
+}
+/* 카드 아래에는 «표시»를 두지 않는다 — 출처는 우상단 배지가 이미 말한다 */
+.cell .need{margin-top:6px;display:flex;flex-direction:column;gap:5px}
+.cell .need input{width:100%;font-family:inherit;font-size:11px;color:var(--tx1);padding:7px 9px;border-radius:9px;
+  background:#0a0d0b;border:1px solid rgba(255,255,255,.07);box-shadow:inset 0 2px 6px rgba(0,0,0,.8)}
+.cell .need input:focus{outline:none;box-shadow:inset 0 2px 6px rgba(0,0,0,.8), 0 0 0 1px rgba(193,53,132,.5)}
+.cell .need input::placeholder{color:var(--tx3)}
+.cell .need button{font-family:inherit;font-size:10px;font-weight:800;padding:6px;border-radius:9px;cursor:pointer;
+  background:var(--glass);border:1px dashed var(--line2);color:var(--tx2)}
+.cell .acts{display:flex;gap:5px;margin-top:7px;opacity:0;transition:opacity .3s}
+@media (hover:hover) and (pointer:fine){ .cell:hover .acts{opacity:1} }
+@media (hover:none){ .cell .acts{opacity:1} }
+.cell .acts button{flex:1;font-family:inherit;font-size:10.5px;font-weight:800;padding:6px 0;border-radius:9px;
+  cursor:pointer;background:var(--glass);border:1px solid var(--line);color:var(--tx2)}
+.cell .acts button.on{color:var(--prod);border-color:rgba(200,241,105,.36)}
+.cell .acts button.no{color:var(--danger);border-color:rgba(224,123,123,.28)}
+/* 묵은 것 — 작게 */
+.old{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 18px}
+.old .chip{display:flex;align-items:center;gap:7px;padding:5px 9px 5px 5px;border-radius:10px;
+  background:rgba(255,255,255,.026);border:1px solid var(--line);font-size:10.5px;color:var(--tx2);cursor:pointer;
+  transition:.2s var(--ease)}
+.old .chip:hover{border-color:var(--line2);color:var(--tx1)}
+.old .chip i{width:17px;height:23px;border-radius:5px;background:var(--g);flex:none}
+.old .chip s{text-decoration:none;color:var(--tx3);font-size:9.5px}
+
+/* ══════ ②③ 공통 — 세로 한 줄기 «무대» (컨마 고객분석 방식) ══════ */
+.solo{padding:4px 16px 20px;max-width:540px;margin:0 auto}
+/* 위: 남은 것을 작게 훑고 고른다 — 담기의 «묵은 것»과 같은 결 */
+.picker{display:flex;align-items:center;gap:6px;overflow-x:auto;padding:13px 16px 0;scrollbar-width:none}
+.picker::-webkit-scrollbar{display:none}
+.picker .lb{flex:none;font-size:10.5px;color:var(--tx3);font-weight:700;margin-right:3px;white-space:nowrap}
+.picker .p{flex:none;width:40px;padding:0;cursor:pointer;border-radius:9px;overflow:hidden;
+  background:none;border:1px solid transparent;transition:.22s var(--ease);opacity:.5}
+.picker .p i{display:block;height:55px}
+.picker .p:hover{opacity:.85}
+.picker .p.on{opacity:1;border-color:color-mix(in srgb,var(--room) 60%,transparent);
+  box-shadow:0 0 18px -5px var(--room);transform:translateY(-2px)}
+/* 가운데: 지금 이 한 장 */
+.mainth{width:176px;margin:14px auto 8px}
+.mainttl{text-align:center;font-size:12.5px;font-weight:800;line-height:1.4;margin:0 auto 3px;max-width:400px}
+.mainsub{text-align:center;font-size:10.5px;color:var(--tx3);margin:0 0 16px}
+.pager{display:flex;align-items:center;justify-content:center;gap:12px;margin:12px 0 0}
+.pager button{width:30px;height:30px;border-radius:50%;background:var(--glass);border:1px solid var(--line);
+  color:var(--tx2);font-size:14px;cursor:pointer;font-family:inherit;transition:.16s var(--ease)}
+.pager button:active{transform:scale(.92)}
+.pager button[disabled]{opacity:.3;cursor:default}
+.pager span{font-size:11px;color:var(--tx3);font-weight:700;min-width:58px;text-align:center}
+/* 방 안의 단계 띠 */
+.steps{display:flex;gap:6px;padding:13px 16px 0;max-width:540px;margin:0 auto}
+.steps button{flex:1;font-family:inherit;font-size:11px;font-weight:800;padding:9px;border-radius:11px;cursor:pointer;
+  background:var(--glass);border:1px solid var(--line);color:var(--tx3);transition:.22s var(--ease)}
+.steps button[aria-pressed="true"]{background:color-mix(in srgb,var(--room) 12%,transparent);
+  border-color:color-mix(in srgb,var(--room) 46%,transparent);color:var(--room)}
+.steps button s{text-decoration:none;display:block;font-size:9.5px;font-weight:600;color:var(--tx3);margin-top:1px}
+
+/* 판정 패널 (②·③ 공용 부품) */
+.jr{margin-bottom:12px}
+.jr>label{display:block;font-size:10.5px;font-weight:800;color:var(--tx2);margin:0 0 6px}
+.jr>label s{text-decoration:none;color:var(--tx3);font-weight:600;margin-left:5px}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chips button{font-family:inherit;font-size:11px;font-weight:700;padding:6px 10px;border-radius:9px;cursor:pointer;
+  background:var(--glass);border:1px solid var(--line);color:var(--tx2);transition:.16s var(--ease)}
+.chips button:active{transform:scale(.95)}
+.chips button[aria-pressed="true"]{background:color-mix(in srgb,var(--cc) 17%,transparent);
+  border-color:color-mix(in srgb,var(--cc) 50%,transparent);color:var(--cc)}
+.jr input{width:100%;font-family:inherit;font-size:12.5px;color:var(--tx1);padding:9px 11px;border-radius:11px;
+  background:#0a0d0b;border:1px solid rgba(255,255,255,.06);
+  box-shadow:inset 0 2px 7px rgba(0,0,0,.85), inset 0 -1px 0 rgba(255,255,255,.04);transition:.28s var(--ease)}
+.jr input::placeholder{color:var(--tx3)}
+.jr input:focus{outline:none;border-color:transparent;
+  box-shadow:inset 0 2px 7px rgba(0,0,0,.85), 0 0 0 1px color-mix(in srgb,var(--room) 46%,transparent), 0 0 18px -4px var(--room)}
+.go{display:block;width:100%;max-width:340px;margin:18px auto 0;font-family:inherit;font-size:13px;font-weight:800;
+  padding:13px;border-radius:13px;cursor:pointer;background:var(--room);border:none;color:#06080c;
+  transition:.16s var(--ease);box-shadow:0 10px 26px -10px var(--room)}
+.go:active{transform:scale(.98)}
+.go[disabled]{background:var(--glass);color:var(--tx3);cursor:default;box-shadow:inset 0 0 0 1px var(--line)}
+.skip{display:block;margin:11px auto 0;font-family:inherit;font-size:10.5px;font-weight:700;cursor:pointer;
+  background:none;border:none;color:var(--tx3);text-decoration:underline;text-underline-offset:3px}
+.empty{text-align:center;padding:64px 20px;color:var(--tx2)}
+.empty b{display:block;font-size:16px;color:var(--room);margin-bottom:6px}
+.empty s{text-decoration:none;font-size:12px;line-height:1.6}
+
+/* ══════ ③ 분석 — ①고객(형광펜) → ②구조(세로 기찻길). 컨마 기획의 방과 같은 방식 ══════ */
+.pens{display:flex;flex-wrap:wrap;gap:5px;margin:12px 0 9px;justify-content:center}
+.pens button{font-family:inherit;font-size:11px;font-weight:800;padding:6px 11px;border-radius:9px;cursor:pointer;
+  background:var(--glass);border:1px solid var(--line);color:var(--tx3);transition:.16s var(--ease)}
+.pens button[aria-pressed="true"]{background:color-mix(in srgb,var(--pc) 20%,transparent);
+  border-color:color-mix(in srgb,var(--pc) 54%,transparent);color:var(--pc);box-shadow:0 0 16px -6px var(--pc)}
+.palcap{text-align:center;font-size:10.5px;color:var(--tx3);margin:0}
+.script{background:#080a0e;border:1px solid var(--line);border-radius:14px;padding:14px;line-height:2.15;font-size:13px}
+/* 칠 = 형광펜. ⚠️ 테두리를 두르면 «칠»이 아니라 «상자»가 된다 — 배경만 남긴다.
+   box-decoration-break:clone 이 없으면 두 줄에 걸칠 때 이음매가 각져서 지저분해진다. */
+.hl{cursor:pointer;border-radius:4px;padding:3px 2px;margin:0 -1px;color:var(--tx2);
+  transition:background .16s var(--ease),color .16s var(--ease);
+  -webkit-box-decoration-break:clone;box-decoration-break:clone}
+.hl.on{background:color-mix(in srgb,var(--c) 26%,transparent);color:#F2F5FA}
+/* v22 교훈 — hover 가드가 없으면 폰에서 «한 번 누른 문장»이 칠해진 채 눌어붙는다 */
+@media (hover:hover) and (pointer:fine){
+  .hl:hover{background:rgba(255,255,255,.06);color:var(--tx1)}
+  .hl.on:hover{background:color-mix(in srgb,var(--c) 34%,transparent)}
+}
+/* 칠한 것이 바구니로 — 손으로 적지 않는다 */
+.vocm{display:flex;flex-direction:column;gap:7px;margin-top:14px}
+.vm{display:flex;gap:8px;align-items:baseline;font-size:12px;line-height:1.55;color:var(--tx2)}
+.vm b{flex:none;font-size:9px;font-weight:900;color:var(--vc);border:1px solid var(--vc);
+  border-radius:6px;padding:2px 7px;letter-spacing:.04em}
+.vm.off{opacity:.42}
+.vm.off span{color:var(--tx3)}
+/* 세로 기찻길 — 컨마 .brail/.brw 공법 그대로 */
+.rail{display:flex;flex-direction:column;margin-top:14px}
+.rw{position:relative;display:flex;gap:11px;padding:9px 0 14px 15px;margin-left:7px;
+  border-left:2.5px solid var(--k)}
+.rw::before{content:'';position:absolute;left:-6px;top:12px;width:9px;height:9px;border-radius:50%;
+  background:var(--k);box-shadow:0 0 8px var(--k)}
+.rw:last-child{border-left-color:transparent}
+.rw .rl{flex:none;width:50px;font-size:9.5px;font-weight:900;letter-spacing:.05em;color:var(--k);padding-top:3px}
+.rw .bd{flex:1;min-width:0}
+.rw .tx{font-size:12px;line-height:1.7;color:var(--tx2);white-space:pre-wrap}
+.rw .tx.dim{color:var(--tx3)}
+.rw .subs{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
+.rw .subs button{font-family:inherit;font-size:10px;font-weight:700;padding:4px 8px;border-radius:7px;cursor:pointer;
+  background:rgba(255,255,255,.03);border:1px solid var(--line);color:var(--tx3);transition:.16s var(--ease)}
+.rw .subs button[aria-pressed="true"]{background:color-mix(in srgb,var(--k) 16%,transparent);
+  border-color:color-mix(in srgb,var(--k) 46%,transparent);color:var(--k)}
+/* v763 공법 — 펜 톡 = 세부가 «그 자리에서» 펼쳐진다. 세부 톡 = 펜이 «역할·세부»로 확정 */
+.subrow{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:0 0 11px;
+  animation:subin .28s cubic-bezier(.32,1.2,.36,1) both}
+@keyframes subin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.subrow .sub{font-family:inherit;font-size:10.5px;font-weight:800;border-radius:10px;padding:6px 11px;cursor:pointer;
+  background:rgba(255,255,255,.04);color:var(--tx2);
+  border:1.5px dashed color-mix(in srgb,var(--pc) 55%,transparent);transition:all .15s var(--ease)}
+.subrow .sub:active{transform:scale(.93)}
+.subrow .sub.sel{background:color-mix(in srgb,var(--pc) 20%,transparent);border-style:solid;
+  border-color:var(--pc);color:#fff}
+.botline{text-align:center;font-size:10.5px;color:var(--prod);margin:12px 0 2px;font-weight:700}
+.botline b{color:var(--tx1)}
+.botline.off{color:var(--tx3)}
+/* 기찻길 칸 = 누르면 그 자리에서 펼쳐진다 */
+.rw .rl{flex:none;width:64px;font-family:inherit;font-size:10px;font-weight:900;letter-spacing:.02em;
+  color:var(--k);padding:3px 0 0;background:none;border:none;text-align:left;cursor:pointer;
+  transition:.16s var(--ease)}
+.rw .rl::after{content:'▾';margin-left:3px;opacity:.5;font-size:8px}
+.rw.open .rl::after{content:'▴'}
+.rw .rl:active{transform:scale(.94)}
+.rw.open{background:color-mix(in srgb,var(--k) 6%,transparent);border-radius:0 12px 12px 0}
+.rolerow{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0 6px;
+  animation:subin .28s cubic-bezier(.32,1.2,.36,1) both}
+.rolerow button{font-family:inherit;font-size:10px;font-weight:800;border-radius:9px;padding:5px 9px;cursor:pointer;
+  background:rgba(255,255,255,.04);color:var(--tx3);border:1px solid var(--line);transition:.15s var(--ease)}
+.rolerow button[aria-pressed="true"]{background:color-mix(in srgb,var(--rc) 18%,transparent);
+  border-color:color-mix(in srgb,var(--rc) 50%,transparent);color:var(--rc)}
+.railsub{display:inline-flex;align-items:center;gap:5px;margin-left:7px;vertical-align:middle;
+  font-size:9px;font-weight:800;border-radius:7px;padding:2px 7px;
+  border:1px solid color-mix(in srgb,var(--k) 50%,transparent);color:var(--k)}
+.autostr{display:block;width:100%;max-width:340px;margin:12px auto 0;font-family:inherit;font-size:11px;font-weight:700;
+  padding:9px;border-radius:11px;cursor:pointer;background:var(--glass);border:1px dashed var(--line2);color:var(--tx2)}
+.autostr:active{transform:scale(.98)}
+
+/* ══════ ④ 강의 자료실 — 3초 안에 «분류돼 있다»가 보여야 한다 ══════ */
+#r4 .top{padding:15px 16px 0;display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+#r4 .sum{font-size:11.5px;color:var(--tx2);font-weight:700}
+#r4 .sum b{color:var(--prod);font-weight:800}
+#r4 .find{flex:1 1 190px;min-width:150px;font-family:inherit;font-size:12.5px;color:var(--tx1);
+  padding:9px 13px;border-radius:99px;background:#0a0d0b;border:1px solid rgba(255,255,255,.06);
+  box-shadow:inset 0 2px 7px rgba(0,0,0,.85), inset 0 -1px 0 rgba(255,255,255,.04);transition:.28s var(--ease)}
+#r4 .find::placeholder{color:var(--tx3)}
+#r4 .find:focus{outline:none;border-color:transparent;
+  box-shadow:inset 0 2px 7px rgba(0,0,0,.85), 0 0 0 1px rgba(200,241,105,.42), 0 0 18px -4px var(--prod)}
+#r4 .axis{display:flex;gap:5px;padding:11px 16px 2px;flex-wrap:wrap}
+#r4 .axis button{font-family:inherit;font-size:11px;font-weight:700;padding:6px 11px;border-radius:9px;cursor:pointer;
+  background:var(--glass);border:1px solid var(--line);color:var(--tx3);transition:.16s var(--ease)}
+#r4 .axis button[aria-pressed="true"]{background:rgba(200,241,105,.14);border-color:rgba(200,241,105,.44);color:var(--prod)}
+/* 선반 — 이름표 + 개수 + 판자. 이 셋이 «정리돼 있다»의 정체 */
+#r4 .shelf{padding:0 16px}
+#r4 .shelfhd{display:flex;align-items:baseline;gap:8px;margin:17px 0 9px}
+#r4 .shelfhd b{font-size:12.5px;font-weight:800;color:var(--tx1)}
+#r4 .shelfhd s{text-decoration:none;font-size:10.5px;font-weight:800;color:var(--prod)}
+#r4 .shelfhd em{font-style:normal;margin-left:auto;font-size:10px;color:var(--tx3)}
+#r4 .books{display:flex;gap:11px;overflow-x:auto;padding:2px 2px 14px;scrollbar-width:none;
+  border-bottom:1px solid var(--line);box-shadow:0 1px 0 rgba(255,255,255,.03)}
+#r4 .books::-webkit-scrollbar{display:none}
+#r4 .book{width:130px;flex:none;cursor:pointer;
+  transition:transform .34s var(--ease),filter .34s,opacity .34s}
+#r4 .book .th{box-shadow:0 12px 28px rgba(0,0,0,.5)}
+@media (hover:hover) and (pointer:fine){
+#r4 .books.multi:hover .book{transform:scale(.95);filter:brightness(.62) saturate(.85);opacity:.72}
+#r4 .books .book:hover{transform:scale(1.045) translateY(-5px)!important;filter:none!important;opacity:1!important;z-index:5}
+#r4 .book:hover .th{box-shadow:0 30px 56px rgba(0,0,0,.7), 0 0 28px -10px var(--prod)}
+}
+#r4 .book .steal{margin-top:7px;font-size:10.5px;line-height:1.5;color:var(--tx2);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#r4 .book .steal i{font-style:normal;color:var(--prod);font-weight:800;margin-right:3px}
+/* 빈 자리 — «여기 채워집니다»가 눈에 보이게 */
+#r4 .slot{width:130px;flex:none;border:1px dashed var(--line2);border-radius:var(--r-md);
+  display:grid;place-items:center;text-align:center;color:var(--tx3);font-size:10px;line-height:1.5;
+  padding:10px;min-height:150px;opacity:.55}
+#r4 .rest{padding:16px;margin-top:4px}
+#r4 .rest p{font-size:10.5px;color:var(--tx3);margin:0 0 8px}
+#r4 .rest .row{display:flex;flex-wrap:wrap;gap:6px}
+#r4 .rest .row s{text-decoration:none;font-size:10.5px;font-weight:700;padding:6px 11px;border-radius:9px;
+  background:rgba(255,255,255,.02);border:1px dashed var(--line);color:var(--tx3)}
+/* ── 빈 방의 «뼈대» — 구성은 보이되 채워진 척은 하지 않는다 ── */
+.ghost{opacity:.62;pointer-events:none;filter:saturate(.62)}
+.ghostbox{border:1px dashed var(--line2);border-radius:14px;padding:22px 14px;text-align:center;
+  color:var(--tx3);font-size:11px;line-height:1.6}
+.ghostnote{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap;margin:0;padding:14px 16px 2px;
+  font-size:12px;color:var(--tx1);font-weight:800}
+.ghostnote s{text-decoration:none;font-size:10.5px;color:var(--tx3);font-weight:600}
+.ghostnote em{font-style:normal;margin-left:auto;font-size:10px;color:var(--room);font-weight:700}
+.ghostth{width:112px;margin:14px auto 0;aspect-ratio:9/13;border:1px dashed var(--line2);border-radius:var(--r-md);
+  display:grid;place-items:center;color:var(--tx3);font-size:10.5px;opacity:.6}
+
+.foot{color:var(--tx3);font-size:11px;line-height:1.7;margin-top:15px}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(14px);z-index:90;
+  background:rgba(10,13,19,.94);border:1px solid var(--line2);border-radius:12px;padding:10px 16px;
+  font-size:12px;font-weight:700;opacity:0;pointer-events:none;transition:.3s var(--ease);backdrop-filter:blur(10px)}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(prefers-reduced-motion:reduce){ *{animation-duration:.01ms!important;transition-duration:.01ms!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>자료실 — 한 흐름</h1>
+  <p class="lead">담아서 → 나누고 → 뜯고 → <b>서재에 꽂힌다.</b>
+     방마다 <b>천장 조명 색</b>이 다르고, 넘길 때마다 카드가 다음 방으로 날아갑니다.</p>
+
+  <nav class="line" id="line"></nav>
+
+  <div class="stage">
+    <!-- ① 담기 -->
+    <section class="room on" id="r1">
+      <div class="rhd"><h2>🔭 담기</h2><s>일단 막 주워 옵니다. 고르는 건 다음 방에서.</s><span class="cnt" id="c1"></span></div>
+      <div class="doors">
+        <button class="door" style="--dc:#E0574B" data-ch="yt"><span class="ic">▶</span>
+          <span><b>유튜브에서 찾기</b><s>키워드로 검색해 쇼핑하듯 담기</s></span></button>
+        <button class="door" style="--dc:#C13584" data-ch="ig"><span class="ic">◉</span>
+          <span><b>인스타에서 찾기</b><s>릴스 링크를 붙여 담기</s></span></button>
+      </div>
+      <label class="sring"><input id="link" placeholder="또는 링크를 그냥 붙여넣으세요 — 유튜브·인스타 아무거나">
+        <button data-add>담기</button></label>
+      <p class="hint">붙여넣기 1번 = 종류 판별. 유튜브는 <b>원고·분해까지 자동</b>, 인스타는 <b>조회수만</b> 적어주시면 됩니다.</p>
+      <div class="sect">
+        <h3>방금 온 것 <em id="n-new">0</em></h3>
+        <p class="sh">쓸만하면 분류로 넘기고, 아니면 여기서 버립니다.</p>
+        <div class="stagerow"><div class="inner" id="new-row"></div></div>
+      </div>
+      <div class="sect" style="padding-top:0">
+        <h3>묵은 것 <em id="n-old">0</em></h3>
+        <p class="sh">그동안 담아만 두고 안 넘긴 것들 — 작게 둡니다. 눌러서 분류로.</p>
+      </div>
+      <div class="old" id="old-row"></div>
+    </section>
+
+    <!-- ② 분류 -->
+    <section class="room" id="r2">
+      <div class="rhd"><h2>🗂 분류</h2><s>한 장씩 «무엇인지» 판정합니다.</s>
+      </div>
+      <div id="r2-body"></div>
+    </section>
+
+    <!-- ③ 해부 -->
+    <section class="room" id="r3">
+      <div class="rhd"><h2>🔬 분석</h2><s>원고에 형광펜으로 칠합니다 — 고객이 어디에 반응했나, 그다음 구조가 어떻게 짜였나.</s><span class="cnt" id="c3"></span></div>
+      <div id="r3-body"></div>
+    </section>
+
+    <!-- ④ 원페이지 -->
+    <section class="room" id="r4">
+      <div class="rhd"><h2>📚 강의 자료실</h2><s>뜯긴 것이 갈래별로 꽂힙니다. 강의·처방에 그대로 꺼내 씁니다.</s><span class="cnt" id="c4"></span></div>
+      <div id="r4-body"></div>
+    </section>
+  </div>
+
+  <p class="foot">방마다 온도가 다릅니다 — <b>①담기·④원페이지는 기울인 무대·포커스 스택</b>(둘러보는 곳),
+     <b>②분류의 «훑어보기»만 커버플로우</b>(하나씩 보는 곳), <b>③해부는 거의 평평</b>(집중하는 곳).
+     힉스필드 제1원칙 ③ 그대로입니다.</p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══ 데이터 — 한 배열이 네 방을 관통한다 ══ */
+var ROOMS = [
+  {id:'r1', nm:'담기',    sub:'주워 온다',   c:'var(--conv)'},
+  {id:'r2', nm:'분류',    sub:'무엇인지 정함', c:'var(--hook)'},
+  {id:'r3', nm:'분석',    sub:'왜 터졌는지 뜯음', c:'var(--story)'},
+  {id:'r4', nm:'강의 자료실', sub:'분류되어 쌓인다', c:'var(--prod)'}
+];
+var G = ['linear-gradient(150deg,#2a2450,#141126)','linear-gradient(150deg,#123a35,#08201d)',
+         'linear-gradient(150deg,#3a2f12,#1d1707)','linear-gradient(150deg,#331a2e,#1a0d17)',
+         'linear-gradient(150deg,#16294a,#0b1526)','linear-gradient(150deg,#2c1830,#160c18)'];
+var SCRIPT = '3초 안에 안 넘기게 하려면 첫 문장이 전부입니다. '+
+  '저도 처음엔 인사부터 했어요. 조회수가 200을 못 넘겼죠. '+
+  '사람은 «나한테 무슨 이득이 있나»를 0.8초 안에 판단합니다. '+
+  '그래서 결과를 먼저 보여주고 과정을 뒤에 붙였습니다. '+
+  '그 한 번으로 평균 조회수가 8배가 됐어요. '+
+  '오늘 올릴 영상, 첫 문장만 바꿔서 올려보세요.';
+
+/* 분해봇이 원고를 읽고 뱉은 결과 — 이 시안의 «기준». 라벨 수는 영상마다 다르다(최대 8) */
+var BOT = {
+  1:{ 유형:'꿀팁', 썸네일:['문제 제시','강조하기'], 왜:['저장각','정보꿀팁'],
+      고객:['문제불편','욕망'], 퍼널:'유입', 주제:'릴스 / 후킹', 오래:['숫자의원칙','패턴파괴'],
+      키워드:['릴스','후킹','첫문장'], 수식어:['3초 안에','8배'], 판정:'기본형·확장',
+      구조:[['이득손해','3초 안에 안 넘기게 하려면 첫 문장이 전부입니다.'],
+            ['공감상황','저도 처음엔 인사부터 했어요. 조회수가 200을 못 넘겼죠.'],
+            ['문제인식','사람은 «나한테 무슨 이득이 있나»를 0.8초 안에 판단합니다.'],
+            ['방법','그래서 결과를 먼저 보여주고 과정을 뒤에 붙였습니다.'],
+            ['소구','그 한 번으로 평균 조회수가 8배가 됐어요.'],
+            ['CTA','오늘 올릴 영상, 첫 문장만 바꿔서 올려보세요.']] }
+};
+var IT = [
+  {id:1, hk:'3초 안에 안 넘기게 하는 법', vw:'82만', src:'▶', g:G[0], st:'new',  script:SCRIPT},
+  {id:2, hk:'브이로그인데 왜 이건 터졌을까', vw:'47만', src:'◉', g:G[1], st:'new',  script:SCRIPT},
+  {id:3, hk:'이 말 한마디로 상담 전환 3배', vw:'210만', src:'▶', g:G[2], st:'new', script:SCRIPT},
+  {id:4, hk:'댓글이 2천 개 달린 이유',     vw:'96만', src:'◉', g:G[3], st:'old',  script:SCRIPT},
+  {id:5, hk:'첫 문장을 이렇게 바꿨더니',   vw:'38만', src:'▶', g:G[4], st:'old',  script:SCRIPT},
+  {id:6, hk:'아무도 안 알려주는 편집 순서', vw:'124만', src:'◉', g:G[5], st:'sort', script:SCRIPT},
+  {id:7, hk:'후킹 문장 5개 뜯어보기',      vw:'61만', src:'▶', g:G[1], st:'sort', script:SCRIPT},
+  /* 이미 다 뜯겨 서재에 꽂힌 것들 — 자료실이 «어떻게 쌓이는지» 보이게 */
+  {id:11, hk:'첫 3초에 결과부터 보여주기', vw:'182만', src:'▶', g:G[2], st:'page', script:SCRIPT},
+  {id:12, hk:'실패담으로 시작하면 안 넘긴다', vw:'74만', src:'◉', g:G[0], st:'page', script:SCRIPT},
+  {id:13, hk:'숫자 하나로 신뢰를 사는 법',  vw:'53만', src:'▶', g:G[4], st:'page', script:SCRIPT},
+  {id:14, hk:'마지막 한 줄이 저장을 만든다', vw:'96만', src:'◉', g:G[3], st:'page', script:SCRIPT},
+  {id:15, hk:'브이로그를 꿀팁처럼 파는 법', vw:'41만', src:'▶', g:G[5], st:'page', script:SCRIPT}
+];
+var seq = 16;
+/* 꽂혀 있는 것들의 판정값 — 시안이라 미리 채워둔다 */
+var SEED = {
+  11:{type:'꿀팁',    thumbs:['문제 제시','강조하기'], whys:['저장각','정보꿀팁'], msg:'결과를 먼저, 과정은 뒤에'},
+  12:{type:'스토리',   thumbs:['공감','POV(상황)'],    whys:['공감폭발'],          msg:'나도 못했었다는 고백'},
+  13:{type:'문제해결', thumbs:['문제 제시'],            whys:['정보꿀팁','저장각'], msg:'8배라는 한 마디'},
+  14:{type:'꿀팁',    thumbs:['비포애프터'],           whys:['저장각'],            msg:'오늘 첫 문장만 바꿔보세요'},
+  15:{type:'욕구충족', thumbs:['욕구 충족','POV(상황)'],whys:['공유각'],           msg:'보다 보면 배우게 된다'}
+};
+/* ⚠️ 아래 보기는 전부 분해봇 프롬프트(v536)의 «고르는 보기» 그대로다.
+   봇이 그 안에서만 고르므로, 앱이 다른 말을 쓰면 봇 결과를 못 받아 적는다. */
+var TYPES  = ['문제해결','꿀팁','스토리','욕구충족'];
+var THUMBS = ['문제 제시','욕구 충족','POV(상황)','공감','위협/금지','강조하기','비포애프터'];
+var WHYS   = ['저장각','공유각','논쟁유발','공감폭발','정보꿀팁'];
+var LONGS  = ['패턴파괴','숫자의원칙','일반론반론','권위효과','스토리텔링','비교대비'];
+var CUSTS  = ['공감상황','문제불편','욕망','두려움','시도했던것'];
+var FUNNEL = ['유입','전환'];
+/* 컨마 기획의 방에서 그대로 — 6구간 + 역할별 세부 + 고객 4바구니 */
+var ROLES = [['도입부','#E25C5C'],['공감','#5B8DEF'],['근거','#D8B23A'],['방법','#A9C437'],['변화','#2FB6A0'],['CTA','#2FD07B']];
+/* ⚠️ 컨마 PV2_ROLE_SUBS 그대로 — 분해봇 프롬프트(v536)의 «구조 라이브러리»와 같은 언어여야
+   GPT가 뱉은 라벨과 손으로 고른 라벨이 어긋나지 않는다. 지어내면 안 된다. */
+var SUBS = {
+  '도입부':['이득손해','숫자','상식깨기','가치입증','꿈소개','좌절','의심','문제'],
+  '공감':['상황','갈등','고통','투쟁','오해','실수'],
+  '근거':['원인','전문용어','설명','반박','문제인식','깨달음','가치입증','변곡점'],
+  '방법':['팁','단계','해결책','발견','전환점','도전','시술전후','재료','자세교정'],
+  '변화':['효과','진행상황','교훈','결말','후기'],
+  'CTA':['홍보','목적']
+};
+var BASKETS = [['문제','#E25C5C'],['욕구','#D8B23A'],['회피','#5B8DEF'],['저항','#B07BF0']];
+
+var meta = {};
+IT.forEach(function(d){
+  var seed = (typeof SEED!=='undefined' && SEED[d.id]) || {};
+  var b=(typeof BOT!=='undefined' && BOT[d.id]) || null;
+  meta[d.id] = {
+    type:  seed.type   || (b?b.유형:''),
+    thumbs:seed.thumbs || (b?b.썸네일.slice():[]),
+    whys:  seed.whys   || (b?b.왜.slice():[]),
+    msg:   seed.msg    || '',
+    bot:   !!b,                       /* 분해봇이 채웠나 */
+    struct: b ? b.구조.map(function(r){ return {k:r[0], t:r[1], sub:''}; }) : null,
+    cusk:  b ? b.고객.slice() : [],   /* 봇이 고른 «건드린 고객 마음» */
+    paint:{}, subs:{}, cus:{}
+  };
+});
+
+function $(s,r){ return (r||document).querySelector(s); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function by(st){ return IT.filter(function(d){ return d.st===st; }); }
+function get(id){ return IT.filter(function(d){ return d.id==id; })[0]; }
+function toast(m){ var t=$('#toast'); t.textContent=m; t.classList.add('on');
+  clearTimeout(t._t); t._t=setTimeout(function(){ t.classList.remove('on'); }, 1900); }
+var SRC_SVG = {
+  /* 유튜브 = 흰 재생 삼각형(배경이 이미 붉다) */
+  yt:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.4 7.6v8.8l7.4-4.4z" fill="#fff"/></svg>',
+  /* 인스타 = 둥근 사각 + 원 + 점. 이 셋이 있어야 «인스타»로 읽힌다 */
+  ig:'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#fff" stroke-width="2.7" '+
+     'stroke-linecap="round" stroke-linejoin="round"><rect x="2.9" y="2.9" width="18.2" height="18.2" rx="5.4"/>'+
+     '<circle cx="12" cy="12" r="4.4"/><circle cx="17.6" cy="6.4" r="1.3" fill="#fff" stroke="none"/></svg>'
+};
+function thHTML(d){
+  var k = d.src==='▶' ? 'yt' : 'ig';
+  return '<div class="th"><div class="im" style="--g:'+d.g+'">'+
+    '<span class="vw">'+d.vw+'</span><span class="src '+k+'">'+SRC_SVG[k]+'</span>'+
+    '<span class="hk">'+esc(d.hk)+'</span></div></div>';
+}
+function chips(list,cur,act,color){
+  return '<div class="chips" style="--cc:'+color+'">'+list.map(function(t){
+    return '<button type="button" data-'+act+'="'+esc(t)+'" aria-pressed="'+(cur===t)+'">'+esc(t)+'</button>';
+  }).join('')+'</div>';
+}
+
+/* ══ 공정 띠 ══ */
+var cur='r1';
+function lineRender(){
+  var n={r1:by('new').length+by('old').length, r2:by('sort').length, r3:by('anat').length, r4:by('page').length};
+  $('#line').innerHTML = ROOMS.map(function(r,i){
+    return '<button data-room="'+r.id+'" style="--rc:'+r.c+'" aria-pressed="'+(cur===r.id)+'">'+
+      '<b>'+(i+1)+' · '+r.nm+'</b><s>'+r.sub+'</s><i data-n="'+r.id+'">'+n[r.id]+'</i><span class="flow"></span></button>';
+  }).join('');
+  document.documentElement.style.setProperty('--room', ROOMS.filter(function(r){return r.id===cur;})[0].c);
+}
+function pop(id){ var el=$('[data-n="'+id+'"]'); if(!el) return;
+  el.classList.add('pop'); setTimeout(function(){ el.classList.remove('pop'); }, 300); }
+function goRoom(id){ cur=id;
+  document.querySelectorAll('.room').forEach(function(s){ s.classList.toggle('on', s.id===id); });
+  lineRender(); paint(); }
+
+/* ══ ① 담기 ══ */
+function paint1(){
+  var nw=by('new'), od=by('old');
+  $('#n-new').textContent=nw.length; $('#n-old').textContent=od.length;
+  $('#c1').textContent = (nw.length+od.length)+'장 대기';
+  $('#new-row').innerHTML = nw.length ? nw.map(function(d){
+    var yt = d.src==='▶', m=meta[d.id]||{};
+    var ready = yt ? m.bot : (d.vw && d.vw!=='—');
+    return '<div class="cell" data-cell="'+d.id+'">'+thHTML(d)+
+      (yt ? '' : '<div class="need"><input data-vw="'+d.id+'" value="'+esc(d.vw==='—'?'':d.vw)+'" placeholder="조회수"></div>')+
+      '<div class="acts"><button class="on" data-tosort="'+d.id+'"'+(ready?'':' disabled')+'>분류로 →</button>'+
+      '<button class="no" data-kill="'+d.id+'">버리기</button></div></div>';
+  }).join('') : '<p class="sh" style="padding:6px 4px">방금 온 것이 없습니다 — 위에 링크를 붙여넣어 보세요.</p>';
+  $('#old-row').innerHTML = od.map(function(d){
+    return '<button class="chip" data-tosort="'+d.id+'"><i style="--g:'+d.g+';background:'+d.g+'"></i>'+
+      esc(d.hk.slice(0,16))+'<s>'+d.vw+'</s></button>';
+  }).join('');
+}
+
+/* ══ ② 분류 ══ */
+var sel=null;
+function judgeHTML(d){
+  var m=meta[d.id], ok=m.type&&m.thumbs.length&&m.whys.length;
+  function multi(list,cur,act,color){
+    return '<div class="chips" style="--cc:'+color+'">'+list.map(function(t){
+      return '<button type="button" data-'+act+'="'+esc(t)+'" aria-pressed="'+(cur.indexOf(t)>=0)+'">'+esc(t)+'</button>';
+    }).join('')+'</div>';
+  }
+  return (m.bot ? '<p class="botline">🤖 분해봇이 채웠습니다 — <b>맞는지만 봐주세요</b></p>' :
+                  '<p class="botline off">원고가 없어 봇이 못 읽었어요 — 손으로 골라주세요</p>')+
+    '<div class="jr"><label>유형 <s>넷 중 하나</s></label>'+chips(TYPES,m.type,'type','var(--hook)')+'</div>'+
+    '<div class="jr"><label>썸네일 유형 <s>첫 화면이 사람을 멈춘 방식 · 여러 개 정상</s></label>'+
+      multi(THUMBS,m.thumbs,'thumb','var(--story)')+'</div>'+
+    '<div class="jr"><label>왜 터졌나 <s>반응 유형 최대 2개</s></label>'+
+      multi(WHYS,m.whys,'why','var(--conv)')+'</div>'+
+    '<div class="jr"><label>핵심 메시지</label><input data-f="msg" value="'+esc(m.msg)+'" placeholder="이 영상이 하고 싶은 말 한 줄"></div>'+
+    '<button class="go" data-pass="'+d.id+'"'+(ok?'':' disabled')+'>'+
+      (ok?'✓ 분석으로 넘기기 →':'유형·썸네일·왜 터졌나를 채우면 넘어갑니다')+'</button>'+
+    '<button class="skip" data-kill="'+d.id+'">이건 아니다 — 버리기</button>';
+}
+/* 위에서 고르고 → 가운데 한 장 → 아래로 판정. 좌우로 안 가른다 */
+function pickerHTML(L, curD, act){
+  return '<div class="picker"><span class="lb">'+L.length+'장</span>'+L.map(function(d){
+    return '<button class="p'+(d===curD?' on':'')+'" data-'+act+'="'+d.id+'" title="'+esc(d.hk)+'">'+
+      '<i style="background:'+d.g+'"></i></button>';
+  }).join('')+'</div>';
+}
+function paint2(){
+  var L=by('sort');
+  if(!L.length){
+    $('#r2-body').innerHTML =
+      '<p class="ghostnote">아직 분류할 게 없습니다 <s>①담기에서 «분류로»를 누르면 아래 모양으로 한 장씩 올라옵니다</s>'+
+      '<em>화면 구성 미리보기</em></p>'+
+      '<div class="solo ghost"><div class="ghostth">썸네일이<br>여기 섭니다</div>'+
+      '<p class="mainttl" style="color:var(--tx3);margin-top:10px">담은 영상의 제목</p>'+
+      '<p class="mainsub">조회수 · 어디서 왔나</p>'+
+      '<div class="jr"><label>컨텐츠 유형</label>'+chips(TYPES,'','x','var(--hook)')+'</div>'+
+      '<div class="jr"><label>썸네일 유형</label>'+chips(THUMBS,'','x','var(--story)')+'</div>'+
+      '<div class="jr"><label>왜 터졌나</label><div class="ghostbox">한 줄로 적는 칸</div></div>'+
+      '<div class="jr"><label>트렌드</label>'+chips(TRENDS,'','x','var(--conv)')+'</div></div>';
+    return; }
+  if(!sel || L.indexOf(sel)<0) sel=L[0];
+  var at=L.indexOf(sel);
+  $('#r2-body').innerHTML =
+    pickerHTML(L, sel, 'pick')+
+    '<div class="solo">'+
+      '<div class="pager"><button data-step2="-1"'+(at?'':' disabled')+'>‹</button>'+
+        '<span>'+(at+1)+' / '+L.length+'</span>'+
+        '<button data-step2="1"'+(at<L.length-1?'':' disabled')+'>›</button></div>'+
+      '<div class="mainth">'+thHTML(sel)+'</div>'+
+      '<p class="mainttl">'+esc(sel.hk)+'</p>'+
+      '<p class="mainsub">'+sel.vw+' · '+(sel.src==='▶'?'유튜브':'인스타')+'</p>'+
+      judgeHTML(sel)+
+    '</div>';
+}
+
+/* ══ ③ 분석 — ①고객(형광펜) → ②구조(세로 기찻길). 컨마 기획의 방과 같은 방식 ══ */
+var pen='도입부', aid=null, astep=1, cpen='문제', railOpen=-1;
+/* 고객 펜 5색 — 컨마 PV2_PAINT 그대로(4바구니 + 핵심) */
+var CPENS = [['문제','#E07B7B','이미 나에게 떨어진 것'],['욕구','#7E9B72','저 앞에 있는 것'],
+             ['회피','#F0B24E','오면 안 되는 것'],['저항','#8FA0C9','사이를 막은 것'],
+             ['핵심','#7EC8F5','이 영상이 하려는 말']];
+function cpenCol(k){ var r=CPENS.filter(function(x){return x[0]===k;})[0]; return r?r[1]:'#8FA0BC'; }
+function sents(t){ return String(t||'').split(/(?<=[.!?。])\s+/).filter(function(x){ return x.trim(); }); }
+function anatDone(m){
+  var cn={}; Object.keys(m.cus||{}).forEach(function(k){ cn[m.cus[k]]=1; });
+  return {seg:(m.struct||[]).filter(function(r){ return r.role; }).length,
+          cus:Object.keys(cn).length, cusk:cn};
+}
+/* 칠한 문장을 바구니별로 모은다 — 손으로 적는 칸은 없다 */
+function cusBuckets(d,m){
+  var ss=sents(d.script), out={};
+  Object.keys(m.cus||{}).forEach(function(i){ var k=m.cus[i];
+    (out[k]=out[k]||[]).push(ss[+i]); });
+  return out;
+}
+function paint3(){
+  var L=by('anat'); $('#c3').textContent=L.length+'장';
+  if(!L.length){
+    $('#r3-body').innerHTML =
+      '<p class="ghostnote">아직 분석할 게 없습니다 <s>②분류에서 넘기면 아래 모양으로 한 편씩 올라옵니다</s>'+
+      '<em>화면 구성 미리보기</em></p>'+
+      '<div class="steps ghost">'+
+        '<button aria-pressed="true">① 고객 분석<s>형광펜으로 칠하면 바구니로</s></button>'+
+        '<button aria-pressed="false">② 구조 구성<s>여섯 구간 기찻길</s></button></div>'+
+      '<div class="solo ghost"><div class="ghostth">뜯을 영상</div>'+
+        '<div class="pens">'+CPENS.map(function(c){
+          return '<button style="--pc:'+c[1]+'">'+c[0]+'</button>'; }).join('')+'</div>'+
+        '<div class="ghostbox">원고가 여기 들어옵니다<br>펜을 고르고 문장을 톡 치면 형광펜으로 칠해집니다</div>'+
+        '<div class="vocm">'+CPENS.slice(0,3).map(function(c){
+          return '<div class="vm off" style="--vc:'+c[1]+'"><b>'+c[0]+'</b><span>칠한 문장이 여기 모입니다</span></div>';
+        }).join('')+'</div>'+
+      '</div>';
+    return; }
+  if(!aid || !get(aid) || get(aid).st!=='anat'){ aid=L[0].id; astep=1; }
+  var d=get(aid), m=meta[d.id], st=anatDone(m), ss=sents(d.script);
+  var head = (L.length>1 ? pickerHTML(L, d, 'anat') : '')+
+    '<div class="steps">'+
+      '<button data-step="1" aria-pressed="'+(astep===1)+'">① 고객 분석<s>형광펜 '+(st.cus?st.cus+'색':'')+'</s></button>'+
+      '<button data-step="2" aria-pressed="'+(astep===2)+'">② 구조 구성<s>기찻길 '+(st.seg?st.seg+'칸':'')+'</s></button>'+
+    '</div>';
+
+  if(astep===1){
+    /* ① 고객 분석 — 칠하면 아래 바구니가 «저절로» 찬다 */
+    var bk=cusBuckets(d,m);
+    $('#r3-body').innerHTML = head+'<div class="solo">'+
+      '<div class="mainth" style="width:104px">'+thHTML(d)+'</div>'+
+      '<p class="mainttl">'+esc(d.hk)+'</p>'+
+      '<p class="palcap">고객 펜 — 칠하면 아래 바구니로 · 칠 = 형광펜</p>'+
+      '<div class="pens">'+CPENS.map(function(c){
+        return '<button data-cpen="'+c[0]+'" style="--pc:'+c[1]+'" aria-pressed="'+(cpen===c[0])+'" title="'+c[2]+'">'+c[0]+'</button>';
+      }).join('')+'<button data-cpen="" style="--pc:var(--tx3)" aria-pressed="'+(cpen===''?'true':'false')+'">지우개</button></div>'+
+      '<div class="script">'+ss.map(function(t,i){
+        var k=(m.cus||{})[i];
+        return '<span class="hl'+(k?' on':'')+'"'+(k?' style="--c:'+cpenCol(k)+'"':'')+' data-cus="'+i+'">'+esc(t)+'</span> ';
+      }).join('')+'</div>'+
+      '<div class="vocm">'+CPENS.map(function(c){
+        var arr=bk[c[0]]||[];
+        return '<div class="vm'+(arr.length?'':' off')+'" style="--vc:'+c[1]+'"><b>'+c[0]+'</b>'+
+          '<span>'+(arr.length? esc(arr.join(' ').slice(0,70))+(arr.join(' ').length>70?'…':'') : c[2]+' — 아직 안 칠함')+'</span></div>';
+      }).join('')+'</div>'+
+      '<button class="go" data-step="2"'+(st.cus>=1?'':' disabled')+'>'+
+        (st.cus>=1?'구조 구성으로 →':'한 색이라도 칠하면 넘어갑니다')+'</button>'+
+      '</div>';
+  }else{
+    /* ② 구조 구성 — 분해봇이 «원고를 읽고 만든 라벨» 그대로 기찻길이 선다.
+       칸 수는 영상마다 다르다(기본 5칸, 최대 8). 사람은 확인하고 고칠 뿐이다. */
+    var st2 = m.struct;
+    if(!st2){
+      $('#r3-body').innerHTML = head+'<div class="solo">'+
+        '<p class="botline off">원고가 없어 분해봇이 구성을 못 만들었습니다</p>'+
+        '<div class="ghostbox">인스타 영상은 원고를 못 가져올 때가 있어요.<br>'+
+        '원고를 붙여넣으면 봇이 바로 구성을 만들어 줍니다.</div>'+
+        '<button class="skip" data-step="1">← 고객 분석으로</button></div>';
+      return;
+    }
+    $('#r3-body').innerHTML = head+'<div class="solo">'+
+      '<p class="botline">🤖 분해봇 구성 — <b>'+esc((BOT[d.id]||{}).판정||'기본형')+'</b> · '+st2.length+'칸</p>'+
+      '<p class="palcap">칸 이름을 누르면 «무슨 역할인지»와 세부가 그 자리에서 열립니다</p>'+
+      '<div class="rail">'+st2.map(function(row,ri){
+        var col = row.role ? (ROLES.filter(function(x){return x[0]===row.role;})[0]||['',''])[1]
+                           : ROLES[Math.min(ri, ROLES.length-1)][1];
+        var open = (railOpen===ri);
+        return '<div class="rw'+(open?' open':'')+'" style="--k:'+col+'">'+
+          '<button class="rl" data-rail="'+ri+'">'+esc(row.k)+'</button>'+
+          '<div class="bd"><p class="tx">'+esc(row.t)+'</p>'+
+          (row.role&&row.sub ? '<span class="railsub">'+esc(row.role)+' · '+esc(row.sub)+'</span>' :
+           row.role ? '<span class="railsub">'+esc(row.role)+'</span>' : '')+
+          (open ?
+            '<div class="rolerow">'+ROLES.map(function(r){
+              return '<button data-rrole="'+ri+'|'+r[0]+'" style="--rc:'+r[1]+'" aria-pressed="'+(row.role===r[0])+'">'+r[0]+'</button>';
+            }).join('')+'</div>'+
+            (row.role ? '<div class="subrow" style="--pc:'+col+'">'+SUBS[row.role].map(function(x){
+              return '<button type="button" class="sub'+(row.sub===x?' sel':'')+'" data-rsub="'+ri+'|'+x+'">'+x+'</button>';
+            }).join('')+'</div>' : '<p class="palcap" style="margin:6px 0 0">역할을 고르면 세부가 열립니다</p>')
+            : '')+
+          '</div></div>';
+      }).join('')+'</div>'+
+      '<button class="go" data-page="'+d.id+'"'+(st2.filter(function(r){return r.role;}).length>=3?'':' disabled')+'>'+
+        (st2.filter(function(r){return r.role;}).length>=3?'✓ 강의 자료실로 →':
+         '칸 3개 이상에 역할을 달아주세요 ('+st2.filter(function(r){return r.role;}).length+'/3)')+'</button>'+
+      '<button class="skip" data-step="1">← 고객 분석으로 돌아가기</button>'+
+      '</div>';
+  }
+}
+
+/* ══ ④ 강의 자료실 — 갈래별 선반 ══ */
+var axis='type', findq='';
+var AXES = [['type','유형으로'],['thumbs','썸네일로'],['whys','왜 터졌나로']];
+var AXIS_LIST = {type:TYPES, thumbs:THUMBS, whys:WHYS};
+function stealOf(m){ return m.msg || (m.whys||[]).join(' · ') || ''; }
+function paint4(){
+  var L=by('page'); $('#c4').textContent=L.length+'편';
+  var q=findq.trim();
+  if(q) L=L.filter(function(d){ var m=meta[d.id];
+    return (d.hk+' '+(m.msg||'')+' '+(m.type||'')+' '+(m.whys||[]).join(' ')).indexOf(q)>=0; });
+  var list=AXIS_LIST[axis], groups={}, empty=[];
+  list.forEach(function(k){ groups[k]=[]; });
+  L.forEach(function(d){ var v=meta[d.id][axis];
+    var keys = Array.isArray(v) ? (v.length?v:['(안 정한 것)']) : [v||'(안 정한 것)'];
+    keys.forEach(function(k){ if(!groups[k]) groups[k]=[]; groups[k].push(d); }); });
+  var filled=Object.keys(groups).filter(function(k){ return groups[k].length; });
+  empty=list.filter(function(k){ return !(groups[k]||[]).length; });
+
+  var head =
+    '<div class="top"><span class="sum"><b>'+by('page').length+'편</b> · 훔칠 것 <b>'+
+      by('page').filter(function(d){ return stealOf(meta[d.id]); }).length+'줄</b> · '+
+      filled.length+'갈래</span>'+
+      '<input class="find" id="find" value="'+esc(findq)+'" placeholder="제목·훔칠 것으로 찾기"></div>'+
+    '<div class="axis">'+AXES.map(function(a2){
+      return '<button data-axis="'+a2[0]+'" aria-pressed="'+(axis===a2[0])+'">'+a2[1]+'</button>';
+    }).join('')+'</div>';
+
+  if(!by('page').length){
+    /* 비어 있어도 «선반이 어떻게 생겼는지»는 보여준다 */
+    $('#r4-body').innerHTML = head+
+      '<p class="ghostnote">아직 꽂힌 게 없습니다 <s>③해부를 끝내면 갈래별 선반에 한 편씩 꽂힙니다</s>'+
+      '<em>선반 구성 미리보기</em></p>'+
+      '<div class="shelf ghost">'+list.slice(0,2).map(function(k){
+        return '<div class="shelfhd"><b>'+k+'</b><s>0</s><em>여기 꽂힙니다</em></div>'+
+          '<div class="books"><div class="slot">아직 없음</div><div class="slot">아직 없음</div>'+
+          '<div class="slot">아직 없음</div></div>';
+      }).join('')+'</div>';
+    return;
+  }
+  $('#r4-body').innerHTML = head+'<div class="shelf">'+
+    filled.map(function(k){
+      var arr=groups[k];
+      return '<div class="shelfhd"><b>'+esc(k)+'</b><s>'+arr.length+'</s>'+
+        '<em>'+(arr.length>2?'옆으로 넘겨 보세요':'')+'</em></div>'+
+        '<div class="books'+(arr.length>1?' multi':'')+'">'+arr.map(function(d){
+          var m=meta[d.id], st=stealOf(m);
+          return '<article class="book" title="'+esc(d.hk)+'">'+thHTML(d)+
+            '<p class="steal">'+(st?'<i>훔칠 것</i>'+esc(st):'<span style="color:var(--tx3)">훔칠 것이 비어 있음</span>')+'</p></article>';
+        }).join('')+ (arr.length<3?'<div class="slot">이 갈래에<br>더 쌓을 자리</div>':'') +'</div>';
+    }).join('')+'</div>'+
+    (empty.length? '<div class="rest"><p>아직 빈 갈래 — 담기면 여기에 선반이 생깁니다</p><div class="row">'+
+      empty.map(function(k){ return '<s>'+esc(k)+' 0</s>'; }).join('')+'</div></div>' : '');
+}
+
+function paint(){ lineRender();
+  if(cur==='r1') paint1(); else if(cur==='r2') paint2(); else if(cur==='r3') paint3(); else paint4(); }
+
+/* ══ 배선 ══ */
+function moveTo(id, to, fromEl){
+  var d=get(id); if(!d) return;
+  function go(){ d.st=to; paint(); pop(to==='sort'?'r2':to==='anat'?'r3':'r4');
+    toast(to==='sort'?'🗂 분류로 보냈어요':to==='anat'?'🔬 분석으로 넘겼어요':'📄 한 장이 됐습니다'); }
+  if(fromEl){ fromEl.classList.add('fly'); setTimeout(go, 430); } else go();
+}
+document.addEventListener('click', function(e){
+  var t=e.target, h;
+  if(h=t.closest('[data-room]')){ goRoom(h.dataset.room); return; }
+  if(h=t.closest('[data-ch]')){ toast(h.dataset.ch==='yt'?'▶ 유튜브 정찰 — 검색 화면이 열립니다':'◉ 인스타 — 링크를 붙여넣으세요'); return; }
+  if(h=t.closest('[data-add]')){
+    var v=$('#link').value.trim(); if(!v){ toast('링크를 붙여넣어 주세요'); return; }
+    var d={id:seq, hk:'새로 담은 것 '+seq, vw:'—', src:/insta/.test(v)?'\u25c9':'\u25b6', g:G[seq%G.length], st:'new', script:SCRIPT};
+    meta[seq]={type:'',thumb:'',why:'',msg:'',trend:'',paint:{},subs:{},bk:{}};
+    IT.unshift(d); seq++; $('#link').value=''; paint(); pop('r1');
+    toast('담았어요 — 썸네일·원고를 가져오는 중…'); return; }
+  if(h=t.closest('[data-tosort]')){ moveTo(+h.dataset.tosort,'sort', t.closest('.cell')?t.closest('.cell').querySelector('.th'):null); return; }
+  if(h=t.closest('[data-kill]')){ var ix=IT.indexOf(get(+h.dataset.kill)); if(ix>=0){ IT.splice(ix,1); paint(); toast('버렸습니다'); } return; }
+
+  /* ② 분류 — 위에서 고르고, 좌우로 넘기고, 아래로 판정 */
+  if(h=t.closest('[data-pick]')){ sel=get(+h.dataset.pick); paint2(); return; }
+  if(h=t.closest('[data-step2]')){ var L=by('sort'), at=L.indexOf(sel)+ +h.dataset.step2;
+    if(at>=0 && at<L.length){ sel=L[at]; paint2(); } return; }
+  if(cur==='r2' && sel){
+    var mm2=meta[sel.id];
+    function toggle(arr,v,cap){ var k=arr.indexOf(v);
+      if(k>=0) arr.splice(k,1); else { if(cap && arr.length>=cap) arr.shift(); arr.push(v); } }
+    if(h=t.closest('[data-type]')){  mm2.type = mm2.type===h.dataset.type?'':h.dataset.type; paint2(); return; }
+    if(h=t.closest('[data-thumb]')){ toggle(mm2.thumbs,h.dataset.thumb,3); paint2(); return; }   /* 1~3개 */
+    if(h=t.closest('[data-why]')){   toggle(mm2.whys, h.dataset.why, 2);  paint2(); return; }   /* 최대 2개 */
+  }
+  if(h=t.closest('[data-pass]')){
+    var el=$('#r2-body') ? $('#r2-body').querySelector('.mainth .th') : null;
+    astep=1; moveTo(+h.dataset.pass,'anat', el); return; }
+
+  /* ④ 강의 자료실 */
+  if(h=t.closest('[data-axis]')){ axis=h.dataset.axis; paint4(); return; }
+
+  /* ③ 해부 */
+  if(h=t.closest('[data-anat]')){ aid=+h.dataset.anat; astep=1; paint3(); return; }
+  if(cur==='r3'){
+    if(h=t.closest('[data-page]')){ moveTo(+h.dataset.page,'page',null); return; }
+    if(h=t.closest('[data-step]')){ astep=+h.dataset.step; paint3(); return; }
+    /* 기찻길 칸 — 이름을 누르면 그 자리에서 열린다 */
+    if(h=t.closest('[data-rail]')){ var ri=+h.dataset.rail; railOpen = (railOpen===ri?-1:ri); paint3(); return; }
+    if(h=t.closest('[data-rrole]')){ var pr2=h.dataset.rrole.split('|'), rw=meta[aid].struct[+pr2[0]];
+      rw.role = (rw.role===pr2[1] ? '' : pr2[1]); rw.sub=''; paint3(); return; }
+    if(h=t.closest('[data-rsub]')){ var pr3=h.dataset.rsub.split('|'), rw2=meta[aid].struct[+pr3[0]];
+      rw2.sub = (rw2.sub===pr3[1] ? '' : pr3[1]); paint3(); return; }
+    /* 고객 펜 — 칠하면 바구니가 저절로 찬다 */
+    if(h=t.closest('[data-cpen]')){ cpen=h.dataset.cpen; paint3(); return; }
+    if(h=t.closest('[data-cus]')){ var mc=meta[aid], ck=h.dataset.cus;
+      mc.cus = mc.cus || {};
+      if(cpen==='') delete mc.cus[ck]; else mc.cus[ck]=cpen;
+      paint3(); return; }
+  }
+});
+document.addEventListener('input', function(e){
+  if(e.target.id==='find'){ findq=e.target.value; var at=e.target.selectionStart;
+    paint4(); var nf=$('#find'); if(nf){ nf.focus(); try{ nf.setSelectionRange(at,at); }catch(x){} } return; }
+  var vwin=e.target.closest('[data-vw]');
+  if(vwin){ var dv=get(+vwin.dataset.vw); if(dv){ dv.vw = vwin.value.trim()||'—';
+    var btn2=document.querySelector('[data-tosort="'+dv.id+'"]'); if(btn2) btn2.disabled = !(dv.vw&&dv.vw!=='—'); } return; }
+  var f=e.target.closest('[data-f]');
+  if(f && cur==='r2' && sel){
+    meta[sel.id][f.dataset.f]=f.value;
+    var m=meta[sel.id], ok=m.type&&m.thumb&&m.why.trim(), btn=$('[data-pass]');
+    if(btn){ btn.disabled=!ok; btn.textContent=ok?'✓ 분석으로 넘기기 →':'유형·썸네일·«왜 터졌나»를 채우면 넘어갑니다'; }
+  }
+
+});
+lineRender(); paint();
+</script>
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>분해봇 — 킵한 것들</title>
+<style>
+:root{
+  --hook:#B9A9F6; --story:#8EC7F6; --conv:#6FE0C8; --prod:#C8F169;
+  --tx1:#EDF0F6; --tx2:#8B93A3; --tx3:#5A6272;
+  --glass:rgba(255,255,255,.035); --line:rgba(255,255,255,.075); --line2:rgba(255,255,255,.15);
+  --yt:#E0574B; --ig:#D62976;
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --sp-flat:cubic-bezier(.32,.72,0,1);
+  --sp-bounce:cubic-bezier(.32,1.34,.42,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;color:var(--tx1);font:100%/1.5 -apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{background:radial-gradient(120% 70% at 50% 0%, #0d1017, #070910 54%, #050609);min-height:100vh;padding:20px 16px 80px}
+.wrap{max-width:1000px;margin:0 auto}
+h1{font-size:clamp(20px,3vw,24px);line-height:1.1;letter-spacing:-.02em;margin:0 0 6px}
+.lead{color:var(--tx2);font-size:12.5px;line-height:1.65;margin:0 0 16px;max-width:74ch;text-wrap:pretty}
+.lead b{color:var(--prod)}
+.allbar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.allbar button{font-family:inherit;font-size:12.5px;font-weight:800;padding:10px 16px;border-radius:11px;cursor:pointer;
+  background:var(--prod);border:none;color:#06080c;transition:transform .1s ease-out}
+.allbar button:active{transform:scale(.97)}
+.allbar button.ghost{background:var(--glass);border:1px solid var(--line2);color:var(--tx2)}
+.links{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 18px}
+.links a{font-size:10.5px;font-weight:700;padding:6px 11px;border-radius:9px;text-decoration:none;
+  background:var(--glass);border:1px solid var(--line);color:var(--tx2)}
+.links a:hover{border-color:var(--line2);color:var(--tx1)}
+
+.grid{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:800px){ .grid{grid-template-columns:repeat(2,1fr)} }
+.card{border:1px solid var(--line);border-radius:20px;overflow:hidden;position:relative;
+  background:linear-gradient(180deg,rgba(255,255,255,.022),transparent 40%)}
+.card.pick{border-color:rgba(200,241,105,.32);box-shadow:0 0 34px -18px var(--prod)}
+.badge{position:absolute;right:12px;top:12px;z-index:4;font-size:9px;font-weight:800;letter-spacing:.04em;
+  padding:3px 8px;border-radius:7px;background:rgba(255,255,255,.07);color:var(--tx3);border:1px solid var(--line)}
+.card.pick .badge{background:rgba(200,241,105,.14);color:var(--prod);border-color:rgba(200,241,105,.34)}
+.chd{padding:13px 15px;border-bottom:1px solid var(--line)}
+.chd b{font-size:13.5px;font-weight:800;display:block;letter-spacing:-.01em}
+.chd s{text-decoration:none;font-size:10.5px;color:var(--tx3);line-height:1.5;display:block;margin-top:3px}
+.ctl{display:flex;gap:5px;padding:11px 15px 0}
+.ctl button{flex:1;font-family:inherit;font-size:11px;font-weight:800;padding:7px 0;border-radius:9px;cursor:pointer;
+  background:var(--glass);border:1px solid var(--line);color:var(--tx2);transition:transform .1s ease-out}
+.ctl button:active{transform:scale(.96)}
+.ctl button.yt{color:#FF7A6E;border-color:rgba(224,87,75,.36)}
+.ctl button.ig{color:#F06FB8;border-color:rgba(214,41,118,.36)}
+.ctl button[disabled]{opacity:.4;cursor:default}
+.scene{position:relative;height:300px;margin:8px 0 0}
+.scene svg{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}
+.state{text-align:center;font-size:10.5px;font-weight:700;color:var(--tx3);padding:2px 12px 0;min-height:16px;transition:color .3s}
+.card.run .state{color:var(--story)} .card.done .state{color:var(--prod)}
+.out{padding:0 15px 15px;min-height:92px}
+.outcard{display:flex;gap:10px;align-items:center;padding:9px;border-radius:13px;
+  background:rgba(200,241,105,.06);border:1px solid rgba(200,241,105,.26);
+  animation:spit .5s var(--sp-bounce) 1 both}
+@keyframes spit{ from{opacity:0;transform:translateY(-14px) scale(.92)} to{opacity:1;transform:none} }
+.outcard i{width:32px;height:44px;border-radius:8px;flex:none;box-shadow:0 6px 16px rgba(0,0,0,.5)}
+.outcard .tt b{display:block;font-size:11.5px;font-weight:800;line-height:1.35}
+.outcard .tt s{display:block;text-decoration:none;font-size:9.5px;color:var(--prod);margin-top:3px;font-weight:700}
+.outempty{font-size:10.5px;color:var(--tx3);text-align:center;padding:28px 10px;line-height:1.6;
+  border:1px dashed var(--line);border-radius:13px}
+
+.pipe{stroke:rgba(255,255,255,.11);stroke-width:2.4;fill:none;stroke-linecap:round}
+.feed{stroke-width:2.8;fill:none;stroke-linecap:round;stroke-dasharray:var(--len);stroke-dashoffset:var(--len);opacity:0}
+.card.run .feed.on{opacity:1;animation:draw 1.1s var(--ease) 1 forwards}
+.card.done .feed.on{opacity:.5;stroke-dashoffset:0}
+@keyframes draw{ to{stroke-dashoffset:0} }
+.plabel{font:800 9px/1 -apple-system,system-ui;fill:var(--tx3)}
+.port{opacity:.45;transition:opacity .35s var(--ease)}
+.card.run .port.on,.card.done .port.on{opacity:1}
+.card.run .port.on .plabel{fill:var(--tx1)}
+
+/* ══ C 원본 ══ */
+#C .rob{transform-origin:0 40px}
+.card.run #C .rob{animation:tilt .6s ease-in-out 3 both}
+@keyframes tilt{ 0%,100%{transform:rotate(0)} 30%{transform:rotate(-2.6deg)} 70%{transform:rotate(2.6deg)} }
+#C .eye{fill:#2a3040;transition:fill .3s}
+.card.run #C .eye,.card.done #C .eye{fill:var(--prod)}
+#C .zzz{fill:var(--tx3);font:800 11px/1 system-ui;transition:opacity .3s}
+.card.run #C .zzz,.card.done #C .zzz{opacity:0}
+#C .sheet{opacity:0}
+.card.done #C .sheet{animation:sheet .55s var(--sp-bounce) 1 both}
+@keyframes sheet{ from{opacity:0;transform:translateY(-8px) scaleY(.4)} to{opacity:1;transform:none} }
+
+/* ══ K · G + D의 선 (기계 침범 없음) ══ */
+#K .spot{opacity:0;transition:opacity .55s var(--ease)}
+.card.run #K .spot,.card.done #K .spot{opacity:1}
+#K .rob{transform-origin:0 44px;transition:transform .5s var(--sp-flat)}
+.card.run #K .rob{animation:rise 1.7s var(--sp-flat) 2 both}
+@keyframes rise{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+#K .eye{fill:#22283a;transition:fill .4s}
+.card.run #K .eye,.card.done #K .eye{fill:#fff}
+#K .glassbody{fill:rgba(255,255,255,.06);stroke:rgba(255,255,255,.2);stroke-width:1.5;transition:.5s var(--ease)}
+.card.run #K .glassbody{fill:rgba(142,199,246,.14);stroke:rgba(142,199,246,.6)}
+.card.done #K .glassbody{fill:rgba(200,241,105,.13);stroke:rgba(200,241,105,.55)}
+#K .shadow{fill:rgba(0,0,0,.55);transition:.5s var(--ease)}
+.card.run #K .shadow{transform:scale(.86);opacity:.7}
+/* 투입구 — 선은 여기서 «멈춘다». 기계 안으로 들어가지 않는다 */
+#K .hopper{fill:rgba(255,255,255,.05);stroke:rgba(255,255,255,.22);stroke-width:1.5;transition:.45s var(--ease)}
+.card.run #K .hopper{stroke:rgba(142,199,246,.65);fill:rgba(142,199,246,.1)}
+.card.done #K .hopper{stroke:rgba(200,241,105,.55)}
+#K .drop{opacity:0}
+.card.run #K .drop{animation:dropin .85s var(--sp-flat) 1 both}
+@keyframes dropin{ 0%{opacity:1;transform:translateY(-16px)} 78%{opacity:1;transform:translateY(6px)} 100%{opacity:0;transform:translateY(10px)} }
+#K .ant{stroke:#2a3040;stroke-width:2;stroke-linecap:round;transition:stroke .4s}
+.card.run #K .ant{stroke:var(--story)} .card.done #K .ant{stroke:var(--prod)}
+#K .antdot{fill:#2a3040;transition:fill .4s}
+.card.run #K .antdot{fill:var(--story)} .card.done #K .antdot{fill:var(--prod)}
+#K .zzz{fill:var(--tx3);font:800 11px/1 system-ui;transition:opacity .3s}
+.card.run #K .zzz,.card.done #K .zzz{opacity:0}
+#K .sheet{opacity:0}
+.card.done #K .sheet{animation:sheet2 .6s var(--sp-bounce) 1 both}
+@keyframes sheet2{ from{opacity:0;transform:translateY(-14px)} to{opacity:1;transform:translateY(0)} }
+
+@media(prefers-reduced-motion:reduce){ *{animation-duration:.01ms!important;transition-duration:.01ms!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>분해봇 — 킵한 것들</h1>
+  <p class="lead">사장님이 남겨두라 하신 둘입니다. 오른쪽 <b>K</b>는 말로만 킵했던
+     <b>「G의 무대 + D의 긴 선」</b>을 실제로 만든 것 — <b>선이 기계 안으로 들어가지 않게</b> 투입구에서 멈춥니다.</p>
+
+  <div class="allbar">
+    <button data-all="ig">◉ 인스타 넣기 — 둘 다</button>
+    <button data-all="yt">▶ 유튜브 넣기 — 둘 다</button>
+    <button class="ghost" data-reset="1">처음으로</button>
+  </div>
+  <div class="links">
+    <a href="_시안_분해봇_공정_3안.html">← 처음 3안 (A·B·C)</a>
+    <a href="_시안_분해봇_5안.html">← 디벨롭 5안 (D~H)</a>
+    <a href="_시안_분해봇_새판_5안.html">← 새판 5안 (은유를 바꾼 것)</a>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+var IGDEF='<defs><linearGradient id="IGG" x1="0" y1="1" x2="1" y2="0">'+
+  '<stop offset="0" stop-color="#FEDA75"/><stop offset=".22" stop-color="#FA7E1E"/>'+
+  '<stop offset=".52" stop-color="#D62976"/><stop offset=".76" stop-color="#962FBF"/>'+
+  '<stop offset="1" stop-color="#4F5BD5"/></linearGradient></defs>';
+function port(x,y,kind,r){
+  r=r||15;
+  var col = kind==='yt' ? '#E0574B' : 'url(#IGG)';
+  var ico = kind==='yt'
+    ? '<path d="M-3 -4.2v8.4l6.9-4.2z" fill="#fff"/>'
+    : '<g fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round">'+
+      '<rect x="-6.1" y="-6.1" width="12.2" height="12.2" rx="3.9"/><circle r="2.8"/></g>'+
+      '<circle cx="4.1" cy="-4.1" r="1" fill="#fff"/>';
+  return '<g class="port '+kind+'" transform="translate('+x+','+y+')">'+
+    '<rect x="'+(-r)+'" y="'+(-r)+'" width="'+(r*2)+'" height="'+(r*2)+'" rx="'+(r*.62)+'" fill="'+col+'"/>'+
+    ico+'<text class="plabel" y="'+(r+13)+'" text-anchor="middle">'+(kind==='yt'?'유튜브':'인스타')+'</text></g>';
+}
+var OUT = {
+  yt:{g:'linear-gradient(150deg,#3a2f12,#1d1707)', t:'3초 안에 안 넘기게 하는 법', s:'원고 217자 · 구성 6칸'},
+  ig:{g:'linear-gradient(150deg,#331a2e,#1a0d17)', t:'브이로그인데 왜 이건 터졌을까', s:'받아쓰기 412자 · 구성 5칸'}
+};
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+/* C 원본 */
+function sC(){ return '<svg viewBox="0 0 300 300" id="C">'+IGDEF+
+  port(78,44,'yt')+port(222,44,'ig')+
+  '<path class="pipe" d="M78 64 Q78 108 118 116"/><path class="pipe" d="M222 64 Q222 108 182 116"/>'+
+  '<path class="feed yt" style="--len:96" stroke="#E0574B" d="M78 64 Q78 108 118 116"/>'+
+  '<path class="feed ig" style="--len:96" stroke="#D62976" d="M222 64 Q222 108 182 116"/>'+
+  '<g transform="translate(150,158) scale(1.2)"><g class="rob">'+
+    '<text class="zzz" x="26" y="-44">z z</text>'+
+    '<rect x="-30" y="-38" width="60" height="46" rx="15" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.17)" stroke-width="1.6"/>'+
+    '<circle class="eye" cx="-11" cy="-17" r="4.2"/><circle class="eye" cx="11" cy="-17" r="4.2"/>'+
+    '<rect x="-7" y="-4" width="14" height="3.2" rx="1.6" fill="rgba(255,255,255,.28)"/>'+
+    '<rect x="-22" y="12" width="44" height="30" rx="10" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.15)" stroke-width="1.5"/>'+
+    '<g class="sheet"><rect x="-16" y="46" width="32" height="24" rx="5" fill="rgba(200,241,105,.15)" stroke="var(--prod)" stroke-width="1.4"/>'+
+    '<line x1="-10" y1="54" x2="10" y2="54" stroke="var(--prod)" stroke-width="1.5" stroke-linecap="round"/></g>'+
+  '</g></g></svg>'; }
+
+/* K · G의 무대 + D의 긴 선 — 선은 투입구에서 멈춘다 */
+function sK(){ return '<svg viewBox="0 0 300 300" id="K">'+IGDEF+
+  '<g class="spot"><polygon points="150,-4 240,272 60,272" fill="rgba(142,199,246,.1)"/>'+
+  '<polygon points="150,-4 198,272 102,272" fill="rgba(142,199,246,.12)"/>'+
+  '<ellipse cx="150" cy="266" rx="62" ry="11" fill="rgba(142,199,246,.12)"/></g>'+
+  port(56,38,'yt',15)+port(244,38,'ig',15)+
+  /* D의 긴 라인 — 넓게 돌아 내려와 «투입구 바로 위»에서 끝난다 */
+  '<path class="pipe" d="M56 56 V92 Q56 110 78 110 H132 Q150 110 150 128 V138"/>'+
+  '<path class="pipe" d="M244 56 V92 Q244 110 222 110 H168 Q150 110 150 128 V138"/>'+
+  '<path class="feed yt" style="--len:186" stroke="#E0574B" d="M56 56 V92 Q56 110 78 110 H132 Q150 110 150 128 V138"/>'+
+  '<path class="feed ig" style="--len:186" stroke="#D62976" d="M244 56 V92 Q244 110 222 110 H168 Q150 110 150 128 V138"/>'+
+  /* 투입구 — 선과 기계 사이의 «경계». 여기서 받아 넣는다 */
+  '<path class="hopper" d="M128 142 h44 l-9 16 h-26 z"/>'+
+  '<g class="drop"><circle cx="150" cy="150" r="4.2" fill="var(--story)"/></g>'+
+  '<ellipse class="shadow" cx="150" cy="256" rx="44" ry="7"/>'+
+  '<g transform="translate(150,196)"><g class="rob">'+
+    '<text class="zzz" x="32" y="-40">z z</text>'+
+    '<line class="ant" x1="0" y1="-38" x2="0" y2="-50"/><circle class="antdot" cx="0" cy="-53" r="3.4"/>'+
+    '<rect class="glassbody" x="-32" y="-36" width="64" height="46" rx="17"/>'+
+    '<circle class="eye" cx="-11" cy="-15" r="4.1"/><circle class="eye" cx="11" cy="-15" r="4.1"/>'+
+    '<rect class="glassbody" x="-24" y="14" width="48" height="32" rx="12"/>'+
+    '<g class="sheet"><rect x="-17" y="50" width="34" height="26" rx="5" fill="rgba(200,241,105,.15)" stroke="var(--prod)" stroke-width="1.4"/>'+
+    '<line x1="-11" y1="59" x2="11" y2="59" stroke="var(--prod)" stroke-width="1.5" stroke-linecap="round"/>'+
+    '<line x1="-11" y1="66" x2="4" y2="66" stroke="var(--prod)" stroke-width="1.5" stroke-linecap="round"/></g>'+
+  '</g></g></svg>'; }
+
+var ANS=[
+  {id:'C', nm:'C · 원본', sub:'처음에 고르신 것. 선이 로봇 어깨까지 들어간다'},
+  {id:'K', nm:'K · G의 무대 + D의 긴 선', pick:1,
+   sub:'스포트라이트 아래, 선은 길게 돌아와 «투입구»에서 멈춘다 — 기계를 침범하지 않는다'}
+];
+var SCENES={C:sC,K:sK};
+document.getElementById('grid').innerHTML = ANS.map(function(a){
+  return '<section class="card'+(a.pick?' pick':'')+'" data-an="'+a.id+'">'+
+    '<span class="badge">'+(a.pick?'새로 만든 것':'킵')+'</span>'+
+    '<div class="chd"><b>'+a.nm+'</b><s>'+a.sub+'</s></div>'+
+    '<div class="ctl"><button class="yt" data-run="'+a.id+'|yt">▶ 유튜브</button>'+
+    '<button class="ig" data-run="'+a.id+'|ig">◉ 인스타</button></div>'+
+    '<div class="scene">'+SCENES[a.id]()+'</div>'+
+    '<p class="state">꺼져 있음 — 일감이 오면 깨어납니다</p>'+
+    '<div class="out"><div class="outempty">여기로 결과가 나옵니다</div></div>'+
+    '</section>';
+}).join('');
+
+var T={};
+function reset(id){
+  var c=document.querySelector('[data-an="'+id+'"]'); if(!c) return;
+  clearTimeout(T[id]); clearTimeout(T[id+'b']);
+  c.classList.remove('run','done');
+  c.querySelectorAll('.feed').forEach(function(f){ f.classList.remove('on'); });
+  c.querySelectorAll('.port').forEach(function(p){ p.classList.remove('on'); });
+  c.querySelector('.state').textContent='꺼져 있음 — 일감이 오면 깨어납니다';
+  c.querySelector('.out').innerHTML='<div class="outempty">여기로 결과가 나옵니다</div>';
+  c.querySelectorAll('.ctl button').forEach(function(b){ b.disabled=false; });
+}
+function run(id, kind){
+  var c=document.querySelector('[data-an="'+id+'"]'); if(!c) return;
+  reset(id);
+  var ig=kind==='ig', dur= ig?4200:2600;
+  c.querySelectorAll('.ctl button').forEach(function(b){ b.disabled=true; });
+  c.querySelector('.port.'+kind).classList.add('on');
+  c.querySelector('.feed.'+kind).classList.add('on');
+  void c.offsetWidth; c.classList.add('run');
+  c.querySelector('.state').textContent = ig?'받아쓰는 중… 소리부터 글자로':'자막을 읽는 중…';
+  T[id]=setTimeout(function(){ c.querySelector('.state').textContent='구성으로 뜯는 중…'; }, Math.round(dur*.55));
+  T[id+'b']=setTimeout(function(){
+    c.classList.remove('run'); c.classList.add('done');
+    c.querySelector('.state').textContent='끝났습니다 — 아래로 나왔어요';
+    var o=OUT[kind];
+    c.querySelector('.out').innerHTML='<div class="outcard"><i style="background:'+o.g+'"></i>'+
+      '<div class="tt"><b>'+esc(o.t)+'</b><s>'+esc(o.s)+'</s></div></div>';
+    c.querySelectorAll('.ctl button').forEach(function(b){ b.disabled=false; });
+  }, dur);
+}
+document.addEventListener('click', function(e){
+  var r=e.target.closest('[data-run]');
+  if(r){ var p=r.dataset.run.split('|'); run(p[0],p[1]); return; }
+  var a=e.target.closest('[data-all]');
+  if(a){ ANS.forEach(function(x){ run(x.id, a.dataset.all); }); return; }
+  if(e.target.closest('[data-reset]')){ ANS.forEach(function(x){ reset(x.id); }); return; }
+});
+</script>
+</body>
+</html>

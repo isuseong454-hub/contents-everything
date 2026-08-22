@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>자료실 ② 분류방 — 시안 3안</title>
+<style>
+/* ── 컨모(컨텐츠의 모든것) 색 헌법 그대로 ── */
+:root{
+  --bg0:#050609; --bg1:#0a0d13;
+  --hook:#B9A9F6; --story:#8EC7F6; --conv:#6FE0C8; --prod:#C8F169;
+  --danger:#E07B7B;
+  --tx1:#EDF0F6; --tx2:#8B93A3; --tx3:#5A6272;
+  --glass:rgba(255,255,255,.035); --glass-hi:rgba(255,255,255,.10);
+  --line:rgba(255,255,255,.075); --line2:rgba(255,255,255,.15);
+  --r-lg:22px; --r-md:16px; --r-sm:12px;
+  --spring:cubic-bezier(.32,1.4,.36,1); --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;color:var(--tx1);
+  font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased}
+/* 힉스필드 제1원칙 ① — 배경은 거의 검정, 위만 미세히 밝다 */
+body{background:radial-gradient(120% 76% at 50% 2%, #0d1017, #070910 52%, #050609);min-height:100vh;padding:20px 16px 80px}
+.wrap{max-width:1080px;margin:0 auto}
+
+h1{font-size:23px;line-height:1.2;letter-spacing:-.02em;margin:0 0 6px}
+.lead{color:var(--tx2);font-size:13px;line-height:1.65;margin:0 0 18px;max-width:66ch}
+.lead b{color:var(--prod);font-weight:700}
+
+/* ── 스위처 ── */
+.sw{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.sw button{font-family:inherit;font-size:12.5px;font-weight:700;padding:9px 15px;border-radius:999px;
+  background:var(--bg1);border:1px solid var(--line2);color:var(--tx3);cursor:pointer;
+  transition:transform .12s var(--ease),background .18s,color .18s,border-color .18s}
+.sw button:active{transform:scale(.96)}
+.sw button[aria-pressed="true"]{background:var(--prod);border-color:var(--prod);color:#0a0d00}
+.swnote{color:var(--tx3);font-size:11.5px;margin:0 0 14px;line-height:1.6}
+
+/* ── 공정 띠 : «어디쯤 와 있나»가 늘 보인다 ── */
+.line{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  background:linear-gradient(180deg,rgba(255,255,255,.04),transparent);
+  border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:14px}
+.line .st{display:flex;align-items:center;gap:7px;padding:5px 10px;border-radius:10px;font-size:11.5px;font-weight:700;color:var(--tx3)}
+.line .st.on{background:rgba(200,241,105,.09);color:var(--prod);box-shadow:inset 0 0 0 1px rgba(200,241,105,.22)}
+.line .st b{font-size:11.5px}
+.line .st i{font-style:normal;min-width:19px;height:19px;line-height:19px;text-align:center;border-radius:7px;
+  background:rgba(255,255,255,.07);font-size:10.5px;font-weight:800;color:var(--tx2);transition:.3s var(--spring)}
+.line .st.on i{background:var(--prod);color:#0a0d00}
+.line .st i.pop{transform:scale(1.42)}
+.line .ar{color:var(--tx3);font-size:12px;opacity:.5}
+
+/* ── 무대 ── */
+.stage{border:1px solid var(--line);border-radius:var(--r-lg);padding:0;overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,255,255,.022),transparent 40%)}
+.panel{display:none}
+.panel.on{display:block;animation:in .2s var(--ease) 1 both}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ── 카드 공통(썸네일) ── */
+.th{position:relative;border-radius:var(--r-md);overflow:hidden;background:#0e1119;
+  box-shadow:0 16px 38px rgba(0,0,0,.5);border:1px solid var(--line)}
+.th .im{aspect-ratio:9/13;display:flex;align-items:flex-end;padding:12px;
+  background:var(--g);position:relative}
+.th .im::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 34%,rgba(3,4,7,.86))}
+.th .hk{position:relative;z-index:2;font-size:14px;font-weight:800;line-height:1.32;letter-spacing:-.01em;
+  text-shadow:0 2px 12px rgba(0,0,0,.7)}
+.th .vw{position:absolute;left:10px;top:10px;z-index:2;font-size:10.5px;font-weight:800;
+  background:rgba(4,6,10,.72);border:1px solid var(--line);border-radius:7px;padding:2px 7px;color:var(--tx1)}
+.th .src{position:absolute;right:10px;top:10px;z-index:2;font-size:11px}
+
+/* ── 판정 패널 ── */
+.judge{padding:16px}
+.jr{margin-bottom:13px}
+.jr>label{display:block;font-size:11px;font-weight:800;color:var(--tx2);margin:0 0 6px;letter-spacing:.01em}
+.jr>label s{text-decoration:none;color:var(--tx3);font-weight:600;margin-left:5px}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chips button{font-family:inherit;font-size:11.5px;font-weight:700;padding:6px 11px;border-radius:9px;cursor:pointer;
+  background:var(--glass);border:1px solid var(--line);color:var(--tx2);transition:.16s var(--ease)}
+.chips button:active{transform:scale(.95)}
+.chips button[aria-pressed="true"]{background:rgba(185,169,246,.16);border-color:rgba(185,169,246,.5);color:var(--hook)}
+.chips.thumb button[aria-pressed="true"]{background:rgba(142,199,246,.16);border-color:rgba(142,199,246,.5);color:var(--story)}
+.chips.trend button[aria-pressed="true"]{background:rgba(111,224,200,.16);border-color:rgba(111,224,200,.5);color:var(--conv)}
+/* 힉스필드 A · 움푹 — 조용한 입력 */
+.jr input{width:100%;font-family:inherit;font-size:13px;color:var(--tx1);padding:10px 12px;border-radius:11px;
+  background:#0a0d0b;border:1px solid rgba(255,255,255,.06);
+  box-shadow:inset 0 2px 7px rgba(0,0,0,.85), inset 0 -1px 0 rgba(255,255,255,.04);transition:.28s var(--ease)}
+.jr input::placeholder{color:var(--tx3)}
+.jr input:focus{outline:none;border-color:transparent;
+  box-shadow:inset 0 2px 7px rgba(0,0,0,.85), 0 0 0 1px rgba(111,224,200,.42), 0 0 18px rgba(111,224,200,.15)}
+.go{width:100%;font-family:inherit;font-size:13.5px;font-weight:800;padding:13px;border-radius:13px;cursor:pointer;
+  background:var(--prod);border:none;color:#0a0d00;transition:.16s var(--ease);margin-top:2px}
+.go:active{transform:scale(.98)}
+.go[disabled]{background:var(--glass);color:var(--tx3);cursor:default;box-shadow:inset 0 0 0 1px var(--line)}
+.skip{width:100%;font-family:inherit;font-size:11.5px;font-weight:700;padding:9px;border-radius:11px;cursor:pointer;
+  background:none;border:none;color:var(--tx3);margin-top:4px}
+.done{text-align:center;padding:52px 20px;color:var(--tx2)}
+.done b{display:block;font-size:17px;color:var(--prod);margin-bottom:7px}
+.done s{text-decoration:none;font-size:12.5px;line-height:1.6}
+
+/* ══════════ A안 · 무대 한 장 (커버플로우) ══════════ */
+#A .cf{position:relative;height:392px;perspective:1150px;margin:6px 0 0;
+  background:radial-gradient(70% 60% at 50% 40%,rgba(185,169,246,.05),transparent 70%)}
+#A .cf .th{position:absolute;left:50%;top:50%;width:186px;transform-style:preserve-3d;
+  transition:none;will-change:transform,opacity,filter}
+#A .nav{display:flex;justify-content:center;align-items:center;gap:14px;padding:0 0 4px}
+#A .nav button{width:34px;height:34px;border-radius:50%;background:var(--glass);border:1px solid var(--line);
+  color:var(--tx2);font-size:15px;cursor:pointer;font-family:inherit;transition:.16s var(--ease)}
+#A .nav button:active{transform:scale(.92)}
+#A .nav span{font-size:11.5px;color:var(--tx3);font-weight:700;font-variant-numeric:tabular-nums;min-width:56px;text-align:center}
+#A .judge{border-top:1px solid var(--line);background:rgba(255,255,255,.012)}
+@media(min-width:740px){ #A .judge{display:grid;grid-template-columns:1fr 1fr;gap:0 22px;align-items:start} #A .judge .full{grid-column:1/-1} }
+
+/* ══════════ B안 · 좌우 분업 (포커스 스택) ══════════ */
+#B .split{display:grid;grid-template-columns:1fr;gap:0}
+@media(min-width:720px){ #B .split{grid-template-columns:300px 1fr} }
+#B .queue{border-right:1px solid var(--line);padding:14px;background:rgba(0,0,0,.24)}
+#B .qh{font-size:11px;font-weight:800;color:var(--tx3);margin:0 0 10px;letter-spacing:.02em}
+#B .stack{display:flex;flex-direction:column;gap:9px;max-height:462px;overflow-y:auto;padding:2px}
+#B .stack .row{display:flex;gap:10px;align-items:center;padding:8px;border-radius:13px;cursor:pointer;
+  background:var(--glass);border:1px solid transparent;transition:transform .3s var(--ease),filter .3s,opacity .3s,border-color .2s}
+#B .stack:hover .row{transform:scale(.965);filter:brightness(.6) saturate(.85);opacity:.7}
+#B .stack .row:hover{transform:scale(1.02)!important;filter:none!important;opacity:1!important}
+#B .stack .row.on{border-color:rgba(200,241,105,.42);background:rgba(200,241,105,.07);
+  transform:none!important;filter:none!important;opacity:1!important}
+#B .stack .row .mini{width:38px;height:52px;border-radius:8px;background:var(--g);flex:none;
+  box-shadow:0 6px 16px rgba(0,0,0,.5)}
+#B .stack .row .tt{min-width:0}
+#B .stack .row .tt b{display:block;font-size:11.5px;font-weight:700;line-height:1.35;
+  overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+#B .stack .row .tt s{text-decoration:none;font-size:10px;color:var(--tx3)}
+#B .work{padding:16px;display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:720px){ #B .work{grid-template-columns:150px 1fr} }
+#B .work .th{align-self:start}
+#B .judge{padding:0}
+
+/* ══════════ C안 · 더미에서 뽑기 ══════════ */
+#C .yard{display:grid;grid-template-columns:1fr;gap:0}
+@media(min-width:740px){ #C .yard{grid-template-columns:1fr 260px} }
+#C .bench{padding:18px;position:relative;min-height:300px}
+#C .pile{position:relative;height:300px;perspective:1000px}
+#C .pile .th{position:absolute;left:50%;top:10px;width:172px;transform-style:preserve-3d;
+  transition:transform .42s var(--ease),opacity .42s var(--ease)}
+#C .pile .th.fly{transform:translate(-50%,-50%) translateX(340px) translateY(-40px) rotateZ(14deg) scale(.55)!important;opacity:0!important}
+#C .bins{padding:14px;background:rgba(0,0,0,.22);display:flex;gap:9px;overflow-x:auto}
+#C .bins .bin{flex:0 0 132px}
+@media(min-width:740px){ #C .bins{flex-direction:column;overflow:visible;padding:18px;
+  border-left:1px solid var(--line);gap:11px} #C .bins .bin{flex:none} }
+#C .bin{border:1px dashed var(--line2);border-radius:14px;padding:12px;transition:.3s var(--ease)}
+#C .bin b{display:block;font-size:12px;font-weight:800;margin-bottom:3px}
+#C .bin s{text-decoration:none;font-size:10.5px;color:var(--tx3);line-height:1.5}
+#C .bin.hit{border-color:rgba(200,241,105,.55);background:rgba(200,241,105,.07);transform:translateY(-2px)}
+#C .bin .n{float:right;font-size:15px;font-weight:800;color:var(--prod);font-variant-numeric:tabular-nums}
+#C .judge{border-top:1px solid var(--line)}
+#C .pilenote{text-align:center;font-size:11px;color:var(--tx3);margin:0 0 10px;font-weight:700}
+#C .pilenote b{color:var(--prod)}
+#C .pile{height:352px}
+
+.foot{color:var(--tx3);font-size:11.5px;line-height:1.7;margin-top:16px}
+@media(prefers-reduced-motion:reduce){ *{animation-duration:.01ms!important;transition-duration:.01ms!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>자료실 ② 분류방 — 시안 3안</h1>
+  <p class="lead">축은 <b>「한 장을 얼마나 크게 보고, 판정을 어디서 하나」</b>입니다.
+     A는 몰입, B는 속도, C는 현장 물성 — 양 끝과 가운데입니다.
+     세 안 모두 판정을 끝내면 카드가 빠지고 위 <b>공정 띠</b>의 「③ 해부」 숫자가 올라갑니다.</p>
+
+  <div class="sw" role="group">
+    <button data-go="A" aria-pressed="true">A · 무대 한 장</button>
+    <button data-go="B" aria-pressed="false">B · 좌우 분업</button>
+    <button data-go="C" aria-pressed="false">C · 더미에서 뽑기</button>
+  </div>
+  <p class="swnote">※ 썸네일은 자리 표시(그라데이션)입니다 — 실제로는 유튜브·인스타에서 따라온 진짜 이미지가 들어갑니다.</p>
+
+  <div class="line">
+    <div class="st"><b>① 담기</b><i id="n1">0</i></div><span class="ar">›</span>
+    <div class="st on"><b>② 분류</b><i id="n2">6</i></div><span class="ar">›</span>
+    <div class="st"><b>③ 해부</b><i id="n3">2</i></div><span class="ar">›</span>
+    <div class="st"><b>④ 원페이지</b><i id="n4">1</i></div>
+  </div>
+
+  <div class="stage">
+    <section class="panel on" id="A">
+      <div class="cf" id="A-cf"></div>
+      <div class="nav">
+        <button data-cf="-1">‹</button><span id="A-idx">1 / 6</span><button data-cf="1">›</button>
+      </div>
+      <div class="judge" id="A-judge"></div>
+    </section>
+
+    <section class="panel" id="B">
+      <div class="split">
+        <div class="queue">
+          <p class="qh">미분류 <span id="B-cnt">6</span>장 — 아무거나 집으세요</p>
+          <div class="stack" id="B-stack"></div>
+        </div>
+        <div class="work">
+          <div id="B-th"></div>
+          <div class="judge" id="B-judge"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="C">
+      <div class="yard">
+        <div class="bench">
+          <p class="pilenote">미분류 <b id="C-left">6</b>장 — 맨 위 한 장이 작업대에 올라와 있습니다</p>
+          <div class="pile" id="C-pile"></div>
+        </div>
+        <div class="bins" id="C-bins">
+          <div class="bin" data-bin="pov"><span class="n">0</span><b>POV</b><s>1인칭 상황</s></div>
+          <div class="bin" data-bin="꿀팁"><span class="n">0</span><b>꿀팁</b><s>바로 쓰는 법</s></div>
+          <div class="bin" data-bin="동기부여"><span class="n">0</span><b>동기부여</b><s>마음을 움직임</s></div>
+          <div class="bin" data-bin="문제해결"><span class="n">0</span><b>문제해결</b><s>고민을 풀어줌</s></div>
+          <div class="bin" data-bin="기타"><span class="n">0</span><b>그 밖</b><s>브이로그·이성·욕구</s></div>
+        </div>
+      </div>
+      <div class="judge" id="C-judge"></div>
+    </section>
+  </div>
+
+  <p class="foot">힉스필드 제1원칙 ③ — <b>강한 3D는 «하나씩 보는» 곳에만.</b>
+     그래서 커버플로우는 A안에만 썼고, B는 포커스 스택(회전 없는 깊이), C는 물리적 더미로 갔습니다.</p>
+</div>
+
+<script>
+/* ── 진짜 데이터 결의 가짜 자료 (로렘입숨 금지) ── */
+var DATA = [
+  {id:1, hk:'3초 안에 안 넘기게 하는 법', vw:'82만', src:'▶', g:'linear-gradient(150deg,#2a2450,#141126)'},
+  {id:2, hk:'브이로그인데 왜 이건 터졌을까', vw:'47만', src:'◉', g:'linear-gradient(150deg,#123a35,#08201d)'},
+  {id:3, hk:'이 말 한마디로 상담 전환 3배', vw:'210만', src:'▶', g:'linear-gradient(150deg,#3a2f12,#1d1707)'},
+  {id:4, hk:'댓글이 2천 개 달린 이유', vw:'96만', src:'◉', g:'linear-gradient(150deg,#331a2e,#1a0d17)'},
+  {id:5, hk:'첫 문장을 이렇게 바꿨더니', vw:'38만', src:'▶', g:'linear-gradient(150deg,#16294a,#0b1526)'},
+  {id:6, hk:'아무도 안 알려주는 편집 순서', vw:'124만', src:'◉', g:'linear-gradient(150deg,#2c1830,#160c18)'}
+];
+var TYPES  = ['POV','브이로그','꿀팁','동기부여','문제해결','이성','욕구'];
+var THUMBS = ['인물 클로즈업','텍스트 대문짝','비포애프터','상황극','자막 강조'];
+var TRENDS = ['지금 뜨는 중','꾸준함','한물감'];
+
+var state = {};   /* id → {type, thumb, why, msg, trend} */
+DATA.forEach(function(d){ state[d.id] = {type:'',thumb:'',why:'',msg:'',trend:''}; });
+var left = DATA.slice();
+
+function $(s,r){ return (r||document).querySelector(s); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+function thHTML(d,w){
+  return '<div class="th" style="'+(w?'width:'+w+';':'')+'"><div class="im" style="--g:'+d.g+'">'+
+    '<span class="vw">'+d.vw+'</span><span class="src">'+d.src+'</span>'+
+    '<span class="hk">'+esc(d.hk)+'</span></div></div>';
+}
+function chips(cls,list,cur,act){
+  return '<div class="chips '+cls+'">'+list.map(function(t){
+    return '<button type="button" data-'+act+'="'+esc(t)+'" aria-pressed="'+(cur===t)+'">'+esc(t)+'</button>';
+  }).join('')+'</div>';
+}
+/* 판정 패널 — 세 안이 같은 것을 쓴다(공정이 하나라는 뜻) */
+function judgeHTML(d){
+  if(!d) return '<div class="done"><b>이 방은 비었습니다</b><s>미분류가 없어요 — ①담기에서 새로 담으면 여기로 옵니다</s></div>';
+  var s = state[d.id], ok = s.type && s.thumb && s.why.trim();
+  return '<div class="jr full"><label>컨텐츠 유형 <s>무엇으로 만든 영상인가</s></label>'+chips('',TYPES,s.type,'type')+'</div>'+
+    '<div class="jr full"><label>썸네일 유형 <s>무엇으로 눈을 잡았나</s></label>'+chips('thumb',THUMBS,s.thumb,'thumb')+'</div>'+
+    '<div class="jr"><label>왜 터졌나</label><input data-f="why" value="'+esc(s.why)+'" placeholder="한 줄로 — 예) 첫 3초에 결과부터 보여줌"></div>'+
+    '<div class="jr"><label>핵심 메시지</label><input data-f="msg" value="'+esc(s.msg)+'" placeholder="이 영상이 하고 싶은 말 한 줄"></div>'+
+    '<div class="jr full"><label>트렌드</label>'+chips('trend',TRENDS,s.trend,'trend')+'</div>'+
+    '<div class="full"><button class="go" data-pass="'+d.id+'"'+(ok?'':' disabled')+'>'+
+      (ok?'✓ 해부로 넘기기 →':'유형·썸네일·«왜 터졌나»를 채우면 넘어갑니다')+'</button>'+
+    '<button class="skip" data-drop="'+d.id+'">이건 아니다 — 버리기</button></div>';
+}
+function pop(el){ el.classList.add('pop'); setTimeout(function(){ el.classList.remove('pop'); }, 260); }
+function bump(){
+  var n2=$('#n2'), n3=$('#n3');
+  n2.textContent = left.length; n3.textContent = (+n3.textContent)+1; pop(n3);
+}
+
+/* ══ A안 ══ */
+var cfPos=0, cfTarget=0, cfRAF=null;
+function cfRender(){
+  var host=$('#A-cf'); host.innerHTML = left.map(function(d){ return thHTML(d); }).join('');
+  cfTarget = Math.min(cfTarget, Math.max(0,left.length-1)); cfPos=cfTarget;
+  cfLayout(); paintA();
+}
+function cfLayout(){
+  var els=$('#A-cf').children, N=left.length;
+  for(var i=0;i<els.length;i++){
+    var el=els[i], off=i-cfPos, a=Math.abs(off);
+    if(a>3.2){ el.style.display='none'; continue; } el.style.display='';
+    var sc=Math.max(.5,1-a*.13), op=Math.max(.22,1-a*.3);
+    var blur=a>1.05?Math.min((a-1)*1.4,3.2):0, br=a<.5?1:.66;
+    el.style.transform='translate(-50%,-50%) translateX('+(off*168)+'px) translateZ('+(-a*120)+'px) rotateY('+(-off*24)+'deg) scale('+sc+')';
+    el.style.opacity=op; el.style.zIndex=String(300-Math.round(a*10));
+    el.style.filter='brightness('+br+')'+(blur?' blur('+blur.toFixed(1)+'px)':'');
+    el.style.boxShadow = a<.35
+      ? '0 22px 48px rgba(0,0,0,.6), 0 0 30px rgba(185,169,246,.26)'
+      : '0 16px 38px rgba(0,0,0,.5)';
+  }
+  var i2=Math.round(cfPos);
+  $('#A-idx').textContent = left.length ? (i2+1)+' / '+left.length : '0 / 0';
+}
+function cfSpring(){
+  cfPos += (cfTarget-cfPos)*.2;
+  if(Math.abs(cfTarget-cfPos)<.002){ cfPos=cfTarget; cfLayout(); cfRAF=null; paintA(); return; }
+  cfLayout(); cfRAF=requestAnimationFrame(cfSpring);
+}
+function cfGo(d){
+  if(!left.length) return;
+  cfTarget=Math.max(0,Math.min(left.length-1,Math.round(cfTarget)+d));
+  if(!cfRAF) cfRAF=requestAnimationFrame(cfSpring);
+}
+function curA(){ return left[Math.round(cfTarget)]; }
+function paintA(){ $('#A-judge').innerHTML = judgeHTML(curA()); }
+
+/* ══ B안 ══ */
+var bSel=null;
+function paintB(){
+  if(!left.length){ $('#B-stack').innerHTML=''; $('#B-th').innerHTML=''; $('#B-judge').innerHTML=judgeHTML(null); $('#B-cnt').textContent=0; return; }
+  if(!bSel || left.indexOf(bSel)<0) bSel=left[0];
+  $('#B-cnt').textContent = left.length;
+  $('#B-stack').innerHTML = left.map(function(d){
+    var s=state[d.id], filled=[s.type,s.thumb,s.why.trim()].filter(Boolean).length;
+    return '<div class="row'+(d===bSel?' on':'')+'" data-pick="'+d.id+'">'+
+      '<div class="mini" style="--g:'+d.g+';background:'+d.g.replace('var(--g)','')+'"></div>'+
+      '<div class="tt"><b>'+esc(d.hk)+'</b><s>'+d.vw+' · '+(filled?filled+'/3 채움':'아직')+'</s></div></div>';
+  }).join('');
+  $('#B-th').innerHTML = thHTML(bSel);
+  $('#B-judge').innerHTML = judgeHTML(bSel);
+}
+
+/* ══ C안 ══ */
+function paintC(){
+  var host=$('#C-pile');
+  if(!left.length){ host.innerHTML=''; $('#C-judge').innerHTML=judgeHTML(null); return; }
+  host.innerHTML = left.slice(0,4).map(function(d,i){ return thHTML(d); }).join('');
+  var els=host.children;
+  for(var i=0;i<els.length;i++){
+    /* 종이 더미 — 뒤로 갈수록 아래·옆으로 삐져나오고 어두워진다(흐리게는 안 한다: 겹침이 안 보임) */
+    els[i].style.transform='translate(-50%,0) translateX('+(i*10)+'px) translateY('+(i*16)+'px) '+
+      'rotateZ('+((i%2?1:-1)*(i*2.4))+'deg) scale('+(1-i*.04)+')';
+    els[i].style.opacity='1'; els[i].style.zIndex=String(50-i);
+    els[i].style.filter = i ? 'brightness('+(1-i*.3).toFixed(2)+')' : '';
+    els[i].style.boxShadow = i ? '0 10px 22px rgba(0,0,0,.55)' : '0 22px 46px rgba(0,0,0,.62), 0 0 28px rgba(185,169,246,.14)';
+  }
+  $('#C-judge').innerHTML = judgeHTML(left[0]);
+  var cl=$('#C-left'); if(cl) cl.textContent=left.length;
+  var s=state[left[0].id];
+  Array.prototype.forEach.call($('#C-bins').children,function(b){
+    var k=b.dataset.bin, on = s.type && (k===s.type.toLowerCase() || k===s.type || (k==='기타' && ['브이로그','이성','욕구'].indexOf(s.type)>=0));
+    b.classList.toggle('hit', !!on);
+  });
+}
+function cFly(cb){
+  var top=$('#C-pile').firstElementChild;
+  if(!top){ cb(); return; }
+  top.classList.add('fly'); setTimeout(cb, 380);
+}
+
+/* ══ 공통 배선 ══ */
+var cur='A';
+function repaint(){ if(cur==='A') { cfRender(); } else if(cur==='B') paintB(); else paintC(); }
+
+function passOn(id, fromC){
+  var i = left.findIndex(function(d){ return d.id===id; });
+  if(i<0) return;
+  function after(){
+    left.splice(i,1);
+    if(cur==='A' && cfTarget>left.length-1) cfTarget=Math.max(0,left.length-1);
+    bump(); repaint();
+  }
+  if(fromC) cFly(after); else after();
+}
+
+document.addEventListener('click', function(e){
+  var t=e.target;
+  var go=t.closest('[data-go]');
+  if(go){ cur=go.dataset.go;
+    document.querySelectorAll('.sw button').forEach(function(b){ b.setAttribute('aria-pressed', String(b===go)); });
+    document.querySelectorAll('.panel').forEach(function(p){ p.classList.toggle('on', p.id===cur); });
+    repaint(); return; }
+
+  var cf=t.closest('[data-cf]'); if(cf){ cfGo(+cf.dataset.cf); return; }
+  var pick=t.closest('[data-pick]'); if(pick){ bSel=left.filter(function(d){return d.id==pick.dataset.pick;})[0]; paintB(); return; }
+
+  var d = cur==='A' ? curA() : cur==='B' ? bSel : left[0];
+  if(!d) return;
+  var ty=t.closest('[data-type]');  if(ty){ state[d.id].type  = state[d.id].type ===ty.dataset.type ?'':ty.dataset.type;   repaint(); return; }
+  var th=t.closest('[data-thumb]'); if(th){ state[d.id].thumb = state[d.id].thumb===th.dataset.thumb?'':th.dataset.thumb; repaint(); return; }
+  var tr=t.closest('[data-trend]'); if(tr){ state[d.id].trend = state[d.id].trend===tr.dataset.trend?'':tr.dataset.trend; repaint(); return; }
+
+  var ps=t.closest('[data-pass]'); if(ps){ passOn(+ps.dataset.pass, cur==='C'); return; }
+  var dr=t.closest('[data-drop]'); if(dr){
+    var i=left.findIndex(function(x){ return x.id==dr.dataset.drop; });
+    if(i>=0){ left.splice(i,1); $('#n2').textContent=left.length;
+      if(cur==='A' && cfTarget>left.length-1) cfTarget=Math.max(0,left.length-1); repaint(); }
+    return; }
+});
+document.addEventListener('input', function(e){
+  var f=e.target.closest('[data-f]'); if(!f) return;
+  var d = cur==='A' ? curA() : cur==='B' ? bSel : left[0]; if(!d) return;
+  state[d.id][f.dataset.f] = f.value;
+  var btn = (cur==='A'?$('#A-judge'):cur==='B'?$('#B-judge'):$('#C-judge')).querySelector('.go');
+  var s=state[d.id], ok = s.type && s.thumb && s.why.trim();
+  if(btn){ btn.disabled=!ok; btn.textContent = ok?'✓ 해부로 넘기기 →':'유형·썸네일·«왜 터졌나»를 채우면 넘어갑니다'; }
+});
+/* 좌우 키로도 넘긴다 */
+document.addEventListener('keydown', function(e){
+  if(cur!=='A') return;
+  if(e.key==='ArrowLeft') cfGo(-1);
+  if(e.key==='ArrowRight') cfGo(1);
+});
+
+cfRender();
+</script>
+</body>
+</html>

@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#050609">
 <title>컨텐츠의 모든것</title>
 <link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
 /* ═══════════════════════════════════════════════════════
    ① 토큰 — 컨텐츠의 모든것 (시안 v2 픽 · 2026-08-17)
@@ -88,6 +90,12 @@
   background:rgba(224,123,123,.16);border-bottom:1px solid rgba(224,123,123,.4);color:#E07B7B;
   font-size:11.5px;font-weight:700;padding:7px 12px;backdrop-filter:blur(8px)}
 body.off #offbar{display:block}
+/* v24 · 폰·밖에서 열었을 때 — 여기 보이는 건 «나가 있는 것»뿐이라고 미리 말해준다 */
+#gzbar{position:fixed;left:0;right:0;top:0;z-index:8990;display:none;text-align:center;
+  background:rgba(111,224,200,.13);border-bottom:1px solid rgba(111,224,200,.34);color:var(--conv);
+  font-size:11.5px;font-weight:700;padding:7px 12px;backdrop-filter:blur(8px)}
+body.phone #gzbar{display:block}
+body.phone.off #gzbar{top:32px}
 /* v23 · 수강생실 홈의 «예시»는 예시라고 말한다 — 채워진 모습은 보여주되 채워진 척은 안 한다 */
 #t1-demo.is-demo{position:relative}
 #t1-demo.is-demo::before{content:'이렇게 쌓입니다 — 아직 등록된 수강생이 없어요';
@@ -654,7 +662,7 @@ body.stu-mode .uni-ar{opacity:.3 !important}
 .why b{color:var(--prod);font-weight:800;display:block;margin-bottom:4px;font-size:11px;letter-spacing:.06em}
 
 /* ═══════ ⑤ 하단 유리 도크 ═══════ */
-.dock{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));
+.dock{--dockn:6;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));
   z-index:50;display:flex;gap:2px;padding:7px;border-radius:26px;
   background:rgba(10,13,19,.62);border:1px solid var(--line);border-top-color:var(--glass-hi);
   backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
@@ -664,7 +672,7 @@ body.stu-mode .uni-ar{opacity:.3 !important}
 /* v20 · 선화 아이콘 — 이모지(기기마다 다른 «스티커»)를 걷어냈다 */
 .dock button svg{width:22px;height:22px;display:block;stroke:currentColor;fill:none;
   stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:stroke-width .2s}
-.dock button span{font-size:10px;font-weight:700;letter-spacing:-.01em}
+.dock button span{font-size:10px;font-weight:700;letter-spacing:-.01em;font-size:9.5px}
 .dock button:active{transform:scale(.9)}
 /* 기획실 구슬처럼 칸마다 제 색 — 켜질 때만 드러난다 */
 .dock button.on{color:var(--dc,var(--tx1));background:color-mix(in srgb,var(--dc,#fff) 15%,transparent)}
@@ -712,7 +720,251 @@ p,.tl-sub,.ds,.gs,.gs2,.msd-hint,.hi small,.list-row small{ text-wrap:pretty }
 
 /* ③ 고무줄 — 시트·오버레이 끝에서 더 당길 때 뒤 화면이 딸려오지 않게.
       지금은 body에만 걸려 있어서 시트 안에서는 여전히 새어 나간다. */
-.sheet,.lg-ov,#pw-ov,#sheet-ov{ overscroll-behavior:contain }
+/* v24 · 고무줄 차단은 «클래스»로 — id로 적으면 시트를 새로 만들 때마다 샌다(gz-ov가 그랬다) */
+.sheet,.sheet-ov,.lg-ov,#pw-ov{ overscroll-behavior:contain }
+
+/* ══════ v25 · 자료실 4공정 — 담기 · 분류 · 분석 · 서재 ══════ */
+.jline{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 16px}
+.jline button{flex:1 1 132px;display:flex;flex-direction:column;gap:3px;text-align:left;cursor:pointer;
+  font-family:inherit;padding:10px 12px;border-radius:14px;background:var(--glass);
+  border:1px solid var(--line);color:var(--tx3);transition:.28s var(--ease);position:relative;overflow:hidden}
+.jline button:active{transform:scale(.985)}
+.jline button b{font-size:12px;font-weight:800;color:var(--tx2);transition:color .28s}
+.jline button s{text-decoration:none;font-size:10px;color:var(--tx3);line-height:1.4}
+.jline button i{position:absolute;right:10px;top:9px;font-style:normal;min-width:20px;height:20px;line-height:20px;
+  text-align:center;border-radius:7px;background:rgba(255,255,255,.07);font-size:10.5px;font-weight:800;
+  color:var(--tx2);transition:.34s var(--spring)}
+.jline button[aria-pressed="true"]{border-color:color-mix(in srgb,var(--rc) 46%,transparent);
+  background:color-mix(in srgb,var(--rc) 9%,transparent);box-shadow:0 0 26px -8px var(--rc)}
+.jline button[aria-pressed="true"] b{color:var(--rc)}
+.jline button[aria-pressed="true"] i{background:var(--rc);color:#06080c}
+.jline button i.pop{transform:scale(1.45)}
+.jroom{display:none}
+.jroom.on{display:block;animation:jin .3s var(--ease) 1 both}
+@keyframes jin{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+/* 출처 배지 — 우상단 하나로 끝낸다 */
+.jsrc{position:absolute;right:8px;top:8px;z-index:3;width:21px;height:21px;border-radius:7px;
+  display:grid;place-items:center;line-height:0;
+  box-shadow:0 2px 9px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.22)}
+.jsrc svg{width:14px;height:14px;display:block}
+.jsrc.yt{background:#E0574B}
+.jsrc.ig{background:linear-gradient(45deg,#FEDA75,#FA7E1E 22%,#D62976 52%,#962FBF 76%,#4F5BD5)}
+/* ══ 🤖 덜컹이 — 고장난 분해봇. 평소엔 자고, 일감이 오면 덜컹거리다 결국 해낸다 ══
+   ⚠️ 흔들림은 «불규칙»해야 고장으로 읽힌다. 규칙적이면 잘 도는 기계로 보인다.
+   ⚠️ 평소 애니는 0개 — 발열 헌법 */
+.bot{display:flex;gap:12px;align-items:center;margin:0 0 12px;padding:11px 13px;border-radius:15px;
+  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.012));border:1px solid var(--line)}
+.bot.on{border-color:rgba(201,138,91,.34);background:rgba(201,138,91,.06)}
+.bot.ok{border-color:rgba(200,241,105,.3);background:rgba(200,241,105,.05)}
+.bot svg{width:74px;height:74px;flex:none;overflow:visible}
+.bot .bi{min-width:0;flex:1}
+.bot .bi b{font-size:13px;font-weight:800;letter-spacing:-.01em}
+.bot .bi b i{font-style:normal;font-size:9.5px;font-weight:700;color:var(--tx3);margin-left:6px}
+.bot .bi p{margin:3px 0 0;font-size:10.5px;color:var(--tx3);line-height:1.5}
+.bot.on .bi p{color:#C98A5B} .bot.ok .bi p{color:var(--prod)}
+.bot .ba{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.bot .ba button{font-family:inherit;font-size:10.5px;font-weight:800;padding:5px 10px;border-radius:8px;cursor:pointer;
+  background:var(--glass);border:1px solid rgba(200,241,105,.3);color:var(--prod)}
+.bot .ba button:active{transform:scale(.96)}
+.bot .ba button[disabled]{opacity:.5;cursor:default}
+body.phone .bot .ba{display:none}          /* 폰엔 금고가 없다 — 눌러도 안 되는 버튼은 숨긴다 */
+body.phone .bot .bi p.ph{display:block}
+.bot .bi p.ph{display:none;color:var(--tx3)}
+@keyframes botrattle{
+  0%{transform:rotate(0) translate(0,0)}      7%{transform:rotate(-3.4deg) translate(-1.6px,1px)}
+  12%{transform:rotate(2.2deg) translate(1.2px,-.6px)} 19%{transform:rotate(-1.2deg) translate(-.8px,1.4px)}
+  26%{transform:rotate(3.8deg) translate(1.8px,.4px)}  33%{transform:rotate(-.6deg) translate(-.4px,-1px)}
+  40%,52%{transform:rotate(1.4deg) translate(.6px,2px)}          /* 여기서 한 번 죽는다 */
+  60%{transform:rotate(-4.6deg) translate(-2.2px,-1px)} 68%{transform:rotate(3.4deg) translate(2px,1.2px)}
+  76%{transform:rotate(-2.6deg) translate(-1.4px,-.6px)} 85%{transform:rotate(1.8deg) translate(1px,.8px)}
+  93%{transform:rotate(-.8deg) translate(-.5px,.3px)}    100%{transform:rotate(0) translate(0,0)}
+}
+.bot .rob{transform-origin:0 30px}
+.bot.on .rob{animation:botrattle 3.4s ease-in-out infinite both}
+.bot .eyeL,.bot .eyeR{fill:#2a3040;transition:fill .3s}
+.bot.on .eyeL{animation:boteye 1.6s steps(1,end) infinite both}
+@keyframes boteye{ 0%,18%{fill:#2a3040} 20%,34%{fill:#C98A5B} 36%,52%{fill:#2a3040}
+  54%,72%{fill:#C98A5B} 74%,84%{fill:#2a3040} 86%,100%{fill:#C98A5B} }
+.bot.ok .eyeL,.bot.ok .eyeR{fill:var(--prod)}
+.bot .zzz{fill:var(--tx3);font:800 10px/1 system-ui;transition:opacity .3s}
+.bot.on .zzz,.bot.ok .zzz{opacity:0}
+.bot .sheet{opacity:0}
+.bot.ok .sheet{animation:botsheet .6s var(--spring) 1 both}
+@keyframes botsheet{ 0%{opacity:0;transform:translateY(-9px) rotate(-9deg)}
+  60%{transform:translateY(2px) rotate(4deg)} 100%{opacity:1;transform:none} }
+/* 🤖 분해봇 줄 — 지금 뭐가 밀렸는지 한 줄로 */
+.jbotbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px;padding:10px 12px;
+  border-radius:13px;background:rgba(200,241,105,.06);border:1px solid rgba(200,241,105,.24)}
+.jbotbar b{font-size:11.5px;font-weight:800;color:var(--prod)}
+.jbotbar button{font-family:inherit;font-size:11px;font-weight:800;padding:6px 11px;border-radius:9px;cursor:pointer;
+  background:var(--glass);border:1px solid rgba(200,241,105,.34);color:var(--prod);transition:.16s var(--ease)}
+.jbotbar button:active{transform:scale(.96)}
+.jbotbar button[disabled]{opacity:.5;cursor:default}
+.jbotbar s{flex:1 0 100%;text-decoration:none;font-size:10.5px;color:var(--tx3);line-height:1.5}
+.jbotone{display:flex;gap:6px;justify-content:center;margin:10px 0 0}
+.jbotone button{font-family:inherit;font-size:11.5px;font-weight:800;padding:8px 14px;border-radius:11px;cursor:pointer;
+  background:var(--glass);border:1px solid rgba(200,241,105,.34);color:var(--prod)}
+.jbotone button:active{transform:scale(.97)}
+/* 세로 한 줄기 무대 */
+.jsolo{padding:2px 0 8px;max-width:540px;margin:0 auto}
+.jpick{display:flex;align-items:center;gap:6px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}
+.jpick::-webkit-scrollbar{display:none}
+.jpick .lb{flex:none;font-size:10.5px;color:var(--tx3);font-weight:700;margin-right:3px;white-space:nowrap}
+.jpick .p{flex:none;width:40px;padding:0;cursor:pointer;border-radius:9px;overflow:hidden;position:relative;
+  background:none;border:1px solid transparent;transition:.22s var(--ease);opacity:.5}
+.jpick .p i{display:block;height:55px;background-size:cover;background-position:center;background-color:#131826}
+.jpick .p.on{opacity:1;border-color:color-mix(in srgb,var(--rc) 60%,transparent);
+  box-shadow:0 0 18px -5px var(--rc);transform:translateY(-2px)}
+.jth{width:168px;margin:6px auto 8px;position:relative;border-radius:var(--r-md);overflow:hidden;
+  background:#0e1119;border:1px solid var(--line);box-shadow:0 14px 34px rgba(0,0,0,.5)}
+.jth .im{aspect-ratio:9/13;background-size:cover;background-position:center;background-color:#131826;
+  display:flex;align-items:flex-end;padding:11px;position:relative}
+.jth .im::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 36%,rgba(3,4,7,.86))}
+.jth .hk{position:relative;z-index:2;font-size:13px;font-weight:800;line-height:1.32;text-shadow:0 2px 12px rgba(0,0,0,.7)}
+.jth .vw{position:absolute;left:9px;top:9px;z-index:3;font-size:10px;font-weight:800;background:rgba(4,6,10,.72);
+  border:1px solid var(--line);border-radius:7px;padding:2px 6px}
+.jttl{text-align:center;font-size:12.5px;font-weight:800;line-height:1.4;margin:0 auto 3px;max-width:400px}
+.jsub{text-align:center;font-size:10.5px;color:var(--tx3);margin:0 0 14px}
+.jpager{display:flex;align-items:center;justify-content:center;gap:12px;margin:8px 0 0}
+.jpager button{width:30px;height:30px;border-radius:50%;background:var(--glass);border:1px solid var(--line);
+  color:var(--tx2);font-size:14px;cursor:pointer;font-family:inherit}
+.jpager button[disabled]{opacity:.3}
+.jpager span{font-size:11px;color:var(--tx3);font-weight:700;min-width:58px;text-align:center}
+.jsteps{display:flex;gap:6px;margin:0 auto 4px;max-width:540px}
+.jsteps button{flex:1;font-family:inherit;font-size:11px;font-weight:800;padding:9px;border-radius:11px;cursor:pointer;
+  background:var(--glass);border:1px solid var(--line);color:var(--tx3);transition:.22s var(--ease)}
+.jsteps button[aria-pressed="true"]{background:color-mix(in srgb,var(--rc) 12%,transparent);
+  border-color:color-mix(in srgb,var(--rc) 46%,transparent);color:var(--rc)}
+.jsteps button s{text-decoration:none;display:block;font-size:9.5px;font-weight:600;color:var(--tx3);margin-top:1px}
+.jgo{display:block;width:100%;max-width:340px;margin:18px auto 0;font-family:inherit;font-size:13px;font-weight:800;
+  padding:13px;border-radius:13px;cursor:pointer;background:var(--rc);border:none;color:#06080c;
+  transition:.16s var(--ease);box-shadow:0 10px 26px -10px var(--rc)}
+.jgo:active{transform:scale(.98)}
+.jgo[disabled]{background:var(--glass);color:var(--tx3);cursor:default;box-shadow:inset 0 0 0 1px var(--line)}
+.jskip{display:block;margin:11px auto 0;font-family:inherit;font-size:10.5px;font-weight:700;cursor:pointer;
+  background:none;border:none;color:var(--tx3);text-decoration:underline;text-underline-offset:3px}
+.jbot{text-align:center;font-size:10.5px;color:var(--prod);margin:10px 0 2px;font-weight:700}
+.jbot b{color:var(--tx1)}
+.jbot.off{color:var(--tx3)}
+/* 형광펜 — 테두리 없이 배경만. 두 줄 이음매는 clone으로 */
+.jhl{cursor:pointer;border-radius:4px;padding:3px 2px;margin:0 -1px;color:var(--tx2);
+  transition:background .16s var(--ease),color .16s var(--ease);
+  -webkit-box-decoration-break:clone;box-decoration-break:clone}
+.jhl.on{background:color-mix(in srgb,var(--c) 26%,transparent);color:#F2F5FA}
+@media (hover:hover) and (pointer:fine){
+  .jhl:hover{background:rgba(255,255,255,.06);color:var(--tx1)}
+  .jhl.on:hover{background:color-mix(in srgb,var(--c) 34%,transparent)}
+}
+.jscript{background:#080a0e;border:1px solid var(--line);border-radius:14px;padding:14px;line-height:2.15;font-size:13px}
+.jvocm{display:flex;flex-direction:column;gap:7px;margin-top:14px}
+.jvm{display:flex;gap:8px;align-items:baseline;font-size:12px;line-height:1.55;color:var(--tx2)}
+.jvm b{flex:none;font-size:9px;font-weight:900;color:var(--vc);border:1px solid var(--vc);
+  border-radius:6px;padding:2px 7px;letter-spacing:.04em}
+.jvm.off{opacity:.42}
+.jvm.off span{color:var(--tx3)}
+/* 세로 기찻길 */
+.jrail{display:flex;flex-direction:column;margin-top:14px}
+.jrw{position:relative;display:flex;gap:11px;padding:9px 0 14px 15px;margin-left:7px;border-left:2.5px solid var(--k)}
+.jrw::before{content:'';position:absolute;left:-6px;top:12px;width:9px;height:9px;border-radius:50%;
+  background:var(--k);box-shadow:0 0 8px var(--k)}
+.jrw:last-child{border-left-color:transparent}
+.jrw .rl{flex:none;width:64px;font-family:inherit;font-size:10px;font-weight:900;color:var(--k);
+  padding:3px 0 0;background:none;border:none;text-align:left;cursor:pointer}
+.jrw .rl::after{content:'▾';margin-left:3px;opacity:.5;font-size:8px}
+.jrw.open .rl::after{content:'▴'}
+.jrw.open{background:color-mix(in srgb,var(--k) 6%,transparent);border-radius:0 12px 12px 0}
+.jrw .bd{flex:1;min-width:0}
+.jrw .tx{font-size:12px;line-height:1.7;color:var(--tx2);white-space:pre-wrap}
+.jrolerow,.jsubrow{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0 6px;
+  animation:jsubin .28s cubic-bezier(.32,1.2,.36,1) both}
+@keyframes jsubin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.jrolerow button{font-family:inherit;font-size:10px;font-weight:800;border-radius:9px;padding:5px 9px;cursor:pointer;
+  background:rgba(255,255,255,.04);color:var(--tx3);border:1px solid var(--line);transition:.15s var(--ease)}
+.jrolerow button[aria-pressed="true"]{background:color-mix(in srgb,var(--pc) 18%,transparent);
+  border-color:color-mix(in srgb,var(--pc) 50%,transparent);color:var(--pc)}
+.jsubrow button{font-family:inherit;font-size:10.5px;font-weight:800;border-radius:10px;padding:6px 11px;cursor:pointer;
+  background:rgba(255,255,255,.04);color:var(--tx2);
+  border:1.5px dashed color-mix(in srgb,var(--pc) 55%,transparent);transition:all .15s var(--ease)}
+.jsubrow button.sel{background:color-mix(in srgb,var(--pc) 20%,transparent);border-style:solid;
+  border-color:var(--pc);color:#fff}
+.jrailsub{display:inline-flex;align-items:center;gap:5px;margin-left:7px;vertical-align:middle;
+  font-size:9px;font-weight:800;border-radius:7px;padding:2px 7px;
+  border:1px solid color-mix(in srgb,var(--k) 50%,transparent);color:var(--k)}
+/* 서재 — 갈래별 선반 */
+.jtop{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-bottom:11px}
+.jsum{font-size:11.5px;color:var(--tx2);font-weight:700}
+.jsum b{color:var(--prod);font-weight:800}
+.jfind{flex:1 1 190px;min-width:150px;font-family:inherit;font-size:16px;color:var(--tx1);
+  padding:9px 13px;border-radius:99px;background:#0a0d0b;border:1px solid rgba(255,255,255,.06);
+  box-shadow:inset 0 2px 7px rgba(0,0,0,.85)}
+.jfind:focus{outline:none;box-shadow:inset 0 2px 7px rgba(0,0,0,.85), 0 0 0 1px rgba(200,241,105,.42)}
+.jaxis{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px}
+.jaxis button{font-family:inherit;font-size:11px;font-weight:700;padding:6px 11px;border-radius:9px;cursor:pointer;
+  background:var(--glass);border:1px solid var(--line);color:var(--tx3)}
+.jaxis button[aria-pressed="true"]{background:rgba(200,241,105,.14);border-color:rgba(200,241,105,.44);color:var(--prod)}
+.jshelfhd{display:flex;align-items:baseline;gap:8px;margin:17px 0 9px}
+.jshelfhd b{font-size:12.5px;font-weight:800;color:var(--tx1)}
+.jshelfhd s{text-decoration:none;font-size:10.5px;font-weight:800;color:var(--prod)}
+.jbooks{display:flex;gap:11px;overflow-x:auto;padding:2px 2px 14px;scrollbar-width:none;
+  border-bottom:1px solid var(--line)}
+.jbooks::-webkit-scrollbar{display:none}
+.jbook{width:130px;flex:none;cursor:pointer;transition:transform .34s var(--ease),filter .34s,opacity .34s}
+@media (hover:hover) and (pointer:fine){
+  .jbooks.multi:hover .jbook{transform:scale(.95);filter:brightness(.62);opacity:.72}
+  .jbooks .jbook:hover{transform:scale(1.045) translateY(-5px)!important;filter:none!important;opacity:1!important;z-index:5}
+}
+.jbook .steal{margin-top:7px;font-size:10.5px;line-height:1.5;color:var(--tx2);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.jbook .steal i{font-style:normal;color:var(--prod);font-weight:800;margin-right:3px}
+.jslot{width:130px;flex:none;border:1px dashed var(--line2);border-radius:var(--r-md);
+  display:grid;place-items:center;text-align:center;color:var(--tx3);font-size:10px;line-height:1.5;
+  padding:10px;min-height:150px;opacity:.55}
+.jrest{margin-top:12px}
+.jrest p{font-size:10.5px;color:var(--tx3);margin:0 0 8px}
+.jrest .row{display:flex;flex-wrap:wrap;gap:6px}
+.jrest .row s{text-decoration:none;font-size:10.5px;font-weight:700;padding:6px 11px;border-radius:9px;
+  background:rgba(255,255,255,.02);border:1px dashed var(--line);color:var(--tx3)}
+/* 빈 방도 뼈대는 보인다 */
+.jghost{opacity:.62;pointer-events:none;filter:saturate(.62)}
+.jghostbox{border:1px dashed var(--line2);border-radius:14px;padding:22px 14px;text-align:center;
+  color:var(--tx3);font-size:11px;line-height:1.6}
+.jnote{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap;margin:0 0 10px;
+  font-size:12px;color:var(--tx1);font-weight:800}
+.jnote s{text-decoration:none;font-size:10.5px;color:var(--tx3);font-weight:600}
+.jnote em{font-style:normal;margin-left:auto;font-size:10px;color:var(--rc);font-weight:700}
+
+/* ══ v24 · 🚚 회색지대 — 지금 나가 있는 것 ══ */
+#tb-gz{position:relative;display:none;background:none;border:0;color:var(--tx);font-size:15px;cursor:pointer;padding:4px 6px}
+body.vault #tb-gz{display:inline-block}
+#tb-gz i{position:absolute;top:-2px;right:-4px;min-width:15px;height:15px;line-height:15px;padding:0 3px;
+  border-radius:8px;background:var(--conv);color:#04150f;font-size:9px;font-weight:800;font-style:normal;text-align:center}
+#tb-gz.zero i{display:none}
+#tb-gz.zero{opacity:.4}
+.gz-hd{display:flex;gap:8px;align-items:baseline;margin:0 0 4px}
+.gz-hd small{color:var(--dim);font-size:11px;font-weight:600}
+.gz-em{color:var(--dim);font-size:12.5px;line-height:1.65;padding:14px 2px}
+.gz-row{display:flex;gap:10px;align-items:center;padding:10px 2px;border-bottom:1px solid var(--ln)}
+.gz-row:last-child{border-bottom:0}
+.gz-row b{flex:1;min-width:0;font-size:13px;font-weight:600;color:var(--tx);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gz-row s{flex:none;color:var(--dim);font-size:10.5px;text-decoration:none;font-variant-numeric:tabular-nums}
+.gz-row u{flex:none;text-decoration:none;font-size:10px;color:var(--dim);
+  border:1px solid var(--ln);border-radius:6px;padding:2px 6px}
+.gz-row button{flex:none;border:1px solid var(--ln);background:none;color:var(--conv);
+  border-radius:8px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer}
+.gz-row button:active{transform:scale(.96)}
+.gz-note{color:var(--dim);font-size:11px;line-height:1.6;margin-top:12px;padding-top:10px;border-top:1px solid var(--ln)}
+/* 카드에 붙는 딱지 — 나가 있는 것은 제자리에 그대로 있고 표시만 붙는다 */
+.is-out{position:relative}
+.anat-auto{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
+.anat-auto button{border:1px solid var(--ln);background:none;color:var(--dim);border-radius:9px;
+  padding:6px 10px;font-size:11.5px;font-weight:700;cursor:pointer;transition:.18s var(--ease)}
+.anat-auto button:active{transform:scale(.97)}
+.anat-auto button.ask{color:var(--prod);border-color:rgba(200,241,105,.34)}
+.anat-auto button[disabled]{opacity:.45;cursor:default}
+.anat-auto s{flex:1 0 100%;text-decoration:none;color:var(--dim);font-size:11px;line-height:1.55}
+.is-out::after{content:'🚚';position:absolute;top:5px;right:5px;z-index:3;font-size:11px;
+  background:rgba(6,10,16,.82);border-radius:6px;padding:1px 4px;line-height:1.35;pointer-events:none}
 
 /* ④ 카드 그림자 — 한 겹 짙은 그림자는 «붕 뜬» 느낌,
       세 겹 + 윗선 빛은 «놓여 있는» 느낌이 된다. 어두운 앱이라 윗선이 특히 산다. */
@@ -737,6 +989,7 @@ p,.tl-sub,.ds,.gs,.gs2,.msd-hint,.hi small,.list-row small{ text-wrap:pretty }
 </head>
 <body>
 <div id="offbar">⚠ 서버에 못 올리고 있어요 — 지금 담는 것은 이 기기에만 남습니다</div>
+<div id="gzbar">🚚 회색지대 — 맥북 금고에 있는 것은 여기 안 보입니다</div>
 
 <div class="orb orb1"></div><div class="orb orb2"></div>
 
@@ -784,6 +1037,7 @@ p,.tl-sub,.ds,.gs,.gs2,.msd-hint,.hi small,.list-row small{ text-wrap:pretty }
     </nav>
   </div>
   <div class="tb-r">
+    <button id="tb-gz" class="zero" title="나가 있는 것">🚚<i id="tb-gz-n">0</i></button>
     <button id="tb-set" title="설정">⚙</button>
     <button id="tb-back">‹ 뒤로</button>
   </div>
@@ -829,15 +1083,24 @@ p,.tl-sub,.ds,.gs,.gs2,.msd-hint,.hi small,.list-row small{ text-wrap:pretty }
 
   <!-- ═══ 타일2: 영상 서재 ═══ -->
   <section class="scr" id="scr-s2">
-    <div class="hero"><h1>강의 자료실</h1><div class="sub">모을수록 선반이 자란다 — 재료가 차면 «강의 준비됨»이 뜹니다</div></div>
-    <!-- v9 · 실데이터 — 담기 한 줄 + 필터 2줄 + 카드 -->
-    <div class="msd-paste">
-      <input id="vid-in" placeholder="🔗 영상 링크 붙여넣기 (유튜브는 제목·그림 자동)" autocomplete="off">
-      <button type="button" data-vidadd="1">담기</button>
+    <div class="hero"><h1>강의 자료실</h1><div class="sub" id="j-sub">담아서 → 나누고 → 뜯고 → 서재에 꽂힌다</div></div>
+    <!-- v25 · 4공정 — 담기 · 분류 · 분석 · 서재. 한 흐름으로 이어진다 -->
+    <nav class="jline" id="jline"></nav>
+
+    <div class="jroom on" id="jr1">
+      <div id="jbot1"></div>
+      <!-- v9 담기 배선 그대로 산다(vidRender가 여기에 그린다) -->
+      <div class="msd-paste">
+        <input id="vid-in" placeholder="🔗 영상 링크 붙여넣기 (유튜브는 제목·그림·원고 자동)" autocomplete="off">
+        <button type="button" data-vidadd="1">담기</button>
+      </div>
+      <div class="chips" id="vf-topic"></div>
+      <div class="chips" id="vf-axis"></div>
+      <div id="vid-list"></div>
     </div>
-    <div class="chips" id="vf-topic"></div>
-    <div class="chips" id="vf-axis"></div>
-    <div id="vid-list"></div>
+    <div class="jroom" id="jr2"></div>
+    <div class="jroom" id="jr3"></div>
+    <div class="jroom" id="jr4"></div>
   </section>
 
   <!-- ═══ 타일3: 프롬프트 서랍장 ═══ -->
@@ -1018,7 +1281,8 @@ p,.tl-sub,.ds,.gs,.gs2,.msd-hint,.hi small,.list-row small{ text-wrap:pretty }
 <!-- ══ 하단 유리 도크 — 강사실 ══ -->
 <nav class="dock" id="dock">
   <button data-scr="s1" class="on" style="--dc:var(--tx1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11 12 4l8 7"/><path d="M6 10v9h12v-9"/></svg><span>홈</span></button>
-  <button data-scr="s2" style="--dc:var(--story)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h5v14H5z"/><path d="M12 5h4l3 14h-4z"/></svg><span>자료실</span></button>
+  <button data-scr="s2" data-jto="jr1" style="--dc:var(--conv)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 8.5 12 4l7.5 4.5v7L12 20l-7.5-4.5z"/><path d="M12 12v8M4.5 8.5 12 12l7.5-3.5"/></svg><span>담기</span></button>
+  <button data-scr="s2" data-jto="jr4" style="--dc:var(--story)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h5v14H5z"/><path d="M12 5h4l3 14h-4z"/></svg><span>자료실</span></button>
   <button data-scr="s3" style="--dc:var(--hook)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 13.7 9l5.5 1.7-5.5 1.7L12 18l-1.7-5.6L4.8 10.7 10.3 9z"/><path d="M18.5 4.5v3M20 6h-3"/></svg><span>프롬프트</span></button>
   <button data-scr="s4" style="--dc:var(--conv)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="6" rx="1.5"/><rect x="4" y="13" width="16" height="6" rx="1.5"/><path d="M10.5 8h3M10.5 16h3"/></svg><span>서랍</span></button>
   <button data-scr="s5" style="--dc:var(--prod)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9M12 19V5M19 19v-7"/></svg><span>성적표</span></button>
@@ -1045,6 +1309,17 @@ p,.tl-sub,.ds,.gs,.gs2,.msd-hint,.hi small,.list-row small{ text-wrap:pretty }
   <button class="set-row"><span class="ic">ℹ️</span>버전<small id="set-ver">v1</small></button>
 </div>
 
+<!-- ══ v24 · 🚚 출고 대장 — 지금 회색지대에 나가 있는 것 ══ -->
+<div class="sheet-ov" id="gz-ov"></div>
+<div class="sheet" id="gz-sheet">
+  <div class="grab"></div>
+  <div class="gz-hd"><h2 style="margin:0">🚚 나가 있는 것</h2><small id="gz-cnt"></small></div>
+  <div id="gz-list"></div>
+  <p class="gz-note">금고(이 맥북)에 있는 것은 서버로 나가지 않습니다.
+     수강생에게 보낼 때만 잠깐 나갔다가, <b>끝나면 돌아옵니다</b>.
+     안 끝내도 30일이면 자동으로 회수됩니다.</p>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1052,7 +1327,7 @@ p,.tl-sub,.ds,.gs,.gs2,.msd-hint,.hi small,.list-row small{ text-wrap:pretty }
 const APP_CFG = {
   name: '컨텐츠의 모든것',
   key: 'cme',
-  ver: 'v23',
+  ver: 'v26',
   tagline: '오늘 본 것이 휘발되지 않는다',
   demo: false,   // v7 · 실서버 배선 완료(2026-08-18)
   demoCode: 'EEEEEE', demoPin: '2222',
@@ -1294,8 +1569,14 @@ let cur='s1', subStack=[], mode='i';
 function showScr(id){
   $$('.scr').forEach(s=>s.classList.remove('on'));
   $('#scr-'+id).classList.add('on');
-  $$('.dock button').forEach(b=>b.classList.toggle('on',b.dataset.scr===id));
+  $$('.dock button').forEach(function(b){
+    var same = b.dataset.scr===id;
+    if(same && b.dataset.jto && typeof jCur!=='undefined') same = (b.dataset.jto===jCur);
+    b.classList.toggle('on', same);
+  });
   document.scrollingElement.scrollTop=0;
+  try{ gzMark(); }catch(e){}          /* v24 · 화면이 바뀔 때마다 🚚 딱지를 다시 얹는다 */
+  if(id==='s2'){ try{ jPaint(); }catch(e){} }   /* v25 · 자료실 4공정 */
 }
 function setMode(m,silent){
   mode=m; localStorage.setItem(K('mode'),m);
@@ -1324,6 +1605,7 @@ document.querySelectorAll('.dock').forEach(d=>d.addEventListener('click',e=>{
   const b=e.target.closest('button[data-scr]'); if(!b)return;
   subStack=[]; document.body.classList.remove('in-sub');
   cur=b.dataset.scr; showScr(cur);
+  if(b.dataset.jto && typeof jGo==='function') jGo(b.dataset.jto);   /* v26 · 담기·자료실은 같은 화면의 «다른 방» */
 }));
 document.addEventListener('click',e=>{
   const g=e.target.closest('[data-sub]');
@@ -1342,6 +1624,8 @@ function sheetOpen(){ $('#sheet-ov').classList.add('on'); $('#sheet').classList.
 function sheetClose(){ $('#sheet-ov').classList.remove('on'); $('#sheet').classList.remove('on'); }
 $('#tb-set').addEventListener('click',sheetOpen);
 $('#sheet-ov').addEventListener('click',sheetClose);
+$('#gz-ov').addEventListener('click',gzClose);
+$('#tb-gz').addEventListener('click',gzOpen);
 
 /* ── 워크스페이스 전환 (완전 분리 — 서랍 전체가 갈아끼워짐) ── */
 const WS_NAMES={lecture:'강의 자료실',channel:'내 채널',scout:'정찰'};
@@ -1442,15 +1726,571 @@ function setOnline(v){ _online=!!v; try{ document.body.classList.toggle('off', !
 function cacheGet(){ try{ return JSON.parse(localStorage.getItem(CK)||'[]'); }catch(e){ return []; } }
 function cacheSet(list){ try{ localStorage.setItem(CK, JSON.stringify(list||[])); }catch(e){} }
 
+/* ══════════════════════════════════════════════════════════════
+   v24 · 🗄 금고(이 맥북) ↔ 🚚 회색지대(서버)
+     금고     = ~/컨모금고/ · 담은 것 «전부». 서버 용량 0
+     회색지대 = 지금 일하는 중인 것만 서버에 «잠깐» 나가 있는 자리
+     ⚠️ 딱지를 따로 두지 않는다 — «서버에 있다 = 나가 있다» 가 곧 딱지다.
+        금고 쪽에만 _gz{at,done} 을 적어 «언제 나갔나·끝났나»를 안다(서버로는 안 나감).
+   ══════════════════════════════════════════════════════════════ */
+var VAULT_ON = false;      // 이 화면이 맥북에서 열렸나(금고에 손이 닿나)
+var _gzIds = {};           // 지금 회색지대에 나가 있는 id
+var GZ_DAY = 86400000;
+
+async function vaultCall(path, body){
+  const opt = body ? {method:'POST', headers:{'Content-Type':'application/json'},
+                      body:JSON.stringify(body)} : {cache:'no-store'};
+  const r = await fetch('/vault/'+path, opt);
+  if(!r.ok) throw new Error('vault:'+r.status);
+  return r.json();
+}
+async function vaultProbe(){
+  try{ const j = await vaultCall('ping'); VAULT_ON = !!(j && j.ok); }
+  catch(e){ VAULT_ON = false; }
+  try{
+    document.body.classList.toggle('vault', VAULT_ON);
+    document.body.classList.toggle('phone', !VAULT_ON);   /* 금고에 손이 안 닿는 자리 = 폰·밖 */
+  }catch(e){}
+  return VAULT_ON;
+}
+/* 사진 주소 한 곳에서만 푼다 — 금고에 든 것은 'local:이름' 으로만 적혀 있다 */
+function imgSrc(v){
+  v = String(v||'');
+  if(v.indexOf('local:')===0) return VAULT_ON ? '/vault/img/'+v.slice(6) : '';
+  return v;
+}
+function isOut(id){ return !!_gzIds[id]; }
+
+/* ── 내보내기: 금고 → 회색지대 (사진을 다시 실어서 올린다. 여기서만 서버 용량이 실린다) ── */
+async function gzPush(ids){
+  const s = sessNow();
+  ids = Array.isArray(ids) ? ids : [ids];
+  if(!VAULT_ON || !s || !s.token || s.token==='demo' || !ids.length) return false;
+  try{
+    const j = await vaultCall('inflate', {ids:ids});
+    const rows = j.rows || [];
+    if(!rows.length) return false;
+    const res = await rpc('cme_items_upsert', {p_code:s.code, p_token:s.token, p_rows:rows});
+    if(res && res.ok===false){ toast('서버가 거절했어요: '+(res.msg||'알 수 없음')); return false; }
+    const stamp = new Date().toISOString();
+    const upd = [];
+    ids.forEach(function(id){
+      _gzIds[id] = 1;
+      const i = _items.findIndex(x=>x.id===id);
+      if(i<0) return;
+      const c = Object.assign({}, _items[i]);
+      c._gz = Object.assign({}, c._gz||{}, {at:stamp, done:false});
+      _items[i] = c; upd.push(c);
+    });
+    if(upd.length) await vaultCall('save', {rows:upd});
+    cacheSet(_items); setOnline(true);
+    return true;
+  }catch(e){ setOnline(false); return false; }
+}
+
+/* ── 회수: 회색지대 → 금고 ──
+   ⚠️ 순서가 생명이다. «금고에 있는 걸 눈으로 확인한 뒤»에만 서버에서 지운다. */
+async function gzReclaim(ids){
+  const s = sessNow();
+  ids = Array.isArray(ids) ? ids : [ids];
+  if(!VAULT_ON || !s || !s.token || !ids.length) return 0;
+  let safe = {};
+  try{
+    const j = await vaultCall('get');
+    (j.rows||[]).forEach(function(r){ safe[r.id] = 1; });
+  }catch(e){ return 0; }
+  const ok = ids.filter(function(id){ return safe[id]; });
+  if(!ok.length) return 0;
+  try{
+    await rpc('cme_items_del', {p_code:s.code, p_token:s.token, p_ids:ok});
+  }catch(e){ return 0; }
+  const upd = [];
+  ok.forEach(function(id){
+    delete _gzIds[id];
+    const i = _items.findIndex(x=>x.id===id);
+    if(i<0) return;
+    const c = Object.assign({}, _items[i]); delete c._gz;
+    _items[i] = c; upd.push(c);
+  });
+  if(upd.length){ try{ await vaultCall('save', {rows:upd}); }catch(e){} }
+  cacheSet(_items);
+  return ok.length;
+}
+
+/* ── 맥북을 켤 때마다 도는 정리: 들어온 것 흡수 + 끝난 것 회수 ── */
+async function gzSettle(srv){
+  const have = {};
+  _items.forEach(function(r){ have[r.id] = r; });
+  const now = Date.now(), incoming = [], reclaim = [];
+  _gzIds = {};
+  (srv||[]).forEach(function(r){
+    _gzIds[r.id] = 1;
+    const mine = have[r.id];
+    if(!mine){                                     /* 폰에서 담은 것 — 금고로 들인다 */
+      incoming.push(r);
+      const age = now - (Date.parse(r.created_at||'') || now);
+      if(age > GZ_DAY) reclaim.push(r.id);         /* 하루는 폰에 남겨둔다(방금 담은 게 사라지면 놀란다) */
+      return;
+    }
+    const g = mine._gz || {};                      /* 내보낸 것 — 끝났거나 30일이면 회수 */
+    const out = now - (Date.parse(g.at || r.created_at || '') || now);
+    if(g.done || out > 30*GZ_DAY) reclaim.push(r.id);
+  });
+  let moved = '';
+  if(incoming.length){
+    const first = (Object.keys(have).length === 0);   /* 금고가 비어 있었다 = 서버에서 처음 이사 오는 길 */
+    try{
+      const j = await vaultCall(first ? 'import' : 'save', {rows:incoming});
+      if(first && j && j.backup) moved = j.backup;
+      incoming.forEach(function(r){ if(!have[r.id]) _items.push(r); });
+    }catch(e){}
+  }
+  let n = 0;
+  if(reclaim.length) n = await gzReclaim(reclaim);
+  if(incoming.length || n){
+    const msg = [];
+    if(incoming.length) msg.push(moved
+      ? '🗄 서버에 있던 '+incoming.length+'개를 금고로 들였어요 (원본 사본: '+moved+')'
+      : '📥 폰에서 담은 '+incoming.length+'개를 금고에 넣었어요');
+    if(n) msg.push('🗄 끝난 '+n+'개를 회수했어요');
+    toast(msg.join(' · '));
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   v25 · 자료실 4공정 — 담기 → 분류 → 분석 → 서재
+     한 배열(_items)이 네 방을 관통한다. 단계는 vmeta(v).stage 에 적힌다.
+     ⚠️ 담기(jr1)는 기존 vidRender 배선을 그대로 쓴다 — 건드리지 않는다.
+   ══════════════════════════════════════════════════════════════ */
+var JROOMS = [
+  {id:'jr1', nm:'담기',       sub:'주워 온다',     c:'var(--conv)'},
+  {id:'jr2', nm:'분류',       sub:'무엇인지 정함', c:'var(--hook)'},
+  {id:'jr3', nm:'분석',       sub:'왜 터졌는지',   c:'var(--story)'},
+  {id:'jr4', nm:'서재',       sub:'갈래로 꽂힌다', c:'var(--prod)'}
+];
+/* 분해봇 프롬프트(v536)의 보기 그대로 — 지어내면 봇 결과를 못 받아 적는다 */
+var J_TYPES  = ['문제해결','꿀팁','스토리','욕구충족'];
+var J_THUMBS = ['문제 제시','욕구 충족','POV(상황)','공감','위협/금지','강조하기','비포애프터'];
+var J_WHYS   = ['저장각','공유각','논쟁유발','공감폭발','정보꿀팁'];
+var J_CPENS  = [['문제','#E07B7B','이미 나에게 떨어진 것'],['욕구','#7E9B72','저 앞에 있는 것'],
+                ['회피','#F0B24E','오면 안 되는 것'],['저항','#8FA0C9','사이를 막은 것'],
+                ['핵심','#7EC8F5','이 영상이 하려는 말']];
+var J_SRC = {
+  yt:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.4 7.6v8.8l7.4-4.4z" fill="#fff"/></svg>',
+  ig:'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#fff" stroke-width="2.7" '+
+     'stroke-linecap="round" stroke-linejoin="round"><rect x="2.9" y="2.9" width="18.2" height="18.2" rx="5.4"/>'+
+     '<circle cx="12" cy="12" r="4.4"/><circle cx="17.6" cy="6.4" r="1.3" fill="#fff" stroke="none"/></svg>'
+};
+var jCur='jr1', jSel=null, jStep=1, jCpen='문제', jRailOpen=-1, jAxis='type', jFind='', jAid=null;
+
+function jSrcKind(v){ return /instagram/.test(String(v.url||'')) ? 'ig' : 'yt'; }
+function jStage(v){ return (vmeta(v).stage) || 'new'; }
+function jBy(st){ return vidAll().filter(function(v){ return jStage(v)===st; }); }
+function jJ(v){ var m=vmeta(v); return m.j || (m.j={type:'',thumbs:[],whys:[],msg:''}); }
+/* ⚠️ 칩 하나 누를 때마다 저장을 «기다리면» 답답하다(실측: 30초 타임아웃).
+   화면은 즉시 그리고, 저장은 0.5초 모아서 뒤에서 한 번만 보낸다. */
+var _jSaveT = {};
+function jSave(v){
+  clearTimeout(_jSaveT[v.id]);
+  _jSaveT[v.id] = setTimeout(function(){ try{ itemsSave(v); }catch(e){} }, 500);
+}
+function jSet(v, fn){ var m=vmeta(v); fn(m); vmetaSet(v,m); jSave(v); }
+
+function jThumb(v){
+  var im = imgSrc(v.img_path), k = jSrcKind(v);
+  return '<div class="jth"><div class="im" style="'+(im?'background-image:url('+esc(im)+')':'')+'">'+
+    (v.views?'<span class="vw">'+esc(v.views)+'</span>':'')+
+    '<span class="jsrc '+k+'">'+J_SRC[k]+'</span>'+
+    '<span class="hk">'+esc(v.title||'제목 없음')+'</span></div></div>';
+}
+function jChips(list,cur,act,color,multi){
+  return '<div class="chips" style="--cc:'+color+'">'+list.map(function(t){
+    var on = multi ? (cur.indexOf(t)>=0) : (cur===t);
+    return '<button type="button" data-'+act+'="'+esc(t)+'" aria-pressed="'+on+'">'+esc(t)+'</button>';
+  }).join('')+'</div>';
+}
+function jPick(L, curV, act){
+  return '<div class="jpick"><span class="lb">'+L.length+'편</span>'+L.map(function(v){
+    var im=imgSrc(v.img_path);
+    return '<button class="p'+(v===curV?' on':'')+'" data-'+act+'="'+v.id+'" title="'+esc(v.title||'')+'">'+
+      '<i style="'+(im?'background-image:url('+esc(im)+')':'')+'"></i></button>';
+  }).join('')+'</div>';
+}
+function jLine(){
+  var n={jr1:jBy('new').length, jr2:jBy('sort').length, jr3:jBy('anat').length, jr4:jBy('page').length};
+  var el=$('#jline'); if(!el) return;
+  el.innerHTML = JROOMS.map(function(r,i){
+    return '<button data-jroom="'+r.id+'" style="--rc:'+r.c+'" aria-pressed="'+(jCur===r.id)+'">'+
+      '<b>'+(i+1)+' · '+r.nm+'</b><s>'+r.sub+'</s><i data-jn="'+r.id+'">'+n[r.id]+'</i></button>';
+  }).join('');
+  var room=JROOMS.filter(function(r){ return r.id===jCur; })[0];
+  var sc=$('#scr-s2'); if(sc) sc.style.setProperty('--rc', room.c);
+}
+function jPop(id){ var e2=$('[data-jn="'+id+'"]'); if(!e2) return;
+  e2.classList.add('pop'); setTimeout(function(){ e2.classList.remove('pop'); },300); }
+function jGo(id){ jCur=id;
+  $$('.jroom').forEach(function(r){ r.classList.toggle('on', r.id===id); });
+  jLine(); jPaint(); }
+function jPaint(){
+  jLine(); jPaint1();
+  if(jCur==='jr2') jPaint2(); else if(jCur==='jr3') jPaint3(); else if(jCur==='jr4') jPaint4();
+}
+async function jMove(v, to){
+  var m=vmeta(v); m.stage=to; vmetaSet(v,m);
+  clearTimeout(_jSaveT[v.id]);          /* 모아둔 저장이 있으면 여기서 함께 나간다 */
+  await itemsSave(v);
+  jPaint(); jPop(to==='sort'?'jr2':to==='anat'?'jr3':'jr4');
+  toast(to==='sort'?'🗂 분류로 보냈어요':to==='anat'?'🔬 분석으로 넘겼어요':'📚 서재에 꽂았습니다');
+}
+
+/* ── 🤖 분해봇 ──
+   ① 원고 가져오기 : 유튜브=자막(몇 초) · 인스타=분해봇 8765 받아쓰기(몇 분)
+   ② 구성 분해     : 주문서에 적고 클로드를 부른다(A안 — 열쇠 없이) */
+var _jBotOn = false, _jBusy = {};
+async function jBotProbe(){
+  try{ var j=await vaultCall('ping'); _jBotOn = !!(j && j.bot); }catch(e){ _jBotOn=false; }
+  return _jBotOn;
+}
+function jNoScript(){ return vidAll().filter(function(v){ return !String(vmeta(v).script||'').trim(); }); }
+function jNoBot(){ return vidAll().filter(function(v){ var m=vmeta(v);
+  return String(m.script||'').trim() && !(m.bot && m.bot.구조); }); }
+
+async function jFetchScript(v, quiet){
+  if(_jBusy[v.id]) return false;
+  _jBusy[v.id]=1;
+  var ig = jSrcKind(v)==='ig';
+  botSay('on','끄응… '+(ig?'받아쓰는 중':'자막 읽는 중')+'…');
+  if(!quiet) toast(ig ? '🎧 덜컹이가 받아쓰는 중 — 몇 분 걸립니다' : '📄 자막을 찾는 중…');
+  try{
+    var j = await vaultCall('script', {id:v.id, url:v.url});
+    var n=0, r=null, wait = ig ? 400 : 40;
+    while(n++ < wait){
+      await new Promise(function(z){ setTimeout(z, 3000); });
+      r = await vaultCall('job/'+j.job);
+      if(r.state!=='run') break;
+      if(!quiet && r.msg) { var b=$('#jbot1 .jbotbar s'); if(b) b.textContent=r.msg; }
+    }
+    delete _jBusy[v.id];
+    if(r && r.state==='done'){
+      _itemsLoaded=false; await itemsLoad(true);
+      botSay('ok','…해냈습니다 — '+r.msg);
+      if(!quiet) toast('📄 원고를 채웠어요 — '+r.msg);
+      jPaint(); try{ vidRender(); }catch(e){}
+      return true;
+    }
+    botSay('','못 가져왔어요 — '+((r&&r.msg)||'알 수 없음'));
+    if(!quiet) toast('못 가져왔어요 — '+((r&&r.msg)||'알 수 없음'));
+    jPaint();
+    return false;
+  }catch(e){ delete _jBusy[v.id]; if(!quiet) toast('금고 서버에 못 닿았어요'); return false; }
+}
+async function jOrderBot(v){
+  try{
+    var r = await vaultCall('order', {ids:[v.id]});
+    toast(r.opened ? '🤖 클로드를 띄웠어요 — ⌘V 후 엔터' : '🤖 주문서에 적었어요 (밀린 '+r.waiting+'건)');
+    jPaint();
+  }catch(e){ toast('금고 서버에 못 닿았어요'); }
+}
+/* ══ 덜컹이 — 담기 방 위에 앉아 있다. 이름이 있으면 정이 붙는다 ══ */
+var BOT_NAME = '덜컹이';                    /* 이름은 여기 한 곳만 고치면 된다 */
+var BOT_TITLE = '고장난 분해봇';
+function botSVG(){
+  return '<svg viewBox="0 0 96 96" aria-hidden="true"><g transform="translate(48,44)"><g class="rob">'+
+    '<text class="zzz" x="24" y="-26">z z</text>'+
+    '<path d="M-2 -26 l-4 -9 l7 -3" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.8" stroke-linecap="round"/>'+
+    '<g transform="rotate(-4)">'+
+      '<rect x="-22" y="-25" width="44" height="33" rx="11" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/>'+
+      '<circle class="eyeL" cx="-8" cy="-11" r="3.4"/><circle class="eyeR" cx="8" cy="-11" r="2.6"/>'+
+      '<path d="M3 -20 l4 5 l-2 4" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1"/>'+
+      '<rect x="-5" y="-2" width="9" height="2.4" rx="1.2" fill="rgba(255,255,255,.22)" transform="rotate(-5)"/>'+
+    '</g>'+
+    '<rect x="-16" y="10" width="32" height="21" rx="7" fill="rgba(255,255,255,.045)" stroke="rgba(255,255,255,.16)" stroke-width="1.4"/>'+
+    '<circle cx="-11" cy="16" r="1.5" fill="rgba(255,255,255,.22)"/><circle cx="11" cy="26" r="1.3" fill="rgba(255,255,255,.22)"/>'+
+    '<g class="sheet"><rect x="-12" y="33" width="24" height="17" rx="4" fill="rgba(200,241,105,.15)" stroke="var(--prod)" stroke-width="1.2"/>'+
+    '<line x1="-7" y1="39" x2="7" y2="39" stroke="var(--prod)" stroke-width="1.3" stroke-linecap="round"/></g>'+
+  '</g></g></svg>';
+}
+function jNoScript(){ return vidAll().filter(function(v){ return !String(vmeta(v).script||'').trim(); }); }
+function jNoBot(){ return vidAll().filter(function(v){ var m=vmeta(v);
+  return String(m.script||'').trim() && !(m.bot && m.bot.구조); }); }
+
+var _botMood = '';      /* '' | 'on' | 'ok' */
+function botSay(mood, line){
+  _botMood = mood||'';
+  var host=$('#jbot1'); if(!host) return;
+  var el=host.querySelector('.bot'); if(!el) return;
+  el.classList.toggle('on', mood==='on'); el.classList.toggle('ok', mood==='ok');
+  var p=el.querySelector('.bstate'); if(p && line) p.textContent=line;
+}
+function jPaint1(){
+  var host=$('#jbot1'); if(!host) return;
+  var ns=jNoScript(), nb=jNoBot();
+  var line, mood=_botMood;
+  if(mood==='on'){ line=null; }
+  else if(ns.length && nb.length) line='원고 없는 게 '+ns.length+'편, 분해 안 된 게 '+nb.length+'편 밀렸어요';
+  else if(ns.length) line='원고 없는 게 '+ns.length+'편 밀렸어요';
+  else if(nb.length) line='분해 안 된 게 '+nb.length+'편 밀렸어요';
+  else if(mood==='ok') line='다 해뒀습니다';
+  else { line='자는 중 — 링크를 담으면 깨어납니다'; mood=''; }
+
+  host.innerHTML =
+    '<div class="bot'+(mood?' '+mood:'')+'">'+botSVG()+
+      '<div class="bi"><b>'+BOT_NAME+'<i>'+BOT_TITLE+'</i></b>'+
+      '<p class="bstate">'+esc(line||'끄응… 덜컹덜컹')+'</p>'+
+      '<p class="ph">원고 가져오기·분해는 <b>맥북에서</b> 됩니다</p>'+
+      ((ns.length||nb.length) ? '<div class="ba">'+
+        (ns.length?'<button data-jfetchall="1">📄 원고 '+ns.length+'편 가져오기</button>':'')+
+        (nb.length?'<button data-jorderall="1">🤖 '+nb.length+'편 분해 맡기기</button>':'')+
+      '</div>' : '')+
+    '</div></div>';
+}
+
+/* ── ② 분류 ── */
+function jPaint2(){
+  var L=jBy('sort'), host=$('#jr2'); if(!host) return;
+  if(!L.length){
+    host.innerHTML = '<p class="jnote">아직 분류할 게 없습니다 <s>①담기에서 «분류로»를 누르면 아래 모양으로 올라옵니다</s>'+
+      '<em>화면 구성 미리보기</em></p><div class="jsolo jghost">'+
+      '<div class="jth"><div class="im"></div></div>'+
+      '<div class="jr"><label>유형</label>'+jChips(J_TYPES,'','x','var(--hook)')+'</div>'+
+      '<div class="jr"><label>썸네일 유형</label>'+jChips(J_THUMBS,[],'x','var(--story)',true)+'</div>'+
+      '<div class="jr"><label>왜 터졌나</label>'+jChips(J_WHYS,[],'x','var(--conv)',true)+'</div></div>';
+    return; }
+  if(!jSel || L.indexOf(jSel)<0) jSel=L[0];
+  var v=jSel, j=jJ(v), m=vmeta(v), at=L.indexOf(v);
+  var ok = j.type && j.thumbs.length && j.whys.length;
+  host.innerHTML =
+    jPick(L, v, 'jpick')+
+    '<div class="jsolo">'+
+      '<div class="jpager"><button data-jstep2="-1"'+(at?'':' disabled')+'>‹</button>'+
+        '<span>'+(at+1)+' / '+L.length+'</span>'+
+        '<button data-jstep2="1"'+(at<L.length-1?'':' disabled')+'>›</button></div>'+
+      jThumb(v)+
+      '<p class="jttl">'+esc(v.title||'제목 없음')+'</p>'+
+      '<p class="jsub">'+esc(v.views||'조회수 없음')+' · '+(jSrcKind(v)==='yt'?'유튜브':'인스타')+'</p>'+
+      (m.bot ? '<p class="jbot">🤖 분해봇이 채웠습니다 — <b>맞는지만 봐주세요</b></p>'
+        : String(m.script||'').trim()
+          ? '<p class="jbot off">원고는 있는데 아직 분해 전입니다</p>'+
+            '<div class="jbotone"><button data-jorder="'+v.id+'">🤖 분해봇에 맡기기</button></div>'
+          : '<p class="jbot off">원고가 없어요 — 먼저 가져와야 봇이 읽습니다</p>'+
+            '<div class="jbotone"><button data-jfetch="'+v.id+'">📄 원고 가져오기</button></div>')+
+      '<div class="jr"><label>유형 <s>넷 중 하나</s></label>'+jChips(J_TYPES,j.type,'jtype','var(--hook)')+'</div>'+
+      '<div class="jr"><label>썸네일 유형 <s>여러 개 정상</s></label>'+jChips(J_THUMBS,j.thumbs,'jthumb','var(--story)',true)+'</div>'+
+      '<div class="jr"><label>왜 터졌나 <s>최대 2개</s></label>'+jChips(J_WHYS,j.whys,'jwhy','var(--conv)',true)+'</div>'+
+      '<div class="jr"><label>핵심 메시지</label><input data-jf="msg" value="'+esc(j.msg||'')+'" placeholder="이 영상이 하고 싶은 말 한 줄"></div>'+
+      '<button class="jgo" data-jpass="'+v.id+'"'+(ok?'':' disabled')+'>'+
+        (ok?'✓ 분석으로 넘기기 →':'유형·썸네일·왜 터졌나를 채우면 넘어갑니다')+'</button>'+
+      '<button class="jskip" data-jback="'+v.id+'">← 담기로 되돌리기</button>'+
+    '</div>';
+}
+
+/* ── ③ 분석 : ①고객(형광펜) → ②구조(기찻길) ── */
+function jSents(t){ return String(t||'').split(/(?<=[.!?。])\s+/).filter(function(x){ return x.trim(); }); }
+function jPaint3(){
+  var L=jBy('anat'), host=$('#jr3'); if(!host) return;
+  if(!L.length){
+    host.innerHTML = '<p class="jnote">아직 분석할 게 없습니다 <s>②분류에서 넘기면 아래 모양으로 올라옵니다</s>'+
+      '<em>화면 구성 미리보기</em></p>'+
+      '<div class="jsteps jghost"><button aria-pressed="true">① 고객 분석<s>형광펜</s></button>'+
+      '<button aria-pressed="false">② 구조 구성<s>기찻길</s></button></div>'+
+      '<div class="jsolo jghost"><div class="jghostbox">원고가 여기 들어옵니다<br>펜을 고르고 문장을 톡 치면 칠해집니다</div>'+
+      '<div class="jvocm">'+J_CPENS.slice(0,3).map(function(c){
+        return '<div class="jvm off" style="--vc:'+c[1]+'"><b>'+c[0]+'</b><span>칠한 문장이 여기 모입니다</span></div>';
+      }).join('')+'</div></div>';
+    return; }
+  if(!jAid || jBy('anat').filter(function(x){return x.id===jAid;}).length===0){ jAid=L[0].id; jStep=1; }
+  var v=L.filter(function(x){return x.id===jAid;})[0], m=vmeta(v), ss=jSents(m.script);
+  m.cus = m.cus || {};
+  var cusN=Object.keys(m.cus).length;
+  var st = (m.bot && m.bot.구조) || null;
+  var segN = st ? st.filter(function(r){ return r.role; }).length : 0;
+  var head = (L.length>1 ? jPick(L, v, 'janat') : '')+
+    '<div class="jsteps">'+
+      '<button data-jstep="1" aria-pressed="'+(jStep===1)+'">① 고객 분석<s>형광펜 '+(cusN?cusN+'곳':'')+'</s></button>'+
+      '<button data-jstep="2" aria-pressed="'+(jStep===2)+'">② 구조 구성<s>기찻길 '+(segN?segN+'칸':'')+'</s></button>'+
+    '</div>';
+
+  if(jStep===1){
+    var bk={};
+    Object.keys(m.cus).forEach(function(i){ (bk[m.cus[i]]=bk[m.cus[i]]||[]).push(ss[+i]); });
+    host.innerHTML = head+'<div class="jsolo">'+
+      '<p class="jsub" style="margin:12px 0 8px">고객 펜 — 칠하면 아래 바구니로 · 칠 = 형광펜</p>'+
+      '<div class="chips" style="justify-content:center">'+J_CPENS.map(function(c){
+        return '<button type="button" data-jcpen="'+c[0]+'" aria-pressed="'+(jCpen===c[0])+'" '+
+          'style="'+(jCpen===c[0]?'background:color-mix(in srgb,'+c[1]+' 20%,transparent);border-color:'+c[1]+';color:'+c[1]:'')+'">'+c[0]+'</button>';
+      }).join('')+'<button type="button" data-jcpen="" aria-pressed="'+(jCpen===''?'true':'false')+'">지우개</button></div>'+
+      (ss.length ? '<div class="jscript" style="margin-top:10px">'+ss.map(function(t,i){
+          var k=m.cus[i], c=k?(J_CPENS.filter(function(x){return x[0]===k;})[0]||['',''])[1]:'';
+          return '<span class="jhl'+(k?' on':'')+'"'+(k?' style="--c:'+c+'"':'')+' data-jcus="'+i+'">'+esc(t)+'</span> ';
+        }).join('')+'</div>'
+        : '<div class="jghostbox" style="margin-top:10px">원고가 없습니다 — 가져와야 칠할 수 있어요</div>'+
+          '<div class="jbotone"><button data-jfetch="'+v.id+'">📄 원고 가져오기</button></div>')+
+      '<div class="jvocm">'+J_CPENS.map(function(c){
+        var arr=bk[c[0]]||[], txt=arr.join(' ');
+        return '<div class="jvm'+(arr.length?'':' off')+'" style="--vc:'+c[1]+'"><b>'+c[0]+'</b>'+
+          '<span>'+(arr.length? esc(txt.slice(0,70))+(txt.length>70?'…':'') : c[2]+' — 아직 안 칠함')+'</span></div>';
+      }).join('')+'</div>'+
+      '<button class="jgo" data-jstep="2"'+(cusN?'':' disabled')+'>'+
+        (cusN?'구조 구성으로 →':'한 곳이라도 칠하면 넘어갑니다')+'</button>'+
+      '</div>';
+    return;
+  }
+  /* ② 구조 — 분해봇이 만든 라벨 그대로 */
+  if(!st){
+    host.innerHTML = head+'<div class="jsolo"><p class="jbot off">분해봇 구성이 아직 없습니다</p>'+
+      '<div class="jghostbox">'+(String(m.script||'').trim()
+        ? '원고는 있습니다 — 분해봇에 맡기면<br>칸이 여기에 순서대로 섭니다'
+        : '원고가 없습니다 — 먼저 가져와야 합니다')+'</div>'+
+      '<div class="jbotone">'+(String(m.script||'').trim()
+        ? '<button data-jorder="'+v.id+'">🤖 분해봇에 맡기기</button>'
+        : '<button data-jfetch="'+v.id+'">📄 원고 가져오기</button>')+'</div>'+
+      '<button class="jskip" data-jstep="1">← 고객 분석으로</button></div>';
+    return; }
+  host.innerHTML = head+'<div class="jsolo">'+
+    '<p class="jbot">🤖 분해봇 구성 — <b>'+esc(m.bot.판정||'기본형')+'</b> · '+st.length+'칸</p>'+
+    '<p class="jsub">칸 이름을 누르면 «무슨 역할인지»와 세부가 그 자리에서 열립니다</p>'+
+    '<div class="jrail">'+st.map(function(row,ri){
+      var col = row.role ? (VID_ROLES.indexOf(row.role)>=0 ? ROLE_COL(row.role) : 'var(--tx3)') : 'rgba(255,255,255,.14)';
+      var open = (jRailOpen===ri);
+      return '<div class="jrw'+(open?' open':'')+'" style="--k:'+col+'">'+
+        '<button class="rl" data-jrail="'+ri+'">'+esc(row.k)+'</button>'+
+        '<div class="bd"><p class="tx">'+esc(row.t||'')+'</p>'+
+        (row.role?'<span class="jrailsub">'+esc(row.role)+(row.sub?' · '+esc(row.sub):'')+'</span>':'')+
+        (open ?
+          '<div class="jrolerow">'+VID_ROLES.map(function(r){
+            return '<button data-jrrole="'+ri+'|'+r+'" style="--pc:'+ROLE_COL(r)+'" aria-pressed="'+(row.role===r)+'">'+r+'</button>';
+          }).join('')+'</div>'+
+          (row.role && ROLE_SUBS[row.role] ? '<div class="jsubrow" style="--pc:'+col+'">'+ROLE_SUBS[row.role].map(function(x){
+            return '<button type="button" class="'+(row.sub===x?'sel':'')+'" data-jrsub="'+ri+'|'+x+'">'+x+'</button>';
+          }).join('')+'</div>' : '')
+          : '')+
+        '</div></div>';
+    }).join('')+'</div>'+
+    '<button class="jgo" data-jpage="'+v.id+'"'+(segN>=3?'':' disabled')+'>'+
+      (segN>=3?'✓ 서재에 꽂기 →':'칸 3개 이상에 역할을 달아주세요 ('+segN+'/3)')+'</button>'+
+    '<button class="jskip" data-jstep="1">← 고객 분석으로 돌아가기</button>'+
+    '</div>';
+}
+
+/* ── ④ 서재 ── */
+var J_AXES = [['type','유형으로'],['thumbs','썸네일로'],['whys','왜 터졌나로']];
+var J_AXIS_LIST = {type:J_TYPES, thumbs:J_THUMBS, whys:J_WHYS};
+function jPaint4(){
+  var all=jBy('page'), host=$('#jr4'); if(!host) return;
+  var L=all, q=jFind.trim();
+  if(q) L=L.filter(function(v){ var j=jJ(v);
+    return ((v.title||'')+' '+(j.msg||'')+' '+(j.type||'')+' '+(j.whys||[]).join(' ')).indexOf(q)>=0; });
+  var list=J_AXIS_LIST[jAxis], groups={};
+  list.forEach(function(k){ groups[k]=[]; });
+  L.forEach(function(v){ var val=jJ(v)[jAxis];
+    var keys = Array.isArray(val) ? (val.length?val:['(안 정한 것)']) : [val||'(안 정한 것)'];
+    keys.forEach(function(k){ (groups[k]=groups[k]||[]).push(v); }); });
+  var filled=Object.keys(groups).filter(function(k){ return groups[k].length; });
+  var empty=list.filter(function(k){ return !(groups[k]||[]).length; });
+  var head = '<div class="jtop"><span class="jsum"><b>'+all.length+'편</b> · 훔칠 것 <b>'+
+      all.filter(function(v){ return jJ(v).msg; }).length+'줄</b> · '+filled.length+'갈래</span>'+
+      '<input class="jfind" id="jfind" value="'+esc(jFind)+'" placeholder="제목·훔칠 것으로 찾기"></div>'+
+    '<div class="jaxis">'+J_AXES.map(function(a){
+      return '<button data-jaxis="'+a[0]+'" aria-pressed="'+(jAxis===a[0])+'">'+a[1]+'</button>';
+    }).join('')+'</div>';
+  if(!all.length){
+    host.innerHTML = head+'<p class="jnote">아직 꽂힌 게 없습니다 <s>③분석을 끝내면 갈래별 선반에 한 편씩 꽂힙니다</s>'+
+      '<em>선반 구성 미리보기</em></p><div class="jghost">'+list.slice(0,2).map(function(k){
+        return '<div class="jshelfhd"><b>'+k+'</b><s>0</s></div>'+
+          '<div class="jbooks"><div class="jslot">아직 없음</div><div class="jslot">아직 없음</div></div>';
+      }).join('')+'</div>';
+    return; }
+  host.innerHTML = head + filled.map(function(k){
+    var arr=groups[k];
+    return '<div class="jshelfhd"><b>'+esc(k)+'</b><s>'+arr.length+'</s></div>'+
+      '<div class="jbooks'+(arr.length>1?' multi':'')+'">'+arr.map(function(v){
+        var j=jJ(v);
+        return '<article class="jbook" data-jopen="'+v.id+'">'+jThumb(v)+
+          '<p class="steal">'+(j.msg?'<i>훔칠 것</i>'+esc(j.msg):'<span style="color:var(--tx3)">훔칠 것이 비어 있음</span>')+'</p></article>';
+      }).join('')+(arr.length<3?'<div class="jslot">이 갈래에<br>더 쌓을 자리</div>':'')+'</div>';
+  }).join('') +
+  (empty.length? '<div class="jrest"><p>아직 빈 갈래</p><div class="row">'+
+    empty.map(function(k){ return '<s>'+esc(k)+' 0</s>'; }).join('')+'</div></div>' : '');
+}
+
+/* ── 🚚 출고 대장 — 나가 있는 것을 한 장에 ── */
+function gzOut(){ return _items.filter(function(r){ return _gzIds[r.id]; }); }
+function gzDays(r){
+  const g = r._gz || {};
+  const t = Date.parse(g.at || r.created_at || '') || Date.now();
+  return Math.max(0, Math.floor((Date.now()-t)/GZ_DAY));
+}
+function gzTitle(r){
+  return r.title || r.text ||
+    ({video:'영상', thumb:'사진', line:'문장', music:'음악', prompt:'프롬프트'})[r.type] || '항목';
+}
+function gzBadge(){
+  const b = $('#tb-gz'), i = $('#tb-gz-n'); if(!b || !i) return;
+  const n = gzOut().length;
+  i.textContent = n>99 ? '99+' : String(n);
+  b.classList.toggle('zero', n===0);
+}
+function gzRender(){
+  const w = $('#gz-list'); if(!w) return;
+  const l = gzOut().sort(function(a,b){ return gzDays(b)-gzDays(a); });
+  const c = $('#gz-cnt'); if(c) c.textContent = l.length ? l.length+'개가 서버에 실려 있음' : '';
+  if(!l.length){
+    w.innerHTML = '<p class="gz-em">지금 나가 있는 것이 없습니다.<br>'+
+                  '담은 것은 전부 이 맥북 금고 안에 있고, <b>서버 용량은 0</b>입니다.</p>';
+    return;
+  }
+  w.innerHTML = l.map(function(r){
+    const d = gzDays(r), why = (r._gz && r._gz.at) ? '보냄' : '폰에서 담음';
+    return '<div class="gz-row"><b>'+esc(gzTitle(r))+'</b>'+
+           '<u>'+why+'</u><s>'+(d ? d+'일째' : '오늘')+'</s>'+
+           '<button data-gzdone="'+r.id+'">✓ 끝</button></div>';
+  }).join('');
+}
+function gzOpen(){ gzRender(); $('#gz-ov').classList.add('on'); $('#gz-sheet').classList.add('on'); }
+function gzClose(){ $('#gz-ov').classList.remove('on'); $('#gz-sheet').classList.remove('on'); }
+
+/* 카드에 딱지 얹기 — 물건은 제자리에 두고 표시만 붙인다(칸을 옮기지 않는다) */
+function gzMark(){
+  try{
+    document.querySelectorAll('.is-out').forEach(function(el){ el.classList.remove('is-out'); });
+    gzBadge();
+    if(!VAULT_ON) return;
+    Object.keys(_gzIds).forEach(function(id){
+      document.querySelectorAll('[data-vid="'+id+'"],[data-thid="'+id+'"],[data-musrow="'+id+'"]')
+        .forEach(function(el){ el.classList.add('is-out'); });
+    });
+  }catch(e){}
+}
+
 async function itemsLoad(force){
   if(_itemsLoaded && !force) return _items;
   const s = sessNow();
   _items = cacheGet();                       // 먼저 사본으로 화면을 채우고
   _itemsLoaded = true;
+  await vaultProbe();                        // v24 · 여기가 맥북인가 폰인가
+
+  if(VAULT_ON){                              /* 맥북 — 금고가 본진이다 */
+    try{
+      const j = await vaultCall('get');
+      _items = Array.isArray(j.rows) ? j.rows : [];
+    }catch(e){ toast('금고를 못 열었어요 — 화면의 사본으로 보여드립니다'); }
+    if(s && s.code && s.token && s.token!=='demo'){
+      try{
+        const rows = await rpc('cme_items_get', {p_code:s.code, p_token:s.token});
+        setOnline(true);
+        await gzSettle(Array.isArray(rows) ? rows : []);   // 들어온 것 흡수 + 끝난 것 회수
+      }catch(e){ if(e && e.session) sessExpired(); else setOnline(false); }
+    }
+    cacheSet(_items);
+    return _items;
+  }
+
+  /* 폰·밖 — 회색지대에 나와 있는 것만 보인다 */
   if(!s || !s.code || !s.token || s.token==='demo'){ setOnline(false); return _items; }
   try{
     const rows = await rpc('cme_items_get', {p_code:s.code, p_token:s.token});
     _items = Array.isArray(rows) ? rows : [];
+    _gzIds = {}; _items.forEach(function(r){ _gzIds[r.id] = 1; });
     setOnline(true);
     cacheSet(_items);                        // 서버 것으로 사본 갱신
   }catch(e){ if(e && e.session) sessExpired(); else setOnline(false); }
@@ -1464,11 +2304,29 @@ async function itemsSave(rows){              // 담기·고치기 (여러 개 �
     if(i>=0) _items[i] = r; else _items.push(r);
   });
   cacheSet(_items);
+
+  if(VAULT_ON){                              /* v24 · 맥북 — 금고에 진짜 파일로 넣는다 */
+    try{
+      await vaultCall('save', {rows:rows});
+      /* 사진을 넣었다면 금고가 base64를 파일로 떼어냈다 — 화면의 사본도 그 자리로 맞춘다 */
+      if(rows.some(function(r){ return String(r.img_path||'').indexOf('data:')===0; })){
+        const g = await vaultCall('get');
+        if(Array.isArray(g.rows)) _items = g.rows;
+      }
+      cacheSet(_items); setOnline(true);
+      /* 이미 나가 있는 것이면 회색지대 쪽도 같이 고친다 */
+      const out = rows.filter(function(r){ return _gzIds[r.id]; }).map(function(r){ return r.id; });
+      if(out.length) await gzPush(out);
+      return true;
+    }catch(e){ setOnline(false); toast('금고에 못 넣었어요 — 화면에만 남아 있습니다'); return false; }
+  }
+
   if(!s || !s.token || s.token==='demo'){ setOnline(false); return false; }
   try{
     const res = await rpc('cme_items_upsert', {p_code:s.code, p_token:s.token, p_rows:rows});
     /* ⚠️ 서버는 실패해도 HTTP 200으로 {ok:false}를 준다 — 여기서 안 보면 «저장된 줄» 안다 */
     if(res && res.ok===false){ setOnline(false); toast('서버가 거절했어요: '+(res.msg||'알 수 없음')); return false; }
+    rows.forEach(function(r){ _gzIds[r.id] = 1; });   /* 폰에서 담은 것은 회색지대에 앉는다 */
     setOnline(true); return true;
   }catch(e){
     if(e && e.session){ sessExpired(); toast('로그인이 풀렸어요 — 위 띠를 눌러 다시 로그인해주세요'); return false; }
@@ -1520,6 +2378,22 @@ async function itemsDel(ids){
   if(ids.length===1){ try{ await uxRowOut(ids[0]); }catch(e){} }
   _items = _items.filter(x=>ids.indexOf(x.id)<0);
   cacheSet(_items);
+
+  if(VAULT_ON){                              /* v24 · 금고에서 지우고, 나가 있었다면 서버에서도 지운다 */
+    let okv = false;
+    try{ await vaultCall('del', {ids:ids}); okv = true; }
+    catch(e){ toast('금고에서 못 지웠어요'); }
+    const out = ids.filter(function(id){ return _gzIds[id]; });
+    if(out.length && s && s.token && s.token!=='demo'){
+      try{
+        await rpc('cme_items_del', {p_code:s.code, p_token:s.token, p_ids:out});
+        out.forEach(function(id){ delete _gzIds[id]; });
+        setOnline(true);
+      }catch(e){ setOnline(false); }
+    }
+    return okv;
+  }
+
   if(!s || !s.token || s.token==='demo'){ setOnline(false); return false; }
   try{
     const res = await rpc('cme_items_del', {p_code:s.code, p_token:s.token, p_ids:ids});
@@ -1596,7 +2470,8 @@ async function musAdd(raw){
 function musCard(it){
   const open = _musOpen===it.id;
   const src = it.grp==='ig' ? ['ig','인스타'] : (it.grp==='yt' ? ['yt','유튜브'] : ['etc','링크']);
-  const art = it.img_path ? '<div class="art" style="background-image:url('+esc(it.img_path)+')"></div>'
+  const _ia = imgSrc(it.img_path);
+  const art = _ia ? '<div class="art" style="background-image:url('+esc(_ia)+')"></div>'
                           : '<div class="art">'+(it.grp==='ig'?'📷':(it.grp==='yt'?'▶':'🔗'))+'</div>';
   const tgs = (it.tags||[]).map(t=>'<span class="msd-mtg">'+esc(t)+'</span>').join('');
   const btn = it.grp==='yt'
@@ -1651,6 +2526,16 @@ function musRender(){
 const VID_AXES = [['후킹','hook'],['구성','story'],['전환','conv'],['프로덕션','prod']];
 const VID_ROLES = ['도입부','공감','근거','방법','변화','CTA'];
 const ROLE_AX = {도입부:'hook',공감:'story',근거:'story',방법:'conv',변화:'conv',CTA:'prod'};
+/* v25 · 역할 색 · 역할별 세부 — ⚠️ 세부는 분해봇 프롬프트(v536)의 사전 그대로여야 라벨이 어긋나지 않는다 */
+function ROLE_COL(r){ return 'var(--'+(ROLE_AX[r]||'tx3')+')'; }
+const ROLE_SUBS = {
+  '도입부':['이득손해','숫자','상식깨기','가치입증','꿈소개','좌절','의심','문제'],
+  '공감':['상황','갈등','고통','투쟁','오해','실수'],
+  '근거':['원인','전문용어','설명','반박','문제인식','깨달음','가치입증','변곡점'],
+  '방법':['팁','단계','해결책','발견','전환점','도전','시술전후','재료','자세교정'],
+  '변화':['효과','진행상황','교훈','결말','후기'],
+  'CTA':['홍보','목적']
+};
 let _vfTopic='all', _vfAxis='all', _anatId='', _anatPen='도입부';
 
 function vmeta(it){ try{ return JSON.parse(it.memo||'{}'); }catch(e){ return {}; } }
@@ -1687,7 +2572,8 @@ async function vidAdd(raw){
   }
 }
 function vidCard(v){
-  const th = v.img_path ? 'background-image:url('+esc(v.img_path)+');background-size:cover;background-position:center'
+  const _iv = imgSrc(v.img_path);
+  const th = _iv ? 'background-image:url('+esc(_iv)+');background-size:cover;background-position:center'
                         : 'background:linear-gradient(160deg,#2a2450,#141126)';
   const ax = (v.tags||[]).map(t=>{ const f=VID_AXES.filter(a=>a[0]===t)[0]; return f?'<b style="color:var(--'+f[1]+')">'+esc(t)+'</b>':''; }).join(' ');
   const m = vmeta(v);
@@ -1704,6 +2590,7 @@ function vidCard(v){
     '</span></button>';
 }
 function vidRender(){
+  try{ jLine(); }catch(e){}            /* v25 · 담긴 수가 바뀌면 공정 띠도 따라 바뀐다 */
   const tw=$('#vf-topic'), aw=$('#vf-axis'), lw=$('#vid-list');
   if(!lw) return;
   const tops = vidTopics();
@@ -1870,7 +2757,11 @@ function anatRender(){
       }).join('')+'<button type="button" class="p add" data-anatnew="vidaxis">＋ 축</button></div></div>'+
     /* ② 원고 */
     '<div class="pstep" style="--sc:var(--story)"><b>2 · 원고 '+dot(done.two)+'</b><div class="d">자막·캡션을 그대로 붙여넣으세요 — 없으면 건너뛰어도 됩니다</div>'+
-      '<textarea class="msd-nm" data-anatscript="1" rows="4" placeholder="여기에 원고를 붙여넣으면 아래에서 칠할 수 있어요" style="height:auto;resize:vertical">'+esc(m.script||'')+'</textarea></div>'+
+      '<textarea class="msd-nm" data-anatscript="1" rows="4" placeholder="여기에 원고를 붙여넣으면 아래에서 칠할 수 있어요" style="height:auto;resize:vertical">'+esc(m.script||'')+'</textarea>'+
+      (VAULT_ON ? '<div class="anat-auto">'+
+        '<button type="button" data-anatfetch="'+v.id+'">📄 링크에서 원고 가져오기</button>'+
+        '<button type="button" class="ask" data-anatorder="'+v.id+'">🧩 클로드에게 분해 맡기기</button>'+
+        '<s id="anat-auto-msg"></s></div>' : '')+'</div>'+
     /* ③ 구조 */
     '<div class="pstep" style="--sc:var(--hook)"><b>3 · 구조 '+dot(done.three)+'</b><div class="d">'+
       (sents.length?'펜을 고르고 문장을 톡 — 칠한 대로 아래에 쌓입니다':'원고를 넣으면 문장을 칠할 수 있습니다')+'</div>'+
@@ -2028,7 +2919,7 @@ function thRender(){
   const lw=$('#th-list'); if(!lw) return;
   const l = thAll().sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')));
   lw.innerHTML = l.length ? l.map(t=>
-    '<i style="'+(t.img_path?'background-image:url('+t.img_path+');background-size:cover;background-position:center':'background:linear-gradient(160deg,#2a2450,#141126)')+'" data-thid="'+t.id+'">'+
+    '<i style="'+(imgSrc(t.img_path)?'background-image:url('+esc(imgSrc(t.img_path))+');background-size:cover;background-position:center':'background:linear-gradient(160deg,#2a2450,#141126)')+'" data-thid="'+t.id+'">'+
       '<b>'+esc(t.title||'느낌 적기')+'</b></i>').join('')
     : '<p class="msd-hint" style="grid-column:1/-1;text-align:center">아직 비어 있어요 — 스크린샷을 Ctrl+V 해보세요</p>';
   const seg=document.querySelector('#dseg b[data-pane="dp1"]'); if(seg) seg.textContent='🖼 썸네일 '+l.length;
@@ -2801,6 +3692,125 @@ document.addEventListener('click', async e=>{
   if(mrfb){ _mrOpen=(_mrOpen===mrfb)?'':mrfb; _mrRefs=[]; mrRender(); return; }
   const mrref = hit('data-mrref');
   if(mrref){ const i=_mrRefs.indexOf(mrref); if(i>=0) _mrRefs.splice(i,1); else _mrRefs.push(mrref); mrRender(); return; }
+  /* ══ v25 · 자료실 4공정 ══ */
+  if(h=hit('data-jroom')){ jGo(h); return; }
+  if(h=hit('data-jpick')){ jSel=vidAll().filter(function(x){return x.id===h;})[0]; jPaint2(); return; }
+  if(h=hit('data-jstep2')){ const JL=jBy('sort'), at2=JL.indexOf(jSel)+ +h;
+    if(at2>=0 && at2<JL.length){ jSel=JL[at2]; jPaint2(); } return; }
+  if(jSel && jCur==='jr2'){
+    const jj=jJ(jSel);
+    const jTog=(arr,v2,cap)=>{ const k2=arr.indexOf(v2);
+      if(k2>=0) arr.splice(k2,1); else { if(cap && arr.length>=cap) arr.shift(); arr.push(v2); } };
+    if(h=hit('data-jtype')){  jj.type = jj.type===h?'':h; jSet(jSel,function(){}); jPaint2(); return; }
+    if(h=hit('data-jthumb')){ jTog(jj.thumbs,h,3); jSet(jSel,function(){}); jPaint2(); return; }
+    if(h=hit('data-jwhy')){   jTog(jj.whys,h,2);  jSet(jSel,function(){}); jPaint2(); return; }
+  }
+  if(h=hit('data-jpass')){ const pv=vidAll().filter(function(x){return x.id===h;})[0];
+    if(pv){ jStep=1; jAid=pv.id; await jMove(pv,'anat'); } return; }
+  if(h=hit('data-jback')){ const bv=vidAll().filter(function(x){return x.id===h;})[0];
+    if(bv) await jMove(bv,'new'); return; }
+  if(h=hit('data-janat')){ jAid=h; jStep=1; jRailOpen=-1; jPaint3(); return; }
+  if(h=hit('data-jstep')){ jStep=+h; jPaint3(); return; }
+  if(jCur==='jr3'){
+    const av=jBy('anat').filter(function(x){return x.id===jAid;})[0];
+    if(av){
+      if((h=hit('data-jcpen'))!==null){ jCpen=h; jPaint3(); return; }
+      if(h=hit('data-jcus')){ const mm=vmeta(av); mm.cus=mm.cus||{};
+        if(jCpen==='') delete mm.cus[h]; else mm.cus[h]=jCpen;
+        vmetaSet(av,mm); jSave(av); jPaint3(); return; }
+      if(h=hit('data-jrail')){ const ri2=+h; jRailOpen=(jRailOpen===ri2?-1:ri2); jPaint3(); return; }
+      if(h=hit('data-jrrole')){ const pa=h.split('|'), mm2=vmeta(av);
+        const rw=mm2.bot.구조[+pa[0]]; rw.role=(rw.role===pa[1]?'':pa[1]); rw.sub='';
+        vmetaSet(av,mm2); jSave(av); jPaint3(); return; }
+      if(h=hit('data-jrsub')){ const pb=h.split('|'), mm3=vmeta(av);
+        const rw2=mm3.bot.구조[+pb[0]]; rw2.sub=(rw2.sub===pb[1]?'':pb[1]);
+        vmetaSet(av,mm3); jSave(av); jPaint3(); return; }
+    }
+  }
+  if(h=hit('data-jpage')){ const gv=vidAll().filter(function(x){return x.id===h;})[0];
+    if(gv) await jMove(gv,'page'); return; }
+  if(h=hit('data-jaxis')){ jAxis=h; jPaint4(); return; }
+  /* 🤖 분해봇 */
+  if(h=hit('data-jfetch')){ const fv=vidAll().filter(function(x){return x.id===h;})[0];
+    if(fv){ t.disabled=true; t.textContent='가져오는 중…'; await jFetchScript(fv); } return; }
+  if(h=hit('data-jorder')){ const ov=vidAll().filter(function(x){return x.id===h;})[0];
+    if(ov) await jOrderBot(ov); return; }
+  if(hit('data-jfetchall')){
+    const list=jNoScript(); if(!list.length) return;
+    t.disabled=true; t.textContent='가져오는 중…';
+    toast('📄 '+list.length+'편을 차례로 가져옵니다 — 유튜브가 막히지 않게 한 편씩');
+    for(const fv2 of list){ await jFetchScript(fv2, true); }
+    toast('📄 다 가져왔어요'); jPaint(); return; }
+  if(hit('data-jorderall')){
+    const list2=jNoBot(); if(!list2.length) return;
+    try{ const r2=await vaultCall('order', {ids:list2.map(function(x){return x.id;})});
+      toast(r2.opened ? '🤖 클로드를 띄웠어요 — ⌘V 후 엔터 ('+r2.waiting+'건)'
+                      : '🤖 주문서에 '+r2.waiting+'건 적었어요');
+    }catch(e){ toast('금고 서버에 못 닿았어요'); }
+    return; }
+  if(h=hit('data-jopen')){ jAid=h; jStep=2; jRailOpen=-1; jGo('jr3'); return; }
+
+  /* v24 · 📄 링크에서 원고 가져오기 — 맥북이 유튜브 자막을 물어와 금고에 채운다 */
+  const anatfetch = hit('data-anatfetch');
+  if(anatfetch){
+    const v = _items.filter(x=>x.id===anatfetch)[0];
+    if(!v || !v.url){ toast('링크가 없는 항목이에요'); return; }
+    const btn = document.querySelector('[data-anatfetch="'+anatfetch+'"]');
+    const msg = $('#anat-auto-msg');
+    if(btn){ btn.disabled = true; btn.textContent = '📄 가져오는 중…'; }
+    if(msg) msg.textContent = '유튜브에서 자막을 찾는 중이에요 — 몇 초 걸립니다';
+    try{
+      const j = await vaultCall('script', {id:anatfetch, url:v.url});
+      let n = 0, r = null;
+      while(n++ < 40){                                  /* 최대 2분쯤 기다린다 */
+        await new Promise(function(z){ setTimeout(z, 3000); });
+        r = await vaultCall('job/'+j.job);
+        if(r.state !== 'run') break;
+      }
+      if(r && r.state === 'done'){
+        _itemsLoaded = false; await itemsLoad(true);
+        anatRender();
+        toast('📄 원고를 채웠어요 — ' + r.msg);
+      }else{
+        if(btn){ btn.disabled = false; btn.textContent = '📄 링크에서 원고 가져오기'; }
+        if(msg) msg.textContent = (r && r.msg) ? '못 가져왔어요 — ' + r.msg : '못 가져왔어요';
+      }
+    }catch(e){
+      if(btn){ btn.disabled = false; btn.textContent = '📄 링크에서 원고 가져오기'; }
+      if(msg) msg.textContent = '금고 서버에 못 닿았어요';
+    }
+    return;
+  }
+
+  /* v24 · 🧩 클로드에게 분해 맡기기 — 주문서를 적고 클로드 앱을 띄운다 */
+  const anatorder = hit('data-anatorder');
+  if(anatorder){
+    const msg = $('#anat-auto-msg');
+    try{
+      const r = await vaultCall('order', {ids:[anatorder]});
+      if(msg) msg.innerHTML = r.opened
+        ? '🧩 클로드를 띄웠어요 — <b>붙여넣기(⌘V) 후 엔터</b>만 치시면 됩니다. 밀린 주문 '+r.waiting+'건'
+        : '🧩 주문서에 적었어요 (밀린 '+r.waiting+'건). 클로드를 직접 켜서 «분해해줘» 라고 하시면 됩니다';
+      toast(r.opened ? '🧩 클로드에게 넘겼어요 — ⌘V 후 엔터' : '🧩 주문서에 적었어요');
+    }catch(e){ if(msg) msg.textContent = '금고 서버에 못 닿았어요'; }
+    return;
+  }
+
+  /* v24 · 🚚 출고 대장에서 «끝» — 금고로 돌려보내고 서버에서 내린다 */
+  const gzdone = hit('data-gzdone');
+  if(gzdone){
+    const i = _items.findIndex(x=>x.id===gzdone);
+    if(i>=0){
+      const c = Object.assign({}, _items[i]);
+      c._gz = Object.assign({}, c._gz||{}, {done:true});
+      _items[i] = c;
+      try{ await vaultCall('save', {rows:[c]}); }catch(e){}
+    }
+    const n = await gzReclaim([gzdone]);
+    gzRender(); gzMark();
+    toast(n ? '🗄 금고로 돌아왔어요 — 서버에서 내렸습니다' : '아직 회수를 못 했어요 — 잠시 뒤 다시 눌러주세요');
+    return;
+  }
   const mrsend = hit('data-mrsend');
   if(mrsend){
     const ta=$('#mr-fb-body'); const body=ta?ta.value.trim():'';
@@ -2808,9 +3818,13 @@ document.addEventListener('click', async e=>{
     const refs=_mrRefs.map(id=>{ const v=_items.filter(x=>x.id===id)[0]||{}; return {title:v.title,url:v.url,steal:v.text}; });
     const ss=sessNow();
     try{
+      /* v24 · 붙여 보낸 자료만 회색지대로 «잠깐» 올린다 — 수강생이 봐야 하니까.
+               끝나면(출고 대장 ✓ 끝 · 또는 30일) 금고로 돌아오고 서버에선 사라진다.
+               사장님 말씀대로 «그때만 서버에 용량이 실리는» 자리가 여기다. */
+      if(VAULT_ON && _mrRefs.length) await gzPush(_mrRefs.slice());
       const r=await rpc('cm_fb_send',{p_code:ss.code,p_token:ss.token,p_req:mrsend,p_body:body,p_refs:refs});
       if(r&&r.ok===false){ toast(r.msg||'실패'); return; }
-      _mrOpen=''; _mrRefs=[]; await mrLoad(); mrRender();
+      _mrOpen=''; _mrRefs=[]; await mrLoad(); mrRender(); gzMark();
       toast('💬 피드백을 보냈어요');
     }catch(e){ toast('서버에 못 닿았어요'); }
     return;
@@ -3010,6 +4024,12 @@ document.addEventListener('click', async e=>{
   const op = hit('data-musopen') || hit('data-musrow');
   if(op){ if(t.closest('.msd-open')) return; _musOpen = (_musOpen===op) ? '' : op; musRender(); return; }
 });
+/* v25 · 서재 찾기는 «치는 대로» 걸러야 한다 */
+document.addEventListener('input', e=>{
+  if(e.target.id!=='jfind') return;
+  jFind=e.target.value; const at3=e.target.selectionStart;
+  jPaint4(); const nf=$('#jfind'); if(nf){ nf.focus(); try{ nf.setSelectionRange(at3,at3); }catch(x){} }
+});
 document.addEventListener('change', async e=>{
   const t = e.target; if(!t || !t.closest) return;
   const nm = t.closest('[data-musnm]');
@@ -3029,6 +4049,10 @@ document.addEventListener('change', async e=>{
     if(p){ p[q[1]] = String(t.value||'').slice(0, q[1]==='text'?4000:60); await itemsSave(p); prRender(); }
     return;
   }
+  /* v25 · 분류의 «핵심 메시지» — 적고 나가면 저장 */
+  const jf = t.closest('[data-jf]');
+  if(jf && jSel){ jJ(jSel).msg = String(t.value||'').slice(0,120);
+    const mj=vmeta(jSel); vmetaSet(jSel,mj); jSave(jSel); jPaint2(); return; }
   /* v9 · 해부 화면의 칸들 — 적고 나가면 그 자리에서 서버로 */
   const af = t.closest('[data-anatf]');
   if(af){ const p={}; p[af.dataset.anatf]=String(t.value||'').slice(0,120); await anatSave(p); vidRender(); return; }

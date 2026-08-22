@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>분해봇 — 5안 디벨롭</title>
+<style>
+:root{
+  --hook:#B9A9F6; --story:#8EC7F6; --conv:#6FE0C8; --prod:#C8F169;
+  --tx1:#EDF0F6; --tx2:#8B93A3; --tx3:#5A6272;
+  --glass:rgba(255,255,255,.035); --line:rgba(255,255,255,.075); --line2:rgba(255,255,255,.15);
+  --yt:#E0574B; --ig:#D62976;
+  --ease:cubic-bezier(.22,.61,.36,1);
+  /* 애플: 임계감쇠(오버슈트 0) · 모멘텀이 있을 때만 살짝 튄다 */
+  --sp-flat:cubic-bezier(.32,.72,0,1);
+  --sp-bounce:cubic-bezier(.32,1.34,.42,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;color:var(--tx1);font:100%/1.5 -apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{background:radial-gradient(120% 70% at 50% 0%, #0d1017, #070910 54%, #050609);min-height:100vh;padding:20px 16px 80px}
+.wrap{max-width:1240px;margin:0 auto}
+h1{font-size:clamp(20px,3vw,24px);line-height:1.1;letter-spacing:-.02em;margin:0 0 6px}
+.lead{color:var(--tx2);font-size:12.5px;line-height:1.65;margin:0 0 16px;max-width:74ch;text-wrap:pretty}
+.lead b{color:var(--prod)}
+.allbar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.allbar button{font-family:inherit;font-size:12.5px;font-weight:800;padding:10px 16px;border-radius:11px;cursor:pointer;
+  background:var(--prod);border:none;color:#06080c;transition:transform .1s ease-out}
+.allbar button:active{transform:scale(.97)}
+.allbar button.ghost{background:var(--glass);border:1px solid var(--line2);color:var(--tx2)}
+.allbar s{text-decoration:none;font-size:11px;color:var(--tx3)}
+
+.grid{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:760px){ .grid{grid-template-columns:repeat(2,1fr)} }
+@media(min-width:1120px){ .grid{grid-template-columns:repeat(3,1fr)} }
+.card{border:1px solid var(--line);border-radius:20px;overflow:hidden;position:relative;
+  background:linear-gradient(180deg,rgba(255,255,255,.022),transparent 40%)}
+.card.keep{border-color:rgba(255,255,255,.16)}
+.badge{position:absolute;right:12px;top:12px;z-index:4;font-size:9px;font-weight:800;letter-spacing:.04em;
+  padding:3px 8px;border-radius:7px;background:rgba(255,255,255,.07);color:var(--tx3);border:1px solid var(--line)}
+.card.keep .badge{background:rgba(200,241,105,.14);color:var(--prod);border-color:rgba(200,241,105,.34)}
+.chd{padding:13px 15px;border-bottom:1px solid var(--line)}
+.chd b{font-size:13px;font-weight:800;display:block;letter-spacing:-.01em}
+.chd s{text-decoration:none;font-size:10.5px;color:var(--tx3);line-height:1.5;display:block;margin-top:3px}
+.ctl{display:flex;gap:5px;padding:11px 15px 0}
+.ctl button{flex:1;font-family:inherit;font-size:11px;font-weight:800;padding:7px 0;border-radius:9px;cursor:pointer;
+  background:var(--glass);border:1px solid var(--line);color:var(--tx2);transition:transform .1s ease-out}
+.ctl button:active{transform:scale(.96)}
+.ctl button.yt{color:#FF7A6E;border-color:rgba(224,87,75,.36)}
+.ctl button.ig{color:#F06FB8;border-color:rgba(214,41,118,.36)}
+.ctl button[disabled]{opacity:.4;cursor:default}
+.scene{position:relative;height:262px;margin:8px 0 0}
+.scene svg{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}
+.state{text-align:center;font-size:10.5px;font-weight:700;color:var(--tx3);padding:2px 12px 0;min-height:16px;transition:color .3s}
+.card.run .state{color:var(--story)} .card.done .state{color:var(--prod)}
+.out{padding:0 15px 15px;min-height:92px}
+.outcard{display:flex;gap:10px;align-items:center;padding:9px;border-radius:13px;
+  background:rgba(200,241,105,.06);border:1px solid rgba(200,241,105,.26);
+  animation:spit .5s var(--sp-bounce) 1 both}
+@keyframes spit{ from{opacity:0;transform:translateY(-14px) scale(.92)} to{opacity:1;transform:none} }
+.outcard i{width:32px;height:44px;border-radius:8px;flex:none;box-shadow:0 6px 16px rgba(0,0,0,.5)}
+.outcard .tt b{display:block;font-size:11.5px;font-weight:800;line-height:1.35}
+.outcard .tt s{display:block;text-decoration:none;font-size:9.5px;color:var(--prod);margin-top:3px;font-weight:700}
+.outempty{font-size:10.5px;color:var(--tx3);text-align:center;padding:28px 10px;line-height:1.6;
+  border:1px dashed var(--line);border-radius:13px}
+
+/* ── 공통 ── */
+.pipe{stroke:rgba(255,255,255,.1);stroke-width:2.4;fill:none;stroke-linecap:round}
+.flow{stroke-width:2.8;fill:none;stroke-linecap:round;stroke-dasharray:var(--len);stroke-dashoffset:var(--len);opacity:0}
+.card.run .flow.on{opacity:1;animation:flow 1.05s var(--ease) 1 forwards}
+.card.done .flow.on{opacity:.5;stroke-dashoffset:0}
+@keyframes flow{ to{stroke-dashoffset:0} }
+.plabel{font:800 9px/1 -apple-system,system-ui;fill:var(--tx3);letter-spacing:.02em}
+.card.run .port.on .plabel{fill:var(--tx1)}
+.card.run .port.on .pbg{filter:brightness(1.22)}
+.pbg{transition:filter .35s var(--ease)}
+
+/* ══ C 원본 ══ */
+.card.run #C .rob{animation:tilt .6s ease-in-out 3 both}
+#C .rob{transform-origin:0 40px}
+@keyframes tilt{ 0%,100%{transform:rotate(0)} 30%{transform:rotate(-2.6deg)} 70%{transform:rotate(2.6deg)} }
+#C .eye{fill:#2a3040;transition:fill .3s}
+.card.run #C .eye,.card.done #C .eye{fill:var(--prod)}
+#C .zzz{fill:var(--tx3);font:800 11px/1 system-ui;transition:opacity .3s}
+.card.run #C .zzz,.card.done #C .zzz{opacity:0}
+#C .sheet{opacity:0}
+.card.done #C .sheet{animation:sheet .55s var(--sp-bounce) 1 both}
+@keyframes sheet{ from{opacity:0;transform:translateY(-8px) scaleY(.4)} to{opacity:1;transform:none} }
+
+/* ══ D · 내 느낌 ① — 라인이 긴 로봇 ══ */
+#D .rob{transform-origin:0 46px}
+.card.run #D .rob{animation:tilt2 .72s ease-in-out 3 both}
+@keyframes tilt2{ 0%,100%{transform:rotate(0) translateY(0)} 50%{transform:rotate(-3deg) translateY(-2px)} }
+#D .eye{fill:#242a38;transition:fill .35s}
+.card.run #D .eye,.card.done #D .eye{fill:var(--prod)}
+#D .visor{fill:rgba(255,255,255,.05);stroke:rgba(255,255,255,.16);stroke-width:1.5;transition:.4s var(--ease)}
+.card.run #D .visor{fill:rgba(142,199,246,.11);stroke:rgba(142,199,246,.5)}
+.card.done #D .visor{fill:rgba(200,241,105,.1);stroke:rgba(200,241,105,.45)}
+#D .ant{stroke:#2a3040;stroke-width:2;stroke-linecap:round;transition:stroke .35s}
+.card.run #D .ant{stroke:var(--story)}
+#D .antdot{fill:#2a3040;transition:fill .35s}
+.card.run #D .antdot{fill:var(--story)}
+.card.done #D .antdot{fill:var(--prod)}
+#D .zzz{fill:var(--tx3);font:800 11px/1 system-ui;transition:opacity .3s}
+.card.run #D .zzz,.card.done #D .zzz{opacity:0}
+#D .slot{fill:rgba(0,0,0,.5);stroke:rgba(255,255,255,.1);stroke-width:1.2}
+#D .sheet{opacity:0}
+.card.done #D .sheet{animation:sheet2 .6s var(--sp-bounce) 1 both}
+@keyframes sheet2{ from{opacity:0;transform:translateY(-14px)} to{opacity:1;transform:translateY(0)} }
+
+/* ══ E · 내 느낌 ② — 집어서 찍는 로봇 ══ */
+#E .grab{transform-origin:30px 6px;transition:transform .45s var(--sp-flat)}
+.card.run #E .grab{animation:grab 1.5s var(--sp-flat) 2 both}
+@keyframes grab{ 0%{transform:rotate(0)} 35%{transform:rotate(-26deg)} 70%{transform:rotate(6deg)} 100%{transform:rotate(0)} }
+#E .stampbody{transform-origin:center;transition:.35s var(--ease)}
+.card.run #E .stampbody{animation:press .55s var(--sp-flat) 4 both}
+@keyframes press{ 0%,100%{transform:translateY(0)} 45%{transform:translateY(6px)} }
+#E .eye{fill:#242a38;transition:fill .3s}
+.card.run #E .eye,.card.done #E .eye{fill:var(--prod)}
+#E .ink{opacity:0}
+.card.done #E .ink{animation:ink .45s var(--ease) 1 both}
+@keyframes ink{ from{opacity:0;transform:scale(.5)} to{opacity:1;transform:scale(1)} }
+#E .plate{fill:rgba(255,255,255,.04);stroke:rgba(255,255,255,.13);stroke-width:1.4;transition:.4s var(--ease)}
+.card.done #E .plate{stroke:rgba(200,241,105,.4)}
+#E .sheet{opacity:0}
+.card.done #E .sheet{animation:sheet2 .6s var(--sp-bounce) 1 both}
+
+/* ══ F · 애플 — 하나의 물체 ══ */
+#F .obj{transition:transform .4s var(--sp-flat)}
+.card.run #F .obj{animation:breathe 1.3s var(--sp-flat) 2 both}
+@keyframes breathe{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.045)} }
+#F .shell{fill:rgba(255,255,255,.055);stroke:rgba(255,255,255,.14);stroke-width:1.4;transition:.45s var(--sp-flat)}
+.card.run #F .shell{fill:rgba(255,255,255,.09);stroke:rgba(255,255,255,.24)}
+.card.done #F .shell{fill:rgba(200,241,105,.1);stroke:rgba(200,241,105,.4)}
+#F .pip{fill:#39404f;transition:fill .45s var(--sp-flat),r .45s var(--sp-flat)}
+.card.run #F .pip{fill:var(--story)}
+.card.done #F .pip{fill:var(--prod)}
+#F .arc{stroke:var(--story);stroke-width:2;fill:none;stroke-linecap:round;
+  stroke-dasharray:96;stroke-dashoffset:96;opacity:0}
+.card.run #F .arc{opacity:1;animation:flow 2.2s var(--ease) 1 forwards}
+.card.done #F .arc{opacity:1;stroke-dashoffset:0;stroke:var(--prod)}
+#F .sheet{opacity:0}
+.card.done #F .sheet{animation:sheetF .42s var(--sp-flat) 1 both}
+@keyframes sheetF{ from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+
+/* ══ G · 힉스필드 ① — 스포트라이트 무대 ══ */
+#G .spot{opacity:0;transition:opacity .5s var(--ease)}
+.card.run #G .spot,.card.done #G .spot{opacity:1}
+#G .rob{transform-origin:0 42px;transition:transform .5s var(--sp-flat)}
+.card.run #G .rob{animation:rise 1.6s var(--sp-flat) 2 both}
+@keyframes rise{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+#G .eye{fill:#22283a;transition:fill .4s}
+.card.run #G .eye,.card.done #G .eye{fill:#fff}
+#G .glassbody{fill:rgba(255,255,255,.06);stroke:rgba(255,255,255,.2);stroke-width:1.4;transition:.5s var(--ease)}
+.card.run #G .glassbody{fill:rgba(142,199,246,.13);stroke:rgba(142,199,246,.55)}
+.card.done #G .glassbody{fill:rgba(200,241,105,.12);stroke:rgba(200,241,105,.5)}
+#G .shadow{fill:rgba(0,0,0,.55);transition:.5s var(--ease)}
+.card.run #G .shadow{transform:scale(.86);opacity:.7}
+#G .sheet{opacity:0}
+.card.done #G .sheet{animation:sheet2 .6s var(--sp-bounce) 1 both}
+
+/* ══ H · 힉스필드 ② — 기울인 라인 ══ */
+#H .stagefloor{fill:url(#hfloor)}
+#H .deck{transform-origin:150px 150px}
+#H .rob{transform-origin:0 40px;transition:transform .5s var(--sp-flat)}
+.card.run #H .rob{animation:pop 1.5s var(--sp-flat) 2 both}
+@keyframes pop{ 0%,100%{transform:translateZ(0) scale(1)} 50%{transform:scale(1.07)} }
+#H .eye{fill:#22283a;transition:fill .4s}
+.card.run #H .eye,.card.done #H .eye{fill:var(--conv)}
+#H .core{fill:rgba(255,255,255,.05);stroke:rgba(255,255,255,.16);stroke-width:1.4;transition:.5s var(--ease)}
+.card.run #H .core{fill:rgba(111,224,200,.12);stroke:rgba(111,224,200,.5)}
+.card.done #H .core{fill:rgba(200,241,105,.12);stroke:rgba(200,241,105,.5)}
+#H .slab{fill:rgba(255,255,255,.045);stroke:rgba(255,255,255,.16);stroke-width:1.2;transition:stroke .5s var(--ease)}
+.card.run #H .slab{stroke:rgba(111,224,200,.34)}
+.card.done #H .slab{stroke:rgba(200,241,105,.3)}
+#H .sheet{opacity:0}
+.card.done #H .sheet{animation:sheet2 .6s var(--sp-bounce) 1 both}
+
+@media(prefers-reduced-motion:reduce){ *{animation-duration:.01ms!important;transition-duration:.01ms!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>분해봇 — 5안 디벨롭</h1>
+  <p class="lead">C안을 <b>킵</b>해두고, 로고·선·로봇을 다섯 갈래로 벌렸습니다.
+     셋은 제 손과 <b>애플</b>·<b>힉스필드</b>의 눈을 빌린 것입니다.
+     전부 <b>꺼짐 → 일함 → 뱉음</b> 3상태이고, 평소 애니메이션은 <b>0개</b>입니다.</p>
+
+  <div class="allbar">
+    <button data-all="ig">◉ 인스타 넣기 — 전부</button>
+    <button data-all="yt">▶ 유튜브 넣기 — 전부</button>
+    <button class="ghost" data-reset="1">처음으로</button>
+    <s>인스타는 받아쓰기까지 하므로 더 오래 걸립니다</s>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+var ANS = [
+  {id:'C', keep:1, nm:'C · 원본 (킵)',        sub:'고른 그것. 비교 기준으로 남겨둡니다'},
+  {id:'D', nm:'D · 내 느낌 ① 긴 라인',        sub:'선을 길게 빼 «공정»을 살리고, 로봇은 바이저·안테나로 또렷하게'},
+  {id:'E', nm:'E · 내 느낌 ② 집어서 찍기',    sub:'팔로 집어 와 도장을 쿵 찍는다. 「일한다」가 동작으로 보인다'},
+  {id:'F', nm:'F · 애플 — 하나의 물체',       sub:'캐릭터를 지웠다. 점 하나와 호(弧)로 상태를 말한다. 오버슈트 0'},
+  {id:'G', nm:'G · 힉스필드 ① 스포트라이트',  sub:'어둠 속 무대. 일할 때 광원이 켜지고 유리 몸이 떠오른다'},
+  {id:'H', nm:'H · 힉스필드 ② 기울인 무대',   sub:'라인이 비스듬히 눕고, 봇만 정면으로 일어선다'}
+];
+var OUT = {
+  yt:{g:'linear-gradient(150deg,#3a2f12,#1d1707)', t:'3초 안에 안 넘기게 하는 법', s:'원고 217자 · 구성 6칸'},
+  ig:{g:'linear-gradient(150deg,#331a2e,#1a0d17)', t:'브이로그인데 왜 이건 터졌을까', s:'받아쓰기 412자 · 구성 5칸'}
+};
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+/* 입구 — 인스타 글리프를 제대로 그린다(둥근 사각 + 렌즈 + 플래시 점) */
+function port(x, y, kind, r){
+  r = r || 16;
+  var col = kind==='yt' ? 'var(--yt)' : 'url(#iggrad)';
+  var ico = kind==='yt'
+    ? '<path d="M-3.2 -4.4v8.8l7.2-4.4z" fill="#fff"/>'
+    : '<g fill="none" stroke="#fff" stroke-width="1.85" stroke-linejoin="round">'+
+      '<rect x="-6.4" y="-6.4" width="12.8" height="12.8" rx="4.1"/><circle cx="0" cy="0" r="2.95"/></g>'+
+      '<circle cx="4.3" cy="-4.3" r="1.05" fill="#fff"/>';
+  return '<g class="port '+kind+'" transform="translate('+x+','+y+')">'+
+    '<rect class="pbg" x="'+(-r)+'" y="'+(-r)+'" width="'+(r*2)+'" height="'+(r*2)+'" rx="'+(r*0.63)+'" fill="'+col+'"/>'+
+    ico+'<text class="plabel" y="'+(r+13)+'" text-anchor="middle">'+(kind==='yt'?'유튜브':'인스타')+'</text></g>';
+}
+var DEFS = '<defs>'+
+  '<linearGradient id="iggrad" x1="0" y1="1" x2="1" y2="0">'+
+    '<stop offset="0" stop-color="#FEDA75"/><stop offset=".22" stop-color="#FA7E1E"/>'+
+    '<stop offset=".52" stop-color="#D62976"/><stop offset=".76" stop-color="#962FBF"/>'+
+    '<stop offset="1" stop-color="#4F5BD5"/></linearGradient>'+
+  '<radialGradient id="spotg" cx="50%" cy="0%" r="80%">'+
+    '<stop offset="0" stop-color="rgba(142,199,246,.55)"/><stop offset=".55" stop-color="rgba(142,199,246,.16)"/>'+
+    '<stop offset="1" stop-color="rgba(142,199,246,0)"/></radialGradient>'+
+  '<linearGradient id="hfloor" x1="0" y1="0" x2="0" y2="1">'+
+    '<stop offset="0" stop-color="rgba(142,199,246,.17)"/><stop offset="1" stop-color="rgba(255,255,255,0)"/></linearGradient>'+
+  '</defs>';
+
+/* ══ C 원본 ══ */
+function sC(){ return '<svg viewBox="0 0 300 262" id="C">'+DEFS+
+  port(78,42,'yt')+port(222,42,'ig')+
+  '<path class="pipe" d="M78 62 Q78 100 118 106"/><path class="pipe" d="M222 62 Q222 100 182 106"/>'+
+  '<path class="flow yt" style="--len:90" stroke="var(--yt)" d="M78 62 Q78 100 118 106"/>'+
+  '<path class="flow ig" style="--len:90" stroke="var(--ig)" d="M222 62 Q222 100 182 106"/>'+
+  '<g transform="translate(150,140) scale(1.18)"><g class="rob">'+
+    '<text class="zzz" x="26" y="-44">z z</text>'+
+    '<rect x="-30" y="-38" width="60" height="46" rx="15" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.17)" stroke-width="1.6"/>'+
+    '<circle class="eye" cx="-11" cy="-17" r="4.2"/><circle class="eye" cx="11" cy="-17" r="4.2"/>'+
+    '<rect x="-7" y="-4" width="14" height="3.2" rx="1.6" fill="rgba(255,255,255,.28)"/>'+
+    '<rect x="-22" y="12" width="44" height="30" rx="10" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.15)" stroke-width="1.5"/>'+
+    '<g class="sheet"><rect x="-16" y="44" width="32" height="24" rx="5" fill="rgba(200,241,105,.15)" stroke="var(--prod)" stroke-width="1.4"/>'+
+    '<line x1="-10" y1="52" x2="10" y2="52" stroke="var(--prod)" stroke-width="1.5" stroke-linecap="round"/></g>'+
+  '</g></g></svg>'; }
+
+/* ══ D · 긴 라인 ══ */
+function sD(){ return '<svg viewBox="0 0 300 262" id="D">'+DEFS+
+  port(60,34,'yt',15)+port(240,34,'ig',15)+
+  /* 길게 도는 라인 — «흘러 들어간다»가 눈에 보이게 */
+  '<path class="pipe" d="M60 52 V84 Q60 100 80 100 H136 Q150 100 150 114 V132"/>'+
+  '<path class="pipe" d="M240 52 V84 Q240 100 220 100 H164 Q150 100 150 114 V132"/>'+
+  '<path class="flow yt" style="--len:170" stroke="var(--yt)" d="M60 52 V84 Q60 100 80 100 H136 Q150 100 150 114 V132"/>'+
+  '<path class="flow ig" style="--len:170" stroke="var(--ig)" d="M240 52 V84 Q240 100 220 100 H164 Q150 100 150 114 V132"/>'+
+  '<g transform="translate(150,152)"><g class="rob">'+
+    '<text class="zzz" x="30" y="-40">z z</text>'+
+    '<line class="ant" x1="0" y1="-40" x2="0" y2="-52"/><circle class="antdot" cx="0" cy="-55" r="3.4"/>'+
+    '<rect x="-32" y="-38" width="64" height="44" rx="16" fill="rgba(255,255,255,.045)" stroke="rgba(255,255,255,.15)" stroke-width="1.5"/>'+
+    '<rect class="visor" x="-23" y="-30" width="46" height="24" rx="11"/>'+
+    '<circle class="eye" cx="-9" cy="-18" r="3.8"/><circle class="eye" cx="9" cy="-18" r="3.8"/>'+
+    '<rect x="-24" y="10" width="48" height="32" rx="11" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.14)" stroke-width="1.5"/>'+
+    '<rect class="slot" x="-15" y="36" width="30" height="5" rx="2.5"/>'+
+    '<g class="sheet"><rect x="-17" y="46" width="34" height="26" rx="5" fill="rgba(200,241,105,.14)" stroke="var(--prod)" stroke-width="1.4"/>'+
+    '<line x1="-11" y1="55" x2="11" y2="55" stroke="var(--prod)" stroke-width="1.5" stroke-linecap="round"/>'+
+    '<line x1="-11" y1="62" x2="4" y2="62" stroke="var(--prod)" stroke-width="1.5" stroke-linecap="round"/></g>'+
+  '</g></g></svg>'; }
+
+/* ══ E · 집어서 찍기 ══ */
+function sE(){ return '<svg viewBox="0 0 300 262" id="E">'+DEFS+
+  port(64,36,'yt',15)+port(236,36,'ig',15)+
+  '<path class="pipe" d="M64 54 V92 H150"/><path class="pipe" d="M236 54 V92 H150"/>'+
+  '<path class="flow yt" style="--len:130" stroke="var(--yt)" d="M64 54 V92 H150"/>'+
+  '<path class="flow ig" style="--len:130" stroke="var(--ig)" d="M236 54 V92 H150"/>'+
+  '<g transform="translate(150,152)">'+
+    /* 머리 — 위로 올려 도장과 안 겹치게 */
+    '<rect x="-27" y="-84" width="54" height="38" rx="13" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.16)" stroke-width="1.5"/>'+
+    '<circle class="eye" cx="-9" cy="-66" r="3.6"/><circle class="eye" cx="9" cy="-66" r="3.6"/>'+
+    '<rect x="-4" y="-46" width="8" height="10" rx="3" fill="rgba(255,255,255,.1)"/>'+
+    /* 왼팔 — 집어 온다 */
+    '<g transform="translate(-44,-40)"><g class="grab">'+
+      '<rect x="0" y="4" width="30" height="4.4" rx="2.2" fill="rgba(255,255,255,.17)"/>'+
+      '<path d="M2 2 l-7 4 7 4" fill="none" stroke="rgba(255,255,255,.32)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+
+    '</g></g>'+
+    /* 도장 — 작업대 바로 위에서 쿵 */
+    '<g class="stampbody"><rect x="-6" y="-36" width="12" height="12" rx="4" fill="rgba(255,255,255,.2)"/>'+
+    '<rect x="-20" y="-24" width="40" height="15" rx="4.5" fill="rgba(255,255,255,.1)" stroke="rgba(255,255,255,.22)" stroke-width="1.3"/></g>'+
+    /* 작업대 */
+    '<rect class="plate" x="-74" y="-6" width="148" height="10" rx="5"/>'+
+    '<g class="ink" transform="translate(0,-11)"><circle r="11" fill="none" stroke="var(--prod)" stroke-width="1.8"/>'+
+    '<path d="M-4.4 0 l3 3.2 5.8-6.2" fill="none" stroke="var(--prod)" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></g>'+
+    '<g class="sheet"><rect x="-17" y="14" width="34" height="26" rx="5" fill="rgba(200,241,105,.14)" stroke="var(--prod)" stroke-width="1.4"/>'+
+    '<line x1="-11" y1="23" x2="11" y2="23" stroke="var(--prod)" stroke-width="1.5" stroke-linecap="round"/>'+
+    '<line x1="-11" y1="30" x2="4" y2="30" stroke="var(--prod)" stroke-width="1.5" stroke-linecap="round"/></g>'+
+  '</g></svg>'; }
+
+/* ══ F · 애플 ══ */
+function sF(){ return '<svg viewBox="0 0 300 262" id="F">'+DEFS+
+  port(88,40,'yt',14)+port(212,40,'ig',14)+
+  '<path class="pipe" d="M88 56 V88 Q88 100 104 100 H150"/><path class="pipe" d="M212 56 V88 Q212 100 196 100 H150"/>'+
+  '<path class="flow yt" style="--len:96" stroke="var(--yt)" d="M88 56 V88 Q88 100 104 100 H150"/>'+
+  '<path class="flow ig" style="--len:96" stroke="var(--ig)" d="M212 56 V88 Q212 100 196 100 H150"/>'+
+  '<g transform="translate(150,152)"><g class="obj">'+
+    /* 캐릭터가 아니다 — 하나의 물체 */
+    '<rect class="shell" x="-40" y="-40" width="80" height="80" rx="26"/>'+
+    '<circle class="arc" cx="0" cy="0" r="26" transform="rotate(-90)"/>'+
+    '<circle class="pip" cx="0" cy="0" r="5.4"/>'+
+  '</g>'+
+  '<g class="sheet"><rect x="-17" y="52" width="34" height="26" rx="7" fill="rgba(200,241,105,.12)" stroke="rgba(200,241,105,.5)" stroke-width="1.3"/>'+
+  '<line x1="-11" y1="61" x2="11" y2="61" stroke="var(--prod)" stroke-width="1.5" stroke-linecap="round"/>'+
+  '<line x1="-11" y1="68" x2="3" y2="68" stroke="var(--prod)" stroke-width="1.5" stroke-linecap="round"/></g>'+
+  '</g></svg>'; }
+
+/* ══ G · 스포트라이트 ══ */
+function sG(){ return '<svg viewBox="0 0 300 262" id="G">'+DEFS+
+  '<g class="spot"><polygon points="150,-4 238,240 62,240" fill="rgba(142,199,246,.10)"/>'+
+  '<polygon points="150,-4 200,240 100,240" fill="rgba(142,199,246,.13)"/>'+
+  '<ellipse cx="150" cy="236" rx="66" ry="12" fill="rgba(142,199,246,.13)"/></g>'+
+  port(70,38,'yt',15)+port(230,38,'ig',15)+
+  '<path class="pipe" d="M70 56 Q70 104 116 112"/><path class="pipe" d="M230 56 Q230 104 184 112"/>'+
+  '<path class="flow yt" style="--len:100" stroke="var(--yt)" d="M70 56 Q70 104 116 112"/>'+
+  '<path class="flow ig" style="--len:100" stroke="var(--ig)" d="M230 56 Q230 104 184 112"/>'+
+  '<ellipse class="shadow" cx="150" cy="212" rx="46" ry="7"/>'+
+  '<g transform="translate(150,150)"><g class="rob">'+
+    '<rect class="glassbody" x="-31" y="-40" width="62" height="48" rx="18"/>'+
+    '<circle class="eye" cx="-11" cy="-18" r="4"/><circle class="eye" cx="11" cy="-18" r="4"/>'+
+    '<rect class="glassbody" x="-23" y="12" width="46" height="32" rx="12"/>'+
+    '<g class="sheet"><rect x="-17" y="48" width="34" height="24" rx="5" fill="rgba(200,241,105,.14)" stroke="var(--prod)" stroke-width="1.4"/>'+
+    '<line x1="-11" y1="56" x2="11" y2="56" stroke="var(--prod)" stroke-width="1.5" stroke-linecap="round"/></g>'+
+  '</g></g></svg>'; }
+
+/* ══ H · 기울인 무대 ══ */
+function sH(){ return '<svg viewBox="0 0 300 262" id="H">'+DEFS+
+  /* 바닥은 «뒤로 눕힌» 판 — 로봇보다 먼저 그려서 뒤에 깔린다 */
+  '<g class="deck" transform="matrix(1,0,0,0.3,0,118)">'+
+    '<rect class="stagefloor" x="18" y="30" width="264" height="220" rx="34"/>'+
+    '<rect class="slab" x="44" y="56" width="212" height="172" rx="26"/>'+
+  '</g>'+
+  port(72,40,'yt',15)+port(228,40,'ig',15)+
+  '<path class="pipe" d="M72 58 L150 118"/><path class="pipe" d="M228 58 L150 118"/>'+
+  '<path class="flow yt" style="--len:104" stroke="var(--yt)" d="M72 58 L150 118"/>'+
+  '<path class="flow ig" style="--len:104" stroke="var(--ig)" d="M228 58 L150 118"/>'+
+  '<g transform="translate(150,150)"><g class="rob">'+
+    '<rect class="core" x="-29" y="-40" width="58" height="44" rx="16"/>'+
+    '<circle class="eye" cx="-10" cy="-19" r="3.8"/><circle class="eye" cx="10" cy="-19" r="3.8"/>'+
+    '<rect class="core" x="-21" y="8" width="42" height="26" rx="10"/>'+
+    '<g class="sheet"><rect x="-16" y="38" width="32" height="24" rx="5" fill="rgba(200,241,105,.14)" stroke="var(--prod)" stroke-width="1.4"/>'+
+    '<line x1="-10" y1="46" x2="10" y2="46" stroke="var(--prod)" stroke-width="1.5" stroke-linecap="round"/></g>'+
+  '</g></g></svg>'; }
+
+var SCENES = {C:sC, D:sD, E:sE, F:sF, G:sG, H:sH};
+
+document.getElementById('grid').innerHTML = ANS.map(function(a){
+  return '<section class="card'+(a.keep?' keep':'')+'" data-an="'+a.id+'">'+
+    (a.keep?'<span class="badge">킵</span>':'')+
+    '<div class="chd"><b>'+a.nm+'</b><s>'+a.sub+'</s></div>'+
+    '<div class="ctl"><button class="yt" data-run="'+a.id+'|yt">▶ 유튜브</button>'+
+    '<button class="ig" data-run="'+a.id+'|ig">◉ 인스타</button></div>'+
+    '<div class="scene">'+SCENES[a.id]()+'</div>'+
+    '<p class="state">꺼져 있음 — 일감이 오면 깨어납니다</p>'+
+    '<div class="out"><div class="outempty">여기로 결과가 나옵니다</div></div>'+
+    '</section>';
+}).join('');
+
+var T={};
+function reset(id){
+  var c=document.querySelector('[data-an="'+id+'"]'); if(!c) return;
+  clearTimeout(T[id]); clearTimeout(T[id+'b']);
+  c.classList.remove('run','done');
+  c.querySelectorAll('.flow').forEach(function(f){ f.classList.remove('on'); });
+  c.querySelectorAll('.port').forEach(function(p){ p.classList.remove('on'); });
+  c.querySelector('.state').textContent='꺼져 있음 — 일감이 오면 깨어납니다';
+  c.querySelector('.out').innerHTML='<div class="outempty">여기로 결과가 나옵니다</div>';
+  c.querySelectorAll('.ctl button').forEach(function(b){ b.disabled=false; });
+}
+function run(id, kind){
+  var c=document.querySelector('[data-an="'+id+'"]'); if(!c) return;
+  reset(id);
+  var ig = kind==='ig', dur = ig ? 4200 : 2600;
+  c.querySelectorAll('.ctl button').forEach(function(b){ b.disabled=true; });
+  c.querySelector('.port.'+kind).classList.add('on');
+  c.querySelector('.flow.'+kind).classList.add('on');
+  void c.offsetWidth;
+  c.classList.add('run');
+  c.querySelector('.state').textContent = ig ? '받아쓰는 중… 소리부터 글자로' : '자막을 읽는 중…';
+  T[id]=setTimeout(function(){ c.querySelector('.state').textContent='구성으로 뜯는 중…'; }, Math.round(dur*.55));
+  T[id+'b']=setTimeout(function(){
+    c.classList.remove('run'); c.classList.add('done');
+    c.querySelector('.state').textContent='끝났습니다 — 아래로 나왔어요';
+    var o=OUT[kind];
+    c.querySelector('.out').innerHTML='<div class="outcard"><i style="background:'+o.g+'"></i>'+
+      '<div class="tt"><b>'+esc(o.t)+'</b><s>'+esc(o.s)+'</s></div></div>';
+    c.querySelectorAll('.ctl button').forEach(function(b){ b.disabled=false; });
+  }, dur);
+}
+document.addEventListener('click', function(e){
+  var r=e.target.closest('[data-run]');
+  if(r){ var p=r.dataset.run.split('|'); run(p[0],p[1]); return; }
+  var a=e.target.closest('[data-all]');
+  if(a){ ANS.forEach(function(x){ run(x.id, a.dataset.all); }); return; }
+  if(e.target.closest('[data-reset]')){ ANS.forEach(function(x){ reset(x.id); }); return; }
+});
+</script>
+</body>
+</html>
