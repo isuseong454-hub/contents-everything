@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>새 주소로 이동합니다</title>
+<meta name="robots" content="noindex">
+<style>html,body{height:100%;margin:0}body{display:grid;place-items:center;background:#0b0b0c;color:#e8e8ea;font:400 15px/1.7 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;text-align:center;padding:24px}.t{font-size:18px;font-weight:500;margin-bottom:8px}a{color:#7cc6ff}</style>
+<div><div class="t">새 주소로 이동합니다</div><div>잠시만 기다려 주세요…</div><p><a id="go" href="https://contents-everything.pages.dev">눌러서 바로 이동</a></p></div>
+<script>
+(function(){
+  var NEW='https://contents-everything.pages.dev';
+  var rest=location.pathname.replace(/^\/contents-everything\/?/,'');
+  var url=NEW+'/'+rest+location.search+location.hash;
+  document.getElementById('go').href=url;
+  function go(){location.replace(url);}
+  if('serviceWorker' in navigator){
+    Promise.resolve()
+      .then(function(){return navigator.serviceWorker.getRegistrations();})
+      .then(function(rs){return Promise.all(rs.map(function(r){return r.unregister();}));})
+      .then(function(){return caches.keys();})
+      .then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k);}));})
+      .catch(function(){}).then(go);
+    setTimeout(go,2500);
+  } else { go(); }
+})();
+</script>
+</html>
